@@ -1,0 +1,78 @@
+{
+  "app": {
+    "greeting": "Hallo {{name}}!",
+    "title": "Gilberts To-Do List"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "search": "Suchen...",
+    "back": "Zurück",
+    "loading": "Laden..."
+  },
+  "nav": {
+    "statistics": "Statistiken",
+    "settings": "Einstellungen"
+  },
+  "views": {
+    "flatList": "Flache Liste",
+    "tagTabs": "Tag-Tabs",
+    "grouped": "Gruppiert",
+    "mindmap": "Mindmap",
+    "hardcore": "Hardcore"
+  },
+  "placeholder": {
+    "statistics": "Statistiken - kommt bald!",
+    "settings": "Einstellungen - kommt bald!",
+    "onboarding": "Willkommen!",
+    "main": "Deine To-Dos erscheinen hier."
+  },
+  "errors": {
+    "saveFailed": "Speichern fehlgeschlagen",
+    "loadFailed": "Laden fehlgeschlagen"
+  },
+  "todos": {
+    "newTodo": "+ Neues To-Do",
+    "titlePlaceholder": "Was muss erledigt werden?",
+    "descriptionPlaceholder": "Notizen hinzufügen...",
+    "completed": "Erledigt",
+    "noResults": "Keine Ergebnisse gefunden.",
+    "deleteTitle": "To-Do löschen",
+    "deleteMessage": "Bist du sicher, dass du dieses To-Do löschen möchtest?",
+    "deleteWithChildrenTitle": "Mit Unter-To-Dos löschen",
+    "deleteWithChildrenMessage": "Dieses To-Do hat Unter-To-Dos. Was möchtest du tun?",
+    "deleteAll": "Alle löschen",
+    "keepChildren": "Unter-To-Dos behalten",
+    "parentLabel": "Übergeordnetes To-Do",
+    "parentPlaceholder": "Übergeordnetes suchen...",
+    "clearParent": "Zuordnung entfernen",
+    "moreOptions": "Weitere Optionen",
+    "dueDate": "Fälligkeitsdatum",
+    "recurrence": "Wiederholung",
+    "recurrenceNone": "Keine",
+    "recurrenceDaily": "Täglich",
+    "recurrenceWeekly": "Wöchentlich",
+    "recurrenceMonthly": "Monatlich",
+    "recurrenceCustom": "Benutzerdefiniert",
+    "recurrenceCustomInterval": "Alle {{count}} Tage",
+    "customInterval": "Alle X Tage",
+    "statusOpen": "Offen",
+    "statusCompleted": "Erledigt",
+    "subTodos": "Unter-To-Dos",
+    "allTab": "Alle"
+  },
+  "tags": {
+    "title": "Tag-Verwaltung",
+    "namePlaceholder": "Tag-Name...",
+    "create": "Erstellen",
+    "colorPicker": "Farbauswahl",
+    "default": "Standard",
+    "setDefault": "Als Standard setzen",
+    "selectNewDefault": "Wähle einen neuen Standard-Tag:",
+    "errors": {
+      "lastTag": "Der letzte Tag kann nicht gelöscht werden"
+    }
+  }
+}
