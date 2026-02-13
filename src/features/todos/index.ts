@@ -20,3 +20,5 @@ export type {
 } from "./components/due-date-recurrence-section.tsx";
 export { MindmapView } from "./components/mindmap/index.ts";
 export type { MindmapViewProps } from "./components/mindmap/index.ts";
+export { HardcoreView } from "./components/hardcore/index.ts";
+export type { HardcoreViewProps } from "./components/hardcore/index.ts";

@@ -63,6 +63,19 @@
     "subTodos": "Unter-To-Dos",
     "allTab": "Alle"
   },
+  "hardcore": {
+    "selectTag": "Tag auswählen",
+    "save": "Speichern",
+    "preview": "Vorschau",
+    "edit": "Bearbeiten",
+    "discard": "Verwerfen",
+    "saveSuccess": "Änderungen gespeichert",
+    "validationError": "Zeile {{line}}: {{message}}",
+    "unsavedChanges": "Du hast ungespeicherte Änderungen. Verwerfen?",
+    "invalidLine": "Ungültige Syntax",
+    "depthJump": "Einrückungssprung zu groß",
+    "oddIndent": "Einrückung muss ein Vielfaches von 2 Leerzeichen sein"
+  },
   "tags": {
     "title": "Tag-Verwaltung",
     "namePlaceholder": "Tag-Name...",

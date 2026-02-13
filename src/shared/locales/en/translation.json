@@ -63,6 +63,19 @@
     "subTodos": "Sub-Todos",
     "allTab": "All"
   },
+  "hardcore": {
+    "selectTag": "Select tag",
+    "save": "Save",
+    "preview": "Preview",
+    "edit": "Edit",
+    "discard": "Discard",
+    "saveSuccess": "Changes saved",
+    "validationError": "Line {{line}}: {{message}}",
+    "unsavedChanges": "You have unsaved changes. Discard them?",
+    "invalidLine": "Invalid syntax",
+    "depthJump": "Indentation jump too large",
+    "oddIndent": "Indentation must be multiples of 2 spaces"
+  },
   "tags": {
     "title": "Tag Management",
     "namePlaceholder": "Tag name...",

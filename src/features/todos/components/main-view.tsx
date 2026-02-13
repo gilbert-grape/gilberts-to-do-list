@@ -24,6 +24,12 @@ const LazyMindmapView = lazy(() =>
   })),
 );
 
+const LazyHardcoreView = lazy(() =>
+  import("./hardcore/hardcore-view.tsx").then((m) => ({
+    default: m.HardcoreView,
+  })),
+);
+
 const VIEW_STORAGE_KEY = "gilberts-todo-active-view";
 const VALID_VIEWS: ViewType[] = [
   "flatList",
@@ -264,17 +270,21 @@ export function MainView() {
         <TodoEditForm todo={editingTodo} onClose={() => setEditingTodo(null)} />
       )}
 
-      {filteredTodos.length === 0 && !searchQuery && (
-        <p className="text-center text-[var(--color-text-secondary)]">
-          {t("placeholder.main")}
-        </p>
-      )}
+      {filteredTodos.length === 0 &&
+        !searchQuery &&
+        activeView !== "hardcore" && (
+          <p className="text-center text-[var(--color-text-secondary)]">
+            {t("placeholder.main")}
+          </p>
+        )}
 
-      {filteredTodos.length === 0 && searchQuery && (
-        <p className="text-center text-[var(--color-text-secondary)]">
-          {t("todos.noResults")}
-        </p>
-      )}
+      {filteredTodos.length === 0 &&
+        searchQuery &&
+        activeView !== "hardcore" && (
+          <p className="text-center text-[var(--color-text-secondary)]">
+            {t("todos.noResults")}
+          </p>
+        )}
 
       {filteredTodos.length > 0 && activeView === "tagTabs" && (
         <TagTabsView
@@ -313,6 +323,18 @@ export function MainView() {
             onToggle={toggleStatus}
             onTitleClick={handleTitleClick}
           />
+        </Suspense>
+      )}
+
+      {activeView === "hardcore" && (
+        <Suspense
+          fallback={
+            <p className="text-center text-[var(--color-text-secondary)]">
+              {t("common.loading")}
+            </p>
+          }
+        >
+          <LazyHardcoreView />
         </Suspense>
       )}
 
