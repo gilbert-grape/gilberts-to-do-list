@@ -68,6 +68,10 @@ vi.mock("./mindmap/mindmap-view.tsx", () => ({
   ),
 }));
 
+vi.mock("./hardcore/hardcore-view.tsx", () => ({
+  HardcoreView: () => <div data-testid="hardcore-view">Hardcore View</div>,
+}));
+
 vi.mock("@/services/storage/indexeddb/indexeddb-adapter.ts", () => ({
   IndexedDBAdapter: vi.fn(),
 }));
@@ -348,6 +352,30 @@ describe("MainView", () => {
         await screen.findByTestId("mindmap-view"),
       ).toBeInTheDocument();
       expect(screen.getByText("Mindmap (1 todos)")).toBeInTheDocument();
+    });
+
+    it("renders HardcoreView when Hardcore is selected", async () => {
+      const user = userEvent.setup();
+      setupStores();
+      render(<MainView />);
+
+      await user.click(screen.getByTitle("Hardcore"));
+      expect(
+        await screen.findByTestId("hardcore-view"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Hardcore View")).toBeInTheDocument();
+    });
+
+    it("does not show empty state for hardcore view", async () => {
+      const user = userEvent.setup();
+      setupStores();
+      render(<MainView />);
+
+      await user.click(screen.getByTitle("Hardcore"));
+      await screen.findByTestId("hardcore-view");
+      expect(
+        screen.queryByText("Your to-dos will appear here."),
+      ).not.toBeInTheDocument();
     });
 
     it("falls back to flatList for invalid localStorage value", () => {

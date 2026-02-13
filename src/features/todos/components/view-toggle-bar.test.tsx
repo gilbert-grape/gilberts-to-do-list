@@ -34,26 +34,21 @@ describe("ViewToggleBar", () => {
     expect(flatListBtn.className).toContain("bg-[var(--color-primary)]");
   });
 
-  it("disables only hardcore view", () => {
-    render(<ViewToggleBar activeView="flatList" onViewChange={vi.fn()} />);
-    expect(screen.getByTitle("Hardcore")).toBeDisabled();
-    expect(screen.getByTitle("Mindmap")).not.toBeDisabled();
-  });
-
-  it("enables flatList, tagTabs, grouped, and mindmap views", () => {
+  it("enables all views", () => {
     render(<ViewToggleBar activeView="flatList" onViewChange={vi.fn()} />);
     expect(screen.getByTitle("Flat List")).not.toBeDisabled();
     expect(screen.getByTitle("Tag Tabs")).not.toBeDisabled();
     expect(screen.getByTitle("Grouped")).not.toBeDisabled();
     expect(screen.getByTitle("Mindmap")).not.toBeDisabled();
+    expect(screen.getByTitle("Hardcore")).not.toBeDisabled();
   });
 
-  it("does not call onViewChange for disabled views", async () => {
+  it("calls onViewChange for hardcore click", async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
     render(<ViewToggleBar activeView="flatList" onViewChange={handleChange} />);
     await user.click(screen.getByTitle("Hardcore"));
-    expect(handleChange).not.toHaveBeenCalled();
+    expect(handleChange).toHaveBeenCalledWith("hardcore");
   });
 
   it("calls onViewChange for mindmap click", async () => {

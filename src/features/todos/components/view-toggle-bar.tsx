@@ -34,22 +34,18 @@ export function ViewToggleBar({
     <div className="flex gap-1 rounded-lg bg-[var(--color-surface)] p-1">
       {views.map(({ key, icon }) => {
         const isActive = activeView === key;
-        const isDisabled = key === "hardcore";
 
         return (
           <button
             key={key}
             type="button"
-            onClick={() => !isDisabled && onViewChange(key)}
-            disabled={isDisabled}
+            onClick={() => onViewChange(key)}
             title={t(`views.${key}`)}
             className={cn(
               "flex-1 rounded-md p-2 transition-colors",
               isActive && "bg-[var(--color-primary)] text-white",
               !isActive &&
-                !isDisabled &&
                 "text-[var(--color-text-secondary)] hover:text-[var(--color-text)]",
-              isDisabled && "cursor-not-allowed opacity-30",
             )}
           >
             <svg
