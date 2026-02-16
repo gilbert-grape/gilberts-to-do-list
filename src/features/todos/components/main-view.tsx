@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTodoStore, setTodoStorageAdapter } from "../store.ts";
 import { useTagStore, setStorageAdapter } from "@/features/tags/store.ts";
+import { useSettingsStore } from "@/features/settings/store.ts";
 import { db } from "@/services/storage/indexeddb/db.ts";
 import { IndexedDBAdapter } from "@/services/storage/indexeddb/indexeddb-adapter.ts";
 import { GroupedView } from "./grouped-view.tsx";
@@ -71,6 +72,10 @@ export function MainView() {
   const [detailTodoId, setDetailTodoId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeView, setActiveView] = useState<ViewType>(loadSavedView);
+  const [showCompleted, setShowCompleted] = useState(false);
+  const completedDisplayMode = useSettingsStore(
+    (s) => s.completedDisplayMode,
+  );
 
   const handleViewChange = (view: ViewType) => {
     setActiveView(view);
@@ -357,26 +362,61 @@ export function MainView() {
             </ul>
           )}
 
-          {completedTodos.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
-                {t("todos.completed")} ({completedTodos.length})
-              </h3>
-              <ul className="space-y-2">
-                {completedTodos.map((todo) => (
-                  <TodoItem
-                    key={todo.id}
-                    todo={todo}
-                    onToggle={toggleStatus}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onCreateSibling={handleCreateSibling}
-                    onCreateChild={handleCreateChild}
-                  />
-                ))}
-              </ul>
-            </div>
-          )}
+          {completedTodos.length > 0 &&
+            completedDisplayMode === "bottom" && (
+              <div>
+                <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
+                  {t("todos.completed")} ({completedTodos.length})
+                </h3>
+                <ul className="space-y-2">
+                  {completedTodos.map((todo) => (
+                    <TodoItem
+                      key={todo.id}
+                      todo={todo}
+                      onToggle={toggleStatus}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onCreateSibling={handleCreateSibling}
+                      onCreateChild={handleCreateChild}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )}
+
+          {completedTodos.length > 0 &&
+            completedDisplayMode === "toggleable" && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowCompleted((prev) => !prev)}
+                  className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
+                >
+                  {showCompleted
+                    ? t("settings.hideCompleted", {
+                        count: String(completedTodos.length),
+                      })
+                    : t("settings.showCompleted", {
+                        count: String(completedTodos.length),
+                      })}
+                </button>
+                {showCompleted && (
+                  <ul className="space-y-2">
+                    {completedTodos.map((todo) => (
+                      <TodoItem
+                        key={todo.id}
+                        todo={todo}
+                        onToggle={toggleStatus}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onCreateSibling={handleCreateSibling}
+                        onCreateChild={handleCreateChild}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
         </>
       )}
 

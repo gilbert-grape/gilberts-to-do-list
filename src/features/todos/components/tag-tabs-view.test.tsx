@@ -3,15 +3,18 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TagTabsView } from "./tag-tabs-view.tsx";
 import { useTagStore } from "@/features/tags/store.ts";
+import { useSettingsStore } from "@/features/settings/store.ts";
 import type { Todo } from "../types.ts";
 import type { Tag } from "@/features/tags/types.ts";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, options?: Record<string, string>) => {
       const translations: Record<string, string> = {
         "todos.allTab": "All",
         "todos.completed": "Completed",
+        "settings.showCompleted": `Show Completed (${options?.count ?? ""})`,
+        "settings.hideCompleted": `Hide Completed (${options?.count ?? ""})`,
       };
       return translations[key] ?? key;
     },
@@ -77,12 +80,28 @@ const childTodo: Todo = {
   sortOrder: 2,
 };
 
+const completedWorkTodo: Todo = {
+  id: "todo-done",
+  title: "Old report",
+  description: null,
+  tagIds: ["tag-work"],
+  parentId: null,
+  status: "completed",
+  dueDate: null,
+  recurrence: null,
+  recurrenceInterval: null,
+  createdAt: "2026-02-10T10:00:00.000Z",
+  completedAt: "2026-02-10T11:00:00.000Z",
+  sortOrder: 3,
+};
+
 describe("TagTabsView", () => {
   beforeEach(() => {
     useTagStore.setState({
       tags: [workTag, personalTag],
       isLoaded: true,
     });
+    useSettingsStore.setState({ completedDisplayMode: "bottom" });
   });
 
   it("renders All tab", () => {
@@ -163,5 +182,58 @@ describe("TagTabsView", () => {
     const checkbox = screen.getByRole("checkbox");
     await userEvent.click(checkbox);
     expect(handleToggle).toHaveBeenCalledWith("todo-1");
+  });
+
+  describe("completedDisplayMode", () => {
+    it("hides completed todos when mode is hidden", () => {
+      useSettingsStore.setState({ completedDisplayMode: "hidden" });
+      render(
+        <TagTabsView
+          todos={[workTodo, completedWorkTodo]}
+          onToggle={vi.fn()}
+        />,
+      );
+      expect(screen.getByText("Finish report")).toBeInTheDocument();
+      expect(screen.queryByText("Old report")).not.toBeInTheDocument();
+    });
+
+    it("shows completed section at bottom when mode is bottom", () => {
+      useSettingsStore.setState({ completedDisplayMode: "bottom" });
+      render(
+        <TagTabsView
+          todos={[workTodo, completedWorkTodo]}
+          onToggle={vi.fn()}
+        />,
+      );
+      expect(screen.getByText("Finish report")).toBeInTheDocument();
+      expect(screen.getByText("Old report")).toBeInTheDocument();
+      expect(screen.getByText("Completed (1)")).toBeInTheDocument();
+    });
+
+    it("shows toggle button when mode is toggleable", () => {
+      useSettingsStore.setState({ completedDisplayMode: "toggleable" });
+      render(
+        <TagTabsView
+          todos={[workTodo, completedWorkTodo]}
+          onToggle={vi.fn()}
+        />,
+      );
+      expect(screen.getByText("Finish report")).toBeInTheDocument();
+      expect(screen.getByText("Show Completed (1)")).toBeInTheDocument();
+      expect(screen.queryByText("Old report")).not.toBeInTheDocument();
+    });
+
+    it("expands completed todos when toggle is clicked", async () => {
+      const user = userEvent.setup();
+      useSettingsStore.setState({ completedDisplayMode: "toggleable" });
+      render(
+        <TagTabsView
+          todos={[workTodo, completedWorkTodo]}
+          onToggle={vi.fn()}
+        />,
+      );
+      await user.click(screen.getByText("Show Completed (1)"));
+      expect(screen.getByText("Old report")).toBeInTheDocument();
+    });
   });
 });

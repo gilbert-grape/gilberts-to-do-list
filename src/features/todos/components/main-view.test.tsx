@@ -4,12 +4,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MainView } from "./main-view.tsx";
 import { useTodoStore } from "../store.ts";
 import { useTagStore } from "@/features/tags/store.ts";
+import { useSettingsStore } from "@/features/settings/store.ts";
 import type { Tag } from "@/features/tags/types.ts";
 import type { Todo } from "../types.ts";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, options?: Record<string, string>) => {
       const translations: Record<string, string> = {
         "common.loading": "Loading...",
         "common.cancel": "Cancel",
@@ -52,6 +53,8 @@ vi.mock("react-i18next", () => ({
         "views.grouped": "Grouped",
         "views.mindmap": "Mindmap",
         "views.hardcore": "Hardcore",
+        "settings.showCompleted": `Show Completed (${options?.count ?? ""})`,
+        "settings.hideCompleted": `Hide Completed (${options?.count ?? ""})`,
       };
       return translations[key] ?? key;
     },
@@ -177,6 +180,7 @@ describe("MainView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    useSettingsStore.setState({ completedDisplayMode: "bottom" });
   });
 
   it("shows loading state initially", () => {
@@ -547,6 +551,46 @@ describe("MainView", () => {
       // Both are rendered as <li> elements at the same level
       const items = screen.getAllByRole("checkbox");
       expect(items).toHaveLength(2);
+    });
+  });
+
+  describe("completedDisplayMode", () => {
+    it("hides completed section when mode is hidden", () => {
+      useSettingsStore.setState({ completedDisplayMode: "hidden" });
+      setupStores({ todos: [openTodo, completedTodo] });
+      render(<MainView />);
+      expect(screen.getByText("Buy milk")).toBeInTheDocument();
+      expect(screen.queryByText("Walk the dog")).not.toBeInTheDocument();
+      expect(screen.queryByText(/Completed/)).not.toBeInTheDocument();
+    });
+
+    it("shows completed section at bottom when mode is bottom", () => {
+      useSettingsStore.setState({ completedDisplayMode: "bottom" });
+      setupStores({ todos: [openTodo, completedTodo] });
+      render(<MainView />);
+      expect(screen.getByText("Buy milk")).toBeInTheDocument();
+      expect(screen.getByText("Walk the dog")).toBeInTheDocument();
+      expect(screen.getByText("Completed (1)")).toBeInTheDocument();
+    });
+
+    it("shows toggle button when mode is toggleable", () => {
+      useSettingsStore.setState({ completedDisplayMode: "toggleable" });
+      setupStores({ todos: [openTodo, completedTodo] });
+      render(<MainView />);
+      expect(screen.getByText("Buy milk")).toBeInTheDocument();
+      expect(screen.getByText("Show Completed (1)")).toBeInTheDocument();
+      expect(screen.queryByText("Walk the dog")).not.toBeInTheDocument();
+    });
+
+    it("expands completed todos when toggle is clicked", async () => {
+      const user = userEvent.setup();
+      useSettingsStore.setState({ completedDisplayMode: "toggleable" });
+      setupStores({ todos: [openTodo, completedTodo] });
+      render(<MainView />);
+
+      await user.click(screen.getByText("Show Completed (1)"));
+      expect(screen.getByText("Walk the dog")).toBeInTheDocument();
+      expect(screen.getByText("Hide Completed (1)")).toBeInTheDocument();
     });
   });
 });

@@ -1,15 +1,12 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { USER_NAME_KEY } from "@/features/onboarding/constants.ts";
-
-function getUserName(): string {
-  return localStorage.getItem(USER_NAME_KEY) ?? "";
-}
+import { useSettingsStore } from "@/features/settings/store.ts";
 
 export function AppShell() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const userName = useSettingsStore((s) => s.userName);
   const isOnboarding = location.pathname === "/onboarding";
 
   return (
@@ -21,7 +18,7 @@ export function AppShell() {
         >
           {isOnboarding
             ? t("app.title")
-            : t("app.greeting", { name: getUserName() })}
+            : t("app.greeting", { name: userName })}
         </h1>
         {!isOnboarding && (
           <div className="flex gap-2">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTagStore } from "@/features/tags/store.ts";
+import { useSettingsStore } from "@/features/settings/store.ts";
 import { cn } from "@/shared/utils/index.ts";
 import { TodoItem } from "./todo-item.tsx";
 import type { Todo } from "../types.ts";
@@ -45,6 +46,9 @@ export function GroupedView({
   onCreateChild,
 }: GroupedViewProps) {
   const { tags } = useTagStore();
+  const completedDisplayMode = useSettingsStore(
+    (s) => s.completedDisplayMode,
+  );
   const [collapsedTags, setCollapsedTags] = useState<Set<string>>(new Set());
 
   const toggleCollapse = (tagId: string) => {
@@ -62,7 +66,13 @@ export function GroupedView({
   return (
     <div className="space-y-4">
       {tags.map((tag) => {
-        const tagTodos = todos.filter((todo) => todo.tagIds.includes(tag.id));
+        const tagTodos = todos
+          .filter((todo) => todo.tagIds.includes(tag.id))
+          .filter(
+            (todo) =>
+              completedDisplayMode !== "hidden" ||
+              todo.status !== "completed",
+          );
         if (tagTodos.length === 0) return null;
 
         const isCollapsed = collapsedTags.has(tag.id);

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AppShell } from "./app-shell.tsx";
+import { useSettingsStore } from "@/features/settings/store.ts";
 
 // Mock i18next
 vi.mock("react-i18next", () => ({
@@ -40,10 +41,10 @@ function renderWithRouter(initialRoute = "/") {
 describe("AppShell", () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem("user-name", "Löli");
+    useSettingsStore.setState({ userName: "Löli" });
   });
 
-  it("renders header with greeting using localStorage name", () => {
+  it("renders header with greeting using store name", () => {
     renderWithRouter();
     expect(screen.getByText("Hello Löli!")).toBeInTheDocument();
   });
@@ -103,8 +104,8 @@ describe("AppShell", () => {
     });
   });
 
-  it("falls back to empty name when localStorage has no user-name", () => {
-    localStorage.removeItem("user-name");
+  it("falls back to empty name when userName is empty", () => {
+    useSettingsStore.setState({ userName: "" });
     renderWithRouter();
     expect(screen.getByText("Hello !")).toBeInTheDocument();
   });

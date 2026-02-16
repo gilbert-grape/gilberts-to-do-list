@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTagStore } from "@/features/tags/store.ts";
+import { useSettingsStore } from "@/features/settings/store.ts";
 import { cn } from "@/shared/utils/index.ts";
 import { TodoItem } from "./todo-item.tsx";
 import type { Todo } from "../types.ts";
@@ -45,7 +46,11 @@ export function TagTabsView({
 }: TagTabsViewProps) {
   const { t } = useTranslation();
   const { tags } = useTagStore();
+  const completedDisplayMode = useSettingsStore(
+    (s) => s.completedDisplayMode,
+  );
   const [activeTagId, setActiveTagId] = useState<string | null>(null);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   const filteredTodos =
     activeTagId === null
@@ -119,28 +124,65 @@ export function TagTabsView({
         </ul>
       )}
 
-      {completedHierarchy.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
-            {t("todos.completed")} ({completedTodos.length})
-          </h3>
-          <ul className="space-y-2">
-            {completedHierarchy.map(({ todo, depth }) => (
-              <div key={todo.id} style={{ marginLeft: depth * 24 }}>
-                <TodoItem
-                  todo={todo}
-                  onToggle={onToggle}
-                  onTitleClick={onTitleClick}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onCreateSibling={onCreateSibling}
-                  onCreateChild={onCreateChild}
-                />
-              </div>
-            ))}
-          </ul>
-        </div>
-      )}
+      {completedHierarchy.length > 0 &&
+        completedDisplayMode === "bottom" && (
+          <div>
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
+              {t("todos.completed")} ({completedTodos.length})
+            </h3>
+            <ul className="space-y-2">
+              {completedHierarchy.map(({ todo, depth }) => (
+                <div key={todo.id} style={{ marginLeft: depth * 24 }}>
+                  <TodoItem
+                    todo={todo}
+                    onToggle={onToggle}
+                    onTitleClick={onTitleClick}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onCreateSibling={onCreateSibling}
+                    onCreateChild={onCreateChild}
+                  />
+                </div>
+              ))}
+            </ul>
+          </div>
+        )}
+
+      {completedHierarchy.length > 0 &&
+        completedDisplayMode === "toggleable" && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowCompleted((prev) => !prev)}
+              className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
+            >
+              {showCompleted
+                ? t("settings.hideCompleted", {
+                    count: String(completedTodos.length),
+                  })
+                : t("settings.showCompleted", {
+                    count: String(completedTodos.length),
+                  })}
+            </button>
+            {showCompleted && (
+              <ul className="space-y-2">
+                {completedHierarchy.map(({ todo, depth }) => (
+                  <div key={todo.id} style={{ marginLeft: depth * 24 }}>
+                    <TodoItem
+                      todo={todo}
+                      onToggle={onToggle}
+                      onTitleClick={onTitleClick}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onCreateSibling={onCreateSibling}
+                      onCreateChild={onCreateChild}
+                    />
+                  </div>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
     </div>
   );
 }

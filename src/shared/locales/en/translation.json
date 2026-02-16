@@ -89,6 +89,16 @@
       "lastTag": "Cannot delete the last tag"
     }
   },
+  "settings": {
+    "profile": "Profile",
+    "displayName": "Display Name",
+    "completedDisplay": "Completed Todos Display",
+    "completedHidden": "Hidden",
+    "completedBottom": "Show at Bottom",
+    "completedToggleable": "Toggleable",
+    "showCompleted": "Show Completed ({{count}})",
+    "hideCompleted": "Hide Completed ({{count}})"
+  },
   "onboarding": {
     "nameTitle": "What's your name?",
     "nameSubtitle": "We'll use this to personalize your experience.",

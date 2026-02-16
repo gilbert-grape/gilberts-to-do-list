@@ -89,6 +89,16 @@
       "lastTag": "Der letzte Tag kann nicht gelöscht werden"
     }
   },
+  "settings": {
+    "profile": "Profil",
+    "displayName": "Anzeigename",
+    "completedDisplay": "Erledigte To-Dos Anzeige",
+    "completedHidden": "Versteckt",
+    "completedBottom": "Unten anzeigen",
+    "completedToggleable": "Umschaltbar",
+    "showCompleted": "Erledigte anzeigen ({{count}})",
+    "hideCompleted": "Erledigte ausblenden ({{count}})"
+  },
   "onboarding": {
     "nameTitle": "Wie heisst du?",
     "nameSubtitle": "Wir verwenden das, um deine Erfahrung zu personalisieren.",
