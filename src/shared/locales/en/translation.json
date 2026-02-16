@@ -10,7 +10,8 @@
     "edit": "Edit",
     "search": "Search...",
     "back": "Back",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "next": "Next"
   },
   "nav": {
     "statistics": "Statistics",
@@ -86,6 +87,45 @@
     "selectNewDefault": "Select a new default tag:",
     "errors": {
       "lastTag": "Cannot delete the last tag"
+    }
+  },
+  "onboarding": {
+    "nameTitle": "What's your name?",
+    "nameSubtitle": "We'll use this to personalize your experience.",
+    "namePlaceholder": "Enter your name...",
+    "purposeTitle": "What will you use this for?",
+    "purposeSubtitle": "Select one or more to get personalized tags.",
+    "purposePersonal": "Personal",
+    "purposePersonalDesc": "Daily tasks & errands",
+    "purposeWork": "Work",
+    "purposeWorkDesc": "Projects & deadlines",
+    "purposeHobby": "Hobby",
+    "purposeHobbyDesc": "Fun & creative stuff",
+    "tagsTitle": "Customize your tags",
+    "tagsSubtitle": "Add, rename, or remove tags to fit your needs.",
+    "tagsAddPlaceholder": "New tag name...",
+    "tagsAdd": "Add",
+    "defaultTagTitle": "Pick a default tag",
+    "defaultTagSubtitle": "New to-dos will use this tag automatically.",
+    "defaultTagOption": "Default",
+    "summaryTitle": "You're all set, {{name}}!",
+    "summarySubtitle": "Here's what we've set up for you:",
+    "summaryTagCount": "{{count}} tags ready to go",
+    "summaryDefaultTag": "Default tag: {{name}}",
+    "summaryLetsGo": "Let's go!",
+    "tags": {
+      "groceries": "Groceries",
+      "health": "Health",
+      "finance": "Finance",
+      "household": "Household",
+      "meetings": "Meetings",
+      "deadlines": "Deadlines",
+      "projects": "Projects",
+      "emails": "Emails",
+      "reading": "Reading",
+      "sports": "Sports",
+      "creative": "Creative",
+      "learning": "Learning"
     }
   }
 }

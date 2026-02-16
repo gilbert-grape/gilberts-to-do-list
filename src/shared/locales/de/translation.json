@@ -10,7 +10,8 @@
     "edit": "Bearbeiten",
     "search": "Suchen...",
     "back": "Zurück",
-    "loading": "Laden..."
+    "loading": "Laden...",
+    "next": "Weiter"
   },
   "nav": {
     "statistics": "Statistiken",
@@ -86,6 +87,45 @@
     "selectNewDefault": "Wähle einen neuen Standard-Tag:",
     "errors": {
       "lastTag": "Der letzte Tag kann nicht gelöscht werden"
+    }
+  },
+  "onboarding": {
+    "nameTitle": "Wie heisst du?",
+    "nameSubtitle": "Wir verwenden das, um deine Erfahrung zu personalisieren.",
+    "namePlaceholder": "Gib deinen Namen ein...",
+    "purposeTitle": "Wofür wirst du das verwenden?",
+    "purposeSubtitle": "Wähle eine oder mehrere Optionen für personalisierte Tags.",
+    "purposePersonal": "Persönlich",
+    "purposePersonalDesc": "Tägliche Aufgaben & Erledigungen",
+    "purposeWork": "Arbeit",
+    "purposeWorkDesc": "Projekte & Fristen",
+    "purposeHobby": "Hobby",
+    "purposeHobbyDesc": "Spass & Kreatives",
+    "tagsTitle": "Passe deine Tags an",
+    "tagsSubtitle": "Füge Tags hinzu, benenne sie um oder entferne sie.",
+    "tagsAddPlaceholder": "Neuer Tag-Name...",
+    "tagsAdd": "Hinzufügen",
+    "defaultTagTitle": "Wähle einen Standard-Tag",
+    "defaultTagSubtitle": "Neue To-Dos verwenden diesen Tag automatisch.",
+    "defaultTagOption": "Standard",
+    "summaryTitle": "Alles bereit, {{name}}!",
+    "summarySubtitle": "Das haben wir für dich eingerichtet:",
+    "summaryTagCount": "{{count}} Tags bereit",
+    "summaryDefaultTag": "Standard-Tag: {{name}}",
+    "summaryLetsGo": "Los geht's!",
+    "tags": {
+      "groceries": "Einkaufen",
+      "health": "Gesundheit",
+      "finance": "Finanzen",
+      "household": "Haushalt",
+      "meetings": "Meetings",
+      "deadlines": "Fristen",
+      "projects": "Projekte",
+      "emails": "E-Mails",
+      "reading": "Lesen",
+      "sports": "Sport",
+      "creative": "Kreativ",
+      "learning": "Lernen"
     }
   }
 }

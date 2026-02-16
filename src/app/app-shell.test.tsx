@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AppShell } from "./app-shell.tsx";
 
 // Mock i18next
@@ -10,6 +10,7 @@ vi.mock("react-i18next", () => ({
     t: (key: string, options?: Record<string, string>) => {
       const translations: Record<string, string> = {
         "app.greeting": `Hello ${options?.name ?? ""}!`,
+        "app.title": "Gilberts To-Do List",
         "nav.statistics": "Statistics",
         "nav.settings": "Settings",
       };
@@ -37,7 +38,12 @@ function renderWithRouter(initialRoute = "/") {
 }
 
 describe("AppShell", () => {
-  it("renders header with greeting", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem("user-name", "Löli");
+  });
+
+  it("renders header with greeting using localStorage name", () => {
     renderWithRouter();
     expect(screen.getByText("Hello Löli!")).toBeInTheDocument();
   });
@@ -65,7 +71,6 @@ describe("AppShell", () => {
     const user = userEvent.setup();
     renderWithRouter();
     await user.click(screen.getByRole("button", { name: "Statistics" }));
-    // Navigation is handled by react-router; the button click itself is verified
     expect(
       screen.getByRole("button", { name: "Statistics" }),
     ).toBeInTheDocument();
@@ -78,5 +83,29 @@ describe("AppShell", () => {
     expect(
       screen.getByRole("button", { name: "Settings" }),
     ).toBeInTheDocument();
+  });
+
+  describe("during onboarding", () => {
+    it("shows app title instead of greeting", () => {
+      renderWithRouter("/onboarding");
+      expect(screen.getByText("Gilberts To-Do List")).toBeInTheDocument();
+      expect(screen.queryByText(/Hello/)).not.toBeInTheDocument();
+    });
+
+    it("hides nav buttons", () => {
+      renderWithRouter("/onboarding");
+      expect(
+        screen.queryByRole("button", { name: "Statistics" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Settings" }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("falls back to empty name when localStorage has no user-name", () => {
+    localStorage.removeItem("user-name");
+    renderWithRouter();
+    expect(screen.getByText("Hello !")).toBeInTheDocument();
   });
 });
