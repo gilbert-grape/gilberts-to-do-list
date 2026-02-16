@@ -237,4 +237,20 @@ describe("TodoItem", () => {
     const title = screen.getByText("Buy groceries");
     expect(title.tagName).toBe("SPAN");
   });
+
+  it("renders dragHandleSlot when provided", () => {
+    render(
+      <TodoItem
+        todo={openTodo}
+        onToggle={vi.fn()}
+        dragHandleSlot={<span data-testid="drag-handle">grip</span>}
+      />,
+    );
+    expect(screen.getByTestId("drag-handle")).toBeInTheDocument();
+  });
+
+  it("does not render dragHandleSlot when not provided", () => {
+    render(<TodoItem todo={openTodo} onToggle={vi.fn()} />);
+    expect(screen.queryByTestId("drag-handle")).not.toBeInTheDocument();
+  });
 });

@@ -46,6 +46,7 @@ vi.mock("react-i18next", () => ({
         "todos.subTodos": "Sub-Todos",
         "todos.recurrenceCustomInterval": "Every X days",
         "todos.allTab": "All",
+        "todos.dragHandle": "Drag to reorder",
         "placeholder.main": "Your to-dos will appear here.",
         "common.back": "Back",
         "common.edit": "Edit",
@@ -174,6 +175,7 @@ function setupStores(options?: {
     deleteTodo: vi.fn().mockResolvedValue(undefined),
     deleteTodoWithChildren: vi.fn().mockResolvedValue(undefined),
     getChildren: vi.fn().mockReturnValue([]),
+    reorderTodos: vi.fn().mockResolvedValue(undefined),
   } as never);
 }
 
@@ -523,6 +525,22 @@ describe("MainView", () => {
       await user.click(screen.getByText("Buy milk"));
       await user.click(screen.getByText("Delete"));
       expect(screen.getByText("Delete Todo")).toBeInTheDocument();
+    });
+  });
+
+  describe("drag and drop", () => {
+    it("renders drag handles on open todos in flat list", () => {
+      setupStores({ todos: [openTodo] });
+      render(<MainView />);
+      expect(screen.getByLabelText("Drag to reorder")).toBeInTheDocument();
+    });
+
+    it("does not render drag handles on completed todos", () => {
+      setupStores({ todos: [completedTodo] });
+      render(<MainView />);
+      expect(
+        screen.queryByLabelText("Drag to reorder"),
+      ).not.toBeInTheDocument();
     });
   });
 

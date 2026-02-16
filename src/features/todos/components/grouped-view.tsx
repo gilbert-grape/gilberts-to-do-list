@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTagStore } from "@/features/tags/store.ts";
 import { useSettingsStore } from "@/features/settings/store.ts";
 import { cn } from "@/shared/utils/index.ts";
+import { SortableTodoList } from "./sortable-todo-list.tsx";
 import { TodoItem } from "./todo-item.tsx";
 import type { Todo } from "../types.ts";
 
@@ -13,17 +14,23 @@ export interface GroupedViewProps {
   onDelete?: (todo: Todo) => void;
   onCreateSibling?: (todo: Todo) => void;
   onCreateChild?: (todo: Todo) => void;
+  onReorder?: (activeId: string, overId: string) => void;
+  onReparent?: (activeId: string, newParentId: string) => void;
 }
 
 function buildHierarchy(todos: Todo[]): { todo: Todo; depth: number }[] {
   const result: { todo: Todo; depth: number }[] = [];
-  const rootTodos = todos.filter(
-    (t) => !t.parentId || !todos.some((p) => p.id === t.parentId),
-  );
+  const rootTodos = todos
+    .filter(
+      (t) => !t.parentId || !todos.some((p) => p.id === t.parentId),
+    )
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const addWithChildren = (parent: Todo, depth: number) => {
     result.push({ todo: parent, depth });
-    const children = todos.filter((t) => t.parentId === parent.id);
+    const children = todos
+      .filter((t) => t.parentId === parent.id)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
     for (const child of children) {
       addWithChildren(child, depth + 1);
     }
@@ -44,6 +51,8 @@ export function GroupedView({
   onDelete,
   onCreateSibling,
   onCreateChild,
+  onReorder,
+  onReparent,
 }: GroupedViewProps) {
   const { tags } = useTagStore();
   const completedDisplayMode = useSettingsStore(
@@ -76,7 +85,12 @@ export function GroupedView({
         if (tagTodos.length === 0) return null;
 
         const isCollapsed = collapsedTags.has(tag.id);
-        const hierarchy = buildHierarchy(tagTodos);
+        const openTagTodos = tagTodos.filter((t) => t.status === "open");
+        const completedTagTodos = tagTodos.filter(
+          (t) => t.status === "completed",
+        );
+        const openHierarchy = buildHierarchy(openTagTodos);
+        const completedHierarchy = buildHierarchy(completedTagTodos);
 
         return (
           <div key={tag.id}>
@@ -114,21 +128,55 @@ export function GroupedView({
             </button>
 
             {!isCollapsed && (
-              <ul className="mt-1 space-y-2 pl-2">
-                {hierarchy.map(({ todo, depth }) => (
-                  <div key={todo.id} style={{ marginLeft: depth * 24 }}>
-                    <TodoItem
-                      todo={todo}
-                      onToggle={onToggle}
-                      onTitleClick={onTitleClick}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                      onCreateSibling={onCreateSibling}
-                      onCreateChild={onCreateChild}
-                    />
-                  </div>
-                ))}
-              </ul>
+              <div className="mt-1 pl-2">
+                {openHierarchy.length > 0 && onReorder && onReparent ? (
+                  <SortableTodoList
+                    items={openHierarchy}
+                    onReorder={onReorder}
+                    onReparent={onReparent}
+                    onToggle={onToggle}
+                    onTitleClick={onTitleClick}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onCreateSibling={onCreateSibling}
+                    onCreateChild={onCreateChild}
+                  />
+                ) : openHierarchy.length > 0 ? (
+                  <ul className="space-y-2">
+                    {openHierarchy.map(({ todo, depth }) => (
+                      <div key={todo.id} style={{ marginLeft: depth * 24 }}>
+                        <TodoItem
+                          todo={todo}
+                          onToggle={onToggle}
+                          onTitleClick={onTitleClick}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onCreateSibling={onCreateSibling}
+                          onCreateChild={onCreateChild}
+                        />
+                      </div>
+                    ))}
+                  </ul>
+                ) : null}
+                {completedHierarchy.length > 0 &&
+                  completedDisplayMode !== "hidden" && (
+                    <ul className="mt-2 space-y-2">
+                      {completedHierarchy.map(({ todo, depth }) => (
+                        <div key={todo.id} style={{ marginLeft: depth * 24 }}>
+                          <TodoItem
+                            todo={todo}
+                            onToggle={onToggle}
+                            onTitleClick={onTitleClick}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            onCreateSibling={onCreateSibling}
+                            onCreateChild={onCreateChild}
+                          />
+                        </div>
+                      ))}
+                    </ul>
+                  )}
+              </div>
             )}
           </div>
         );

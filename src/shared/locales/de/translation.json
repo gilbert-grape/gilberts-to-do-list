@@ -62,7 +62,8 @@
     "statusOpen": "Offen",
     "statusCompleted": "Erledigt",
     "subTodos": "Unter-To-Dos",
-    "allTab": "Alle"
+    "allTab": "Alle",
+    "dragHandle": "Ziehen zum Sortieren"
   },
   "hardcore": {
     "selectTag": "Tag auswählen",

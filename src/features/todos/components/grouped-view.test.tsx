@@ -13,6 +13,7 @@ vi.mock("react-i18next", () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
         "todos.completed": "Completed",
+        "todos.dragHandle": "Drag to reorder",
       };
       return translations[key] ?? key;
     },

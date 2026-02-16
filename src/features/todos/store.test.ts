@@ -223,6 +223,112 @@ describe("useTodoStore", () => {
     });
   });
 
+  describe("reorderTodos", () => {
+    it("updates sortOrder for multiple todos", async () => {
+      await useTodoStore.getState().createTodo({
+        title: "First",
+        description: null,
+        tagIds: [defaultTagId()],
+        parentId: null,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      await useTodoStore.getState().createTodo({
+        title: "Second",
+        description: null,
+        tagIds: [defaultTagId()],
+        parentId: null,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      const [first, second] = useTodoStore.getState().todos;
+      await useTodoStore.getState().reorderTodos([
+        { id: first!.id, sortOrder: 1 },
+        { id: second!.id, sortOrder: 0 },
+      ]);
+      const { todos } = useTodoStore.getState();
+      expect(todos.find((t) => t.title === "First")?.sortOrder).toBe(1);
+      expect(todos.find((t) => t.title === "Second")?.sortOrder).toBe(0);
+    });
+
+    it("updates parentId when provided", async () => {
+      await useTodoStore.getState().createTodo({
+        title: "Parent",
+        description: null,
+        tagIds: [defaultTagId()],
+        parentId: null,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      await useTodoStore.getState().createTodo({
+        title: "Child",
+        description: null,
+        tagIds: [defaultTagId()],
+        parentId: null,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      const parent = useTodoStore.getState().todos.find((t) => t.title === "Parent")!;
+      const child = useTodoStore.getState().todos.find((t) => t.title === "Child")!;
+      await useTodoStore.getState().reorderTodos([
+        { id: child.id, sortOrder: 0, parentId: parent.id },
+      ]);
+      const updated = useTodoStore.getState().todos.find((t) => t.title === "Child");
+      expect(updated?.parentId).toBe(parent.id);
+    });
+
+    it("updates tagIds when provided", async () => {
+      await useTodoStore.getState().createTodo({
+        title: "Move me",
+        description: null,
+        tagIds: [defaultTagId()],
+        parentId: null,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      const todo = useTodoStore.getState().todos[0]!;
+      const newTagIds = ["new-tag-1", "new-tag-2"];
+      await useTodoStore.getState().reorderTodos([
+        { id: todo.id, sortOrder: 5, tagIds: newTagIds },
+      ]);
+      const updated = useTodoStore.getState().todos[0];
+      expect(updated?.tagIds).toEqual(newTagIds);
+      expect(updated?.sortOrder).toBe(5);
+    });
+
+    it("does not change unrelated todos", async () => {
+      await useTodoStore.getState().createTodo({
+        title: "Keep me",
+        description: null,
+        tagIds: [defaultTagId()],
+        parentId: null,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      await useTodoStore.getState().createTodo({
+        title: "Move me",
+        description: null,
+        tagIds: [defaultTagId()],
+        parentId: null,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      const moveTodo = useTodoStore.getState().todos.find((t) => t.title === "Move me")!;
+      await useTodoStore.getState().reorderTodos([
+        { id: moveTodo.id, sortOrder: 99 },
+      ]);
+      const keepTodo = useTodoStore.getState().todos.find((t) => t.title === "Keep me");
+      expect(keepTodo?.sortOrder).toBe(0); // unchanged
+    });
+  });
+
   describe("toggleStatus", () => {
     it("toggles open to completed", async () => {
       await useTodoStore.getState().createTodo({

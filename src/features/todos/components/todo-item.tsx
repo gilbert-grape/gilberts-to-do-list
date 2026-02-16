@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { format, isPast, isToday } from "date-fns";
 import { cn } from "@/shared/utils/index.ts";
 import { useTagStore } from "@/features/tags/store.ts";
@@ -11,6 +12,7 @@ export interface TodoItemProps {
   onTitleClick?: (todo: Todo) => void;
   onCreateSibling?: (todo: Todo) => void;
   onCreateChild?: (todo: Todo) => void;
+  dragHandleSlot?: ReactNode;
 }
 
 export function TodoItem({
@@ -21,6 +23,7 @@ export function TodoItem({
   onTitleClick,
   onCreateSibling,
   onCreateChild,
+  dragHandleSlot,
 }: TodoItemProps) {
   const { tags } = useTagStore();
   const isCompleted = todo.status === "completed";
@@ -28,6 +31,7 @@ export function TodoItem({
 
   return (
     <li className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+      {dragHandleSlot}
       <button
         type="button"
         role="checkbox"

@@ -1,5 +1,6 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { arrayMove } from "@dnd-kit/sortable";
 import { useTodoStore, setTodoStorageAdapter } from "../store.ts";
 import { useTagStore, setStorageAdapter } from "@/features/tags/store.ts";
 import { useSettingsStore } from "@/features/settings/store.ts";
@@ -7,6 +8,7 @@ import { db } from "@/services/storage/indexeddb/db.ts";
 import { IndexedDBAdapter } from "@/services/storage/indexeddb/indexeddb-adapter.ts";
 import { GroupedView } from "./grouped-view.tsx";
 import { TagTabsView } from "./tag-tabs-view.tsx";
+import { SortableTodoList } from "./sortable-todo-list.tsx";
 import { TodoCreateForm } from "./todo-create-form.tsx";
 import { TodoDetailView } from "./todo-detail-view.tsx";
 import { TodoEditForm } from "./todo-edit-form.tsx";
@@ -62,6 +64,7 @@ export function MainView() {
     deleteTodo,
     deleteTodoWithChildren,
     getChildren,
+    reorderTodos,
   } = useTodoStore();
   const { isLoaded: tagsLoaded, loadTags } = useTagStore();
 
@@ -103,6 +106,74 @@ export function MainView() {
     );
   }, [todos, searchQuery]);
 
+  const sortedTodos = useMemo(
+    () => [...filteredTodos].sort((a, b) => a.sortOrder - b.sortOrder),
+    [filteredTodos],
+  );
+
+  const handleReorder = useCallback(
+    (activeId: string, overId: string) => {
+      const active = todos.find((t) => t.id === activeId);
+      const over = todos.find((t) => t.id === overId);
+      if (!active || !over) return;
+
+      const siblings = todos
+        .filter(
+          (t) =>
+            t.parentId === active.parentId &&
+            t.status === "open",
+        )
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+
+      const oldIndex = siblings.findIndex((t) => t.id === activeId);
+      const newIndex = siblings.findIndex((t) => t.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(siblings, oldIndex, newIndex);
+      const updates = reordered.map((t, i) => ({ id: t.id, sortOrder: i }));
+      void reorderTodos(updates);
+    },
+    [todos, reorderTodos],
+  );
+
+  const handleReparent = useCallback(
+    (activeId: string, newParentId: string) => {
+      const active = todos.find((t) => t.id === activeId);
+      const newParent = todos.find((t) => t.id === newParentId);
+      if (!active || !newParent) return;
+      if (activeId === newParentId) return;
+
+      // Prevent circular: check if newParent is a descendant of active
+      const isDescendant = (parentId: string, checkId: string): boolean => {
+        const children = todos.filter((t) => t.parentId === parentId);
+        for (const child of children) {
+          if (child.id === checkId) return true;
+          if (isDescendant(child.id, checkId)) return true;
+        }
+        return false;
+      };
+      if (isDescendant(activeId, newParentId)) return;
+
+      const newSiblings = todos
+        .filter((t) => t.parentId === newParentId && t.status === "open")
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+      const newSortOrder =
+        newSiblings.length > 0
+          ? newSiblings[newSiblings.length - 1]!.sortOrder + 1
+          : 0;
+
+      void reorderTodos([
+        {
+          id: activeId,
+          sortOrder: newSortOrder,
+          parentId: newParentId,
+          tagIds: newParent.tagIds,
+        },
+      ]);
+    },
+    [todos, reorderTodos],
+  );
+
   if (!tagsLoaded || !todosLoaded) {
     return (
       <div className="flex flex-1 items-center justify-center p-4">
@@ -113,8 +184,8 @@ export function MainView() {
     );
   }
 
-  const openTodos = filteredTodos.filter((todo) => todo.status === "open");
-  const completedTodos = filteredTodos.filter(
+  const openTodos = sortedTodos.filter((todo) => todo.status === "open");
+  const completedTodos = sortedTodos.filter(
     (todo) => todo.status === "completed",
   );
 
@@ -300,6 +371,8 @@ export function MainView() {
           onDelete={handleDelete}
           onCreateSibling={handleCreateSibling}
           onCreateChild={handleCreateChild}
+          onReorder={handleReorder}
+          onReparent={handleReparent}
         />
       )}
 
@@ -312,6 +385,8 @@ export function MainView() {
           onDelete={handleDelete}
           onCreateSibling={handleCreateSibling}
           onCreateChild={handleCreateChild}
+          onReorder={handleReorder}
+          onReparent={handleReparent}
         />
       )}
 
@@ -346,20 +421,17 @@ export function MainView() {
       {filteredTodos.length > 0 && activeView === "flatList" && (
         <>
           {openTodos.length > 0 && (
-            <ul className="space-y-2">
-              {openTodos.map((todo) => (
-                <TodoItem
-                  key={todo.id}
-                  todo={todo}
-                  onToggle={toggleStatus}
-                  onTitleClick={handleTitleClick}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onCreateSibling={handleCreateSibling}
-                  onCreateChild={handleCreateChild}
-                />
-              ))}
-            </ul>
+            <SortableTodoList
+              items={openTodos.map((todo) => ({ todo, depth: 0 }))}
+              onReorder={handleReorder}
+              onReparent={handleReparent}
+              onToggle={toggleStatus}
+              onTitleClick={handleTitleClick}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onCreateSibling={handleCreateSibling}
+              onCreateChild={handleCreateChild}
+            />
           )}
 
           {completedTodos.length > 0 &&

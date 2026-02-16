@@ -62,7 +62,8 @@
     "statusOpen": "Open",
     "statusCompleted": "Completed",
     "subTodos": "Sub-Todos",
-    "allTab": "All"
+    "allTab": "All",
+    "dragHandle": "Drag to reorder"
   },
   "hardcore": {
     "selectTag": "Select tag",

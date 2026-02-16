@@ -16,6 +16,14 @@ export interface TodoState {
   deleteTodoWithChildren: (id: string, mode: DeleteMode) => Promise<void>;
   toggleStatus: (id: string) => Promise<void>;
   getChildren: (parentId: string) => Todo[];
+  reorderTodos: (
+    updates: Array<{
+      id: string;
+      sortOrder: number;
+      parentId?: string | null;
+      tagIds?: string[];
+    }>,
+  ) => Promise<void>;
 }
 
 let _adapter: StorageAdapter | null = null;
@@ -114,6 +122,28 @@ export const useTodoStore = create<TodoState>((set, get) => ({
 
   getChildren: (parentId: string) => {
     return get().todos.filter((t) => t.parentId === parentId);
+  },
+
+  reorderTodos: async (updates) => {
+    const adapter = getAdapter();
+    // Optimistic batch update
+    set((state) => ({
+      todos: state.todos.map((t) => {
+        const update = updates.find((u) => u.id === t.id);
+        if (!update) return t;
+        const changes: Partial<Todo> = { sortOrder: update.sortOrder };
+        if (update.parentId !== undefined) changes.parentId = update.parentId;
+        if (update.tagIds !== undefined) changes.tagIds = update.tagIds;
+        return { ...t, ...changes };
+      }),
+    }));
+    // Persist each update
+    for (const update of updates) {
+      const changes: Partial<Todo> = { sortOrder: update.sortOrder };
+      if (update.parentId !== undefined) changes.parentId = update.parentId;
+      if (update.tagIds !== undefined) changes.tagIds = update.tagIds;
+      await adapter.updateTodo(update.id, changes);
+    }
   },
 
   toggleStatus: async (id: string) => {

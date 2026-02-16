@@ -14,6 +14,7 @@ vi.mock("react-i18next", () => ({
       const translations: Record<string, string> = {
         "todos.allTab": "All",
         "todos.completed": "Completed",
+        "todos.dragHandle": "Drag to reorder",
         "settings.showCompleted": `Show Completed (${options?.count ?? ""})`,
         "settings.hideCompleted": `Hide Completed (${options?.count ?? ""})`,
       };
