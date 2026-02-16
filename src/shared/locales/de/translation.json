@@ -90,6 +90,22 @@
       "lastTag": "Der letzte Tag kann nicht gelöscht werden"
     }
   },
+  "statistics": {
+    "title": "Statistiken",
+    "tagDistribution": "To-Do-Verteilung nach Tag",
+    "completionHistory": "Erledigungsverlauf",
+    "timeRange": "Zeitraum",
+    "thisWeek": "Diese Woche",
+    "thisMonth": "Dieser Monat",
+    "thisYear": "Dieses Jahr",
+    "custom": "Benutzerdefiniert",
+    "from": "Von",
+    "to": "Bis",
+    "totalCompleted": "Insgesamt erledigt",
+    "dailyAverage": "Tagesdurchschnitt",
+    "emptyState": "Noch keine erledigten To-Dos — leg los!",
+    "count": "Anzahl"
+  },
   "settings": {
     "profile": "Profil",
     "displayName": "Anzeigename",

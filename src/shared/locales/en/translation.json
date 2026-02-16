@@ -90,6 +90,22 @@
       "lastTag": "Cannot delete the last tag"
     }
   },
+  "statistics": {
+    "title": "Statistics",
+    "tagDistribution": "To-Do Distribution by Tag",
+    "completionHistory": "Completion History",
+    "timeRange": "Time Range",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "thisYear": "This Year",
+    "custom": "Custom",
+    "from": "From",
+    "to": "To",
+    "totalCompleted": "Total Completed",
+    "dailyAverage": "Daily Average",
+    "emptyState": "No completed to-dos yet — get started!",
+    "count": "Count"
+  },
   "settings": {
     "profile": "Profile",
     "displayName": "Display Name",
