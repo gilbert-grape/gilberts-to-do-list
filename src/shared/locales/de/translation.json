@@ -127,7 +127,16 @@
     "accentOrange": "Orange",
     "language": "Sprache",
     "languageEn": "English",
-    "languageDe": "Deutsch"
+    "languageDe": "Deutsch",
+    "importExport": "Import & Export",
+    "export": "Export",
+    "import": "Import",
+    "downloadMd": ".md herunterladen",
+    "exportAll": "Alle exportieren",
+    "importDescription": "Lade .md Dateien hoch, um To-Dos zu importieren. Dateiname oder # Überschrift bestimmt den Tag.",
+    "selectFiles": ".md Dateien auswählen",
+    "importing": "Importiere...",
+    "importResult": "{{created}} To-Dos importiert, {{skipped}} Duplikate übersprungen."
   },
   "onboarding": {
     "nameTitle": "Wie heisst du?",

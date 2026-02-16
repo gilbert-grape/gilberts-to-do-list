@@ -127,7 +127,16 @@
     "accentOrange": "Orange",
     "language": "Language",
     "languageEn": "English",
-    "languageDe": "Deutsch"
+    "languageDe": "Deutsch",
+    "importExport": "Import & Export",
+    "export": "Export",
+    "import": "Import",
+    "downloadMd": "Download .md",
+    "exportAll": "Export All",
+    "importDescription": "Upload .md files to import to-dos. Filename or # header determines the tag.",
+    "selectFiles": "Select .md Files",
+    "importing": "Importing...",
+    "importResult": "{{created}} to-dos imported, {{skipped}} duplicates skipped."
   },
   "onboarding": {
     "nameTitle": "What's your name?",

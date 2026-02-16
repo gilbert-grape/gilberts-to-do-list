@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SettingsView } from "./settings-view.tsx";
 import { useSettingsStore } from "../store.ts";
 import { useTagStore } from "@/features/tags/store.ts";
+import { useTodoStore } from "@/features/todos/store.ts";
 
 vi.mock("@/app/theme.ts", () => ({
   setTheme: vi.fn(),
@@ -46,6 +47,12 @@ vi.mock("react-i18next", () => ({
         "settings.language": "Language",
         "settings.languageEn": "English",
         "settings.languageDe": "Deutsch",
+        "settings.importExport": "Import & Export",
+        "settings.export": "Export",
+        "settings.import": "Import",
+        "settings.downloadMd": "Download .md",
+        "settings.importDescription": "Upload .md files to import to-dos.",
+        "settings.selectFiles": "Select .md Files",
       };
       return translations[key] ?? key;
     },
@@ -71,6 +78,10 @@ describe("SettingsView", () => {
       tags: [
         { id: "tag-1", name: "General", color: "#ef4444", isDefault: true },
       ],
+      isLoaded: true,
+    });
+    useTodoStore.setState({
+      todos: [],
       isLoaded: true,
     });
   });

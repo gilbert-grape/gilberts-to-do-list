@@ -4,6 +4,7 @@ import { ProfileSection } from "./profile-section.tsx";
 import { CompletedDisplaySection } from "./completed-display-section.tsx";
 import { AppearanceSection } from "./appearance-section.tsx";
 import { LanguageSection } from "./language-section.tsx";
+import { ImportExportSection } from "./import-export-section.tsx";
 
 export function SettingsView() {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ export function SettingsView() {
       <CompletedDisplaySection />
       <AppearanceSection />
       <LanguageSection />
+      <ImportExportSection />
     </div>
   );
 }
