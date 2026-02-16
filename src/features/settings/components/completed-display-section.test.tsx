@@ -5,6 +5,7 @@ import { CompletedDisplaySection } from "./completed-display-section.tsx";
 import { useSettingsStore } from "../store.ts";
 
 vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {

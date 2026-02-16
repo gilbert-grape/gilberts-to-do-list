@@ -9,6 +9,7 @@ import type { Tag } from "@/features/tags/types.ts";
 import type { Todo } from "../types.ts";
 
 vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
     t: (key: string, options?: Record<string, string>) => {
       const translations: Record<string, string> = {

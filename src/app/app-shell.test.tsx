@@ -7,6 +7,7 @@ import { useSettingsStore } from "@/features/settings/store.ts";
 
 // Mock i18next
 vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
     t: (key: string, options?: Record<string, string>) => {
       const translations: Record<string, string> = {

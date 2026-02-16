@@ -4,6 +4,15 @@ import { SettingsView } from "./settings-view.tsx";
 import { useSettingsStore } from "../store.ts";
 import { useTagStore } from "@/features/tags/store.ts";
 
+vi.mock("@/app/theme.ts", () => ({
+  setTheme: vi.fn(),
+  applyColorAccent: vi.fn(),
+}));
+
+vi.mock("@/app/i18n.ts", () => ({
+  default: { changeLanguage: vi.fn(() => Promise.resolve()) },
+}));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => {
@@ -24,6 +33,19 @@ vi.mock("react-i18next", () => ({
         "tags.setDefault": "Set as default",
         "common.edit": "Edit",
         "common.delete": "Delete",
+        "settings.appearance": "Appearance",
+        "settings.theme": "Theme",
+        "settings.themeLight": "Light",
+        "settings.themeDark": "Dark",
+        "settings.themeAuto": "Auto",
+        "settings.colorAccent": "Color Accent",
+        "settings.accentBlue": "Blue",
+        "settings.accentPurple": "Purple",
+        "settings.accentGreen": "Green",
+        "settings.accentOrange": "Orange",
+        "settings.language": "Language",
+        "settings.languageEn": "English",
+        "settings.languageDe": "Deutsch",
       };
       return translations[key] ?? key;
     },
@@ -36,8 +58,14 @@ describe("SettingsView", () => {
     useSettingsStore.setState({
       userName: "Löli",
       completedDisplayMode: "bottom",
+      theme: "auto",
+      colorAccent: "blue",
+      language: "en",
       setUserName: vi.fn(),
       setCompletedDisplayMode: vi.fn(),
+      setTheme: vi.fn(),
+      setColorAccent: vi.fn(),
+      setLanguage: vi.fn(),
     });
     useTagStore.setState({
       tags: [
@@ -67,5 +95,17 @@ describe("SettingsView", () => {
     render(<SettingsView />);
     expect(screen.getByText("Completed Todos Display")).toBeInTheDocument();
     expect(screen.getByLabelText("Show at Bottom")).toBeChecked();
+  });
+
+  it("renders appearance section", () => {
+    render(<SettingsView />);
+    expect(screen.getByText("Appearance")).toBeInTheDocument();
+    expect(screen.getByLabelText("Auto")).toBeChecked();
+  });
+
+  it("renders language section", () => {
+    render(<SettingsView />);
+    expect(screen.getByText("Language")).toBeInTheDocument();
+    expect(screen.getByLabelText("English")).toBeChecked();
   });
 });

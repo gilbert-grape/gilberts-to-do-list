@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next";
 import { TagManager } from "@/features/tags/components/tag-manager.tsx";
 import { ProfileSection } from "./profile-section.tsx";
 import { CompletedDisplaySection } from "./completed-display-section.tsx";
+import { AppearanceSection } from "./appearance-section.tsx";
+import { LanguageSection } from "./language-section.tsx";
 
 export function SettingsView() {
   const { t } = useTranslation();
@@ -14,6 +16,8 @@ export function SettingsView() {
       <ProfileSection />
       <TagManager />
       <CompletedDisplaySection />
+      <AppearanceSection />
+      <LanguageSection />
     </div>
   );
 }

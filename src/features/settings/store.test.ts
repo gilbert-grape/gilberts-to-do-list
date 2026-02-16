@@ -1,5 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useSettingsStore } from "./store.ts";
+
+vi.mock("@/app/theme.ts", () => ({
+  setTheme: vi.fn(),
+  applyColorAccent: vi.fn(),
+  initTheme: vi.fn(),
+  initColorAccent: vi.fn(),
+}));
+
+vi.mock("@/app/i18n.ts", () => ({
+  default: { changeLanguage: vi.fn(() => Promise.resolve()) },
+}));
 
 describe("useSettingsStore", () => {
   beforeEach(() => {
@@ -7,6 +18,9 @@ describe("useSettingsStore", () => {
     useSettingsStore.setState({
       userName: "",
       completedDisplayMode: "bottom",
+      theme: "auto",
+      colorAccent: "blue",
+      language: "en",
     });
   });
 
@@ -43,5 +57,44 @@ describe("useSettingsStore", () => {
     useSettingsStore.getState().setCompletedDisplayMode("toggleable");
     expect(useSettingsStore.getState().completedDisplayMode).toBe("toggleable");
     expect(localStorage.getItem("completed-display-mode")).toBe("toggleable");
+  });
+
+  // Theme tests
+  it("defaults theme to auto", () => {
+    expect(useSettingsStore.getState().theme).toBe("auto");
+  });
+
+  it("setTheme persists to localStorage and updates state", async () => {
+    const { setTheme: applyThemeSideEffect } = await import("@/app/theme.ts");
+    useSettingsStore.getState().setTheme("dark");
+    expect(useSettingsStore.getState().theme).toBe("dark");
+    expect(localStorage.getItem("theme")).toBe("dark");
+    expect(applyThemeSideEffect).toHaveBeenCalledWith("dark");
+  });
+
+  // Color accent tests
+  it("defaults colorAccent to blue", () => {
+    expect(useSettingsStore.getState().colorAccent).toBe("blue");
+  });
+
+  it("setColorAccent persists to localStorage and updates state", async () => {
+    const { applyColorAccent } = await import("@/app/theme.ts");
+    useSettingsStore.getState().setColorAccent("purple");
+    expect(useSettingsStore.getState().colorAccent).toBe("purple");
+    expect(localStorage.getItem("color-accent")).toBe("purple");
+    expect(applyColorAccent).toHaveBeenCalledWith("purple");
+  });
+
+  // Language tests
+  it("defaults language to en", () => {
+    expect(useSettingsStore.getState().language).toBe("en");
+  });
+
+  it("setLanguage persists to localStorage and updates state", async () => {
+    const i18n = (await import("@/app/i18n.ts")).default;
+    useSettingsStore.getState().setLanguage("de");
+    expect(useSettingsStore.getState().language).toBe("de");
+    expect(localStorage.getItem("language")).toBe("de");
+    expect(i18n.changeLanguage).toHaveBeenCalledWith("de");
   });
 });

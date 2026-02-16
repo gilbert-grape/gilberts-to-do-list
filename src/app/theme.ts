@@ -1,4 +1,5 @@
-type Theme = "light" | "dark" | "auto";
+export type Theme = "light" | "dark" | "auto";
+export type ColorAccent = "blue" | "purple" | "green" | "orange";
 
 function getSystemTheme(): "light" | "dark" {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -32,4 +33,21 @@ export function setTheme(theme: Theme) {
   localStorage.setItem("theme", theme);
   const resolved = theme === "auto" ? getSystemTheme() : theme;
   applyTheme(resolved);
+}
+
+const ACCENT_CLASSES = ["accent-purple", "accent-green", "accent-orange"];
+
+export function applyColorAccent(accent: ColorAccent) {
+  const el = document.documentElement;
+  ACCENT_CLASSES.forEach((cls) => el.classList.remove(cls));
+  if (accent !== "blue") {
+    el.classList.add(`accent-${accent}`);
+  }
+}
+
+export function initColorAccent() {
+  const saved = localStorage.getItem("color-accent") as ColorAccent | null;
+  if (saved && saved !== "blue") {
+    applyColorAccent(saved);
+  }
 }

@@ -30,3 +30,33 @@ html {
   --color-warning: #fbbf24;
   --color-danger: #f87171;
 }
+
+.accent-purple {
+  --color-primary: #8b5cf6;
+  --color-primary-hover: #7c3aed;
+}
+
+.accent-green {
+  --color-primary: #22c55e;
+  --color-primary-hover: #16a34a;
+}
+
+.accent-orange {
+  --color-primary: #f97316;
+  --color-primary-hover: #ea580c;
+}
+
+.dark.accent-purple {
+  --color-primary: #a78bfa;
+  --color-primary-hover: #8b5cf6;
+}
+
+.dark.accent-green {
+  --color-primary: #4ade80;
+  --color-primary-hover: #22c55e;
+}
+
+.dark.accent-orange {
+  --color-primary: #fb923c;
+  --color-primary-hover: #f97316;
+}

@@ -97,7 +97,20 @@
     "completedBottom": "Unten anzeigen",
     "completedToggleable": "Umschaltbar",
     "showCompleted": "Erledigte anzeigen ({{count}})",
-    "hideCompleted": "Erledigte ausblenden ({{count}})"
+    "hideCompleted": "Erledigte ausblenden ({{count}})",
+    "appearance": "Erscheinungsbild",
+    "theme": "Design",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeAuto": "Automatisch",
+    "colorAccent": "Akzentfarbe",
+    "accentBlue": "Blau",
+    "accentPurple": "Lila",
+    "accentGreen": "Grün",
+    "accentOrange": "Orange",
+    "language": "Sprache",
+    "languageEn": "English",
+    "languageDe": "Deutsch"
   },
   "onboarding": {
     "nameTitle": "Wie heisst du?",

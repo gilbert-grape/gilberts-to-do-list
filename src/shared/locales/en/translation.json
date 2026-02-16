@@ -97,7 +97,20 @@
     "completedBottom": "Show at Bottom",
     "completedToggleable": "Toggleable",
     "showCompleted": "Show Completed ({{count}})",
-    "hideCompleted": "Hide Completed ({{count}})"
+    "hideCompleted": "Hide Completed ({{count}})",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeAuto": "Auto",
+    "colorAccent": "Color Accent",
+    "accentBlue": "Blue",
+    "accentPurple": "Purple",
+    "accentGreen": "Green",
+    "accentOrange": "Orange",
+    "language": "Language",
+    "languageEn": "English",
+    "languageDe": "Deutsch"
   },
   "onboarding": {
     "nameTitle": "What's your name?",
