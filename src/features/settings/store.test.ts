@@ -97,4 +97,47 @@ describe("useSettingsStore", () => {
     expect(localStorage.getItem("language")).toBe("de");
     expect(i18n.changeLanguage).toHaveBeenCalledWith("de");
   });
+
+  // Telegram notification settings tests
+  it("defaults telegramBotToken to empty string", () => {
+    expect(useSettingsStore.getState().telegramBotToken).toBe("");
+  });
+
+  it("setTelegramBotToken persists to localStorage and updates state", () => {
+    useSettingsStore.getState().setTelegramBotToken("123:ABC");
+    expect(useSettingsStore.getState().telegramBotToken).toBe("123:ABC");
+    expect(localStorage.getItem("telegram-bot-token")).toBe("123:ABC");
+  });
+
+  it("defaults telegramChatId to empty string", () => {
+    expect(useSettingsStore.getState().telegramChatId).toBe("");
+  });
+
+  it("setTelegramChatId persists to localStorage and updates state", () => {
+    useSettingsStore.getState().setTelegramChatId("987654");
+    expect(useSettingsStore.getState().telegramChatId).toBe("987654");
+    expect(localStorage.getItem("telegram-chat-id")).toBe("987654");
+  });
+
+  it("defaults notificationTypes with due and overdue on", () => {
+    const types = useSettingsStore.getState().notificationTypes;
+    expect(types.dueTodo).toBe(true);
+    expect(types.overdueTodo).toBe(true);
+    expect(types.dailySummary).toBe(false);
+    expect(types.weeklySummary).toBe(false);
+  });
+
+  it("setNotificationTypes persists to localStorage and updates state", () => {
+    const newTypes = {
+      dueTodo: false,
+      overdueTodo: true,
+      dailySummary: true,
+      weeklySummary: false,
+    };
+    useSettingsStore.getState().setNotificationTypes(newTypes);
+    expect(useSettingsStore.getState().notificationTypes).toEqual(newTypes);
+    expect(JSON.parse(localStorage.getItem("notification-types")!)).toEqual(
+      newTypes,
+    );
+  });
 });

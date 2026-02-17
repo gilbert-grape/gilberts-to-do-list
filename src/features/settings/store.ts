@@ -11,6 +11,13 @@ export type CompletedDisplayMode = "hidden" | "bottom" | "toggleable";
 export type { Theme, ColorAccent };
 export type Language = "en" | "de";
 
+export interface NotificationTypes {
+  dueTodo: boolean;
+  overdueTodo: boolean;
+  dailySummary: boolean;
+  weeklySummary: boolean;
+}
+
 const COMPLETED_DISPLAY_MODE_KEY = "completed-display-mode";
 const VALID_MODES: CompletedDisplayMode[] = ["hidden", "bottom", "toggleable"];
 
@@ -22,6 +29,17 @@ const VALID_ACCENTS: ColorAccent[] = ["blue", "purple", "green", "orange"];
 
 const LANGUAGE_KEY = "language";
 const VALID_LANGUAGES: Language[] = ["en", "de"];
+
+const TELEGRAM_BOT_TOKEN_KEY = "telegram-bot-token";
+const TELEGRAM_CHAT_ID_KEY = "telegram-chat-id";
+const NOTIFICATION_TYPES_KEY = "notification-types";
+
+const DEFAULT_NOTIFICATION_TYPES: NotificationTypes = {
+  dueTodo: true,
+  overdueTodo: true,
+  dailySummary: false,
+  weeklySummary: false,
+};
 
 function loadUserName(): string {
   try {
@@ -79,17 +97,51 @@ function loadLanguage(): Language {
   return "en";
 }
 
+function loadTelegramBotToken(): string {
+  try {
+    return localStorage.getItem(TELEGRAM_BOT_TOKEN_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function loadTelegramChatId(): string {
+  try {
+    return localStorage.getItem(TELEGRAM_CHAT_ID_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function loadNotificationTypes(): NotificationTypes {
+  try {
+    const saved = localStorage.getItem(NOTIFICATION_TYPES_KEY);
+    if (saved) {
+      return { ...DEFAULT_NOTIFICATION_TYPES, ...JSON.parse(saved) };
+    }
+  } catch {
+    // localStorage unavailable or invalid JSON
+  }
+  return { ...DEFAULT_NOTIFICATION_TYPES };
+}
+
 export interface SettingsState {
   userName: string;
   completedDisplayMode: CompletedDisplayMode;
   theme: Theme;
   colorAccent: ColorAccent;
   language: Language;
+  telegramBotToken: string;
+  telegramChatId: string;
+  notificationTypes: NotificationTypes;
   setUserName: (name: string) => void;
   setCompletedDisplayMode: (mode: CompletedDisplayMode) => void;
   setTheme: (theme: Theme) => void;
   setColorAccent: (accent: ColorAccent) => void;
   setLanguage: (language: Language) => void;
+  setTelegramBotToken: (token: string) => void;
+  setTelegramChatId: (chatId: string) => void;
+  setNotificationTypes: (types: NotificationTypes) => void;
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
@@ -98,6 +150,9 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   theme: loadTheme(),
   colorAccent: loadColorAccent(),
   language: loadLanguage(),
+  telegramBotToken: loadTelegramBotToken(),
+  telegramChatId: loadTelegramChatId(),
+  notificationTypes: loadNotificationTypes(),
 
   setUserName: (name) => {
     try {
@@ -145,5 +200,32 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }
     void i18n.changeLanguage(language);
     set({ language });
+  },
+
+  setTelegramBotToken: (token) => {
+    try {
+      localStorage.setItem(TELEGRAM_BOT_TOKEN_KEY, token);
+    } catch {
+      // localStorage unavailable
+    }
+    set({ telegramBotToken: token });
+  },
+
+  setTelegramChatId: (chatId) => {
+    try {
+      localStorage.setItem(TELEGRAM_CHAT_ID_KEY, chatId);
+    } catch {
+      // localStorage unavailable
+    }
+    set({ telegramChatId: chatId });
+  },
+
+  setNotificationTypes: (types) => {
+    try {
+      localStorage.setItem(NOTIFICATION_TYPES_KEY, JSON.stringify(types));
+    } catch {
+      // localStorage unavailable
+    }
+    set({ notificationTypes: types });
   },
 }));

@@ -14,6 +14,10 @@ vi.mock("@/app/i18n.ts", () => ({
   default: { changeLanguage: vi.fn(() => Promise.resolve()) },
 }));
 
+vi.mock("@/services/notifications/telegram.ts", () => ({
+  sendTestNotification: vi.fn().mockResolvedValue({ ok: true }),
+}));
+
 vi.mock("@/services/sync/folder-sync.ts", () => ({
   useFolderSyncStore: (selector?: (s: { status: string; folderName: string }) => unknown) => {
     const state = { status: "disconnected", folderName: "" };
@@ -67,6 +71,23 @@ vi.mock("react-i18next", () => ({
         "settings.localFolder": "Local Folder",
         "settings.folderSyncUnsupported":
           "Folder sync is only available in Chrome and Edge.",
+        "settings.notifications": "Notifications",
+        "settings.notificationsDescription":
+          "Configure Telegram notifications for your to-dos.",
+        "settings.botToken": "Bot Token",
+        "settings.botTokenPlaceholder": "Enter bot token...",
+        "settings.chatId": "Chat ID",
+        "settings.chatIdPlaceholder": "Enter chat ID...",
+        "settings.toggleTokenVisibility": "Toggle token visibility",
+        "settings.testNotification": "Test Notification",
+        "settings.testSending": "Sending...",
+        "settings.testSuccess": "Notification sent successfully!",
+        "settings.testFailed": "Notification failed",
+        "settings.notificationTypes": "Notification Types",
+        "settings.notifyDueTodo": "To-do due",
+        "settings.notifyOverdueTodo": "To-do overdue",
+        "settings.notifyDailySummary": "Daily summary",
+        "settings.notifyWeeklySummary": "Weekly summary",
       };
       return translations[key] ?? key;
     },
@@ -87,6 +108,17 @@ describe("SettingsView", () => {
       setTheme: vi.fn(),
       setColorAccent: vi.fn(),
       setLanguage: vi.fn(),
+      telegramBotToken: "",
+      telegramChatId: "",
+      notificationTypes: {
+        dueTodo: true,
+        overdueTodo: true,
+        dailySummary: false,
+        weeklySummary: false,
+      },
+      setTelegramBotToken: vi.fn(),
+      setTelegramChatId: vi.fn(),
+      setNotificationTypes: vi.fn(),
     });
     useTagStore.setState({
       tags: [
@@ -132,5 +164,10 @@ describe("SettingsView", () => {
     render(<SettingsView />);
     expect(screen.getByText("Language")).toBeInTheDocument();
     expect(screen.getByLabelText("English")).toBeChecked();
+  });
+
+  it("renders notifications section", () => {
+    render(<SettingsView />);
+    expect(screen.getByText("Notifications")).toBeInTheDocument();
   });
 });
