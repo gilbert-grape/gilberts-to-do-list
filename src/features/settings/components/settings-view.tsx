@@ -5,6 +5,7 @@ import { CompletedDisplaySection } from "./completed-display-section.tsx";
 import { AppearanceSection } from "./appearance-section.tsx";
 import { LanguageSection } from "./language-section.tsx";
 import { ImportExportSection } from "./import-export-section.tsx";
+import { LocalFolderSection } from "./local-folder-section.tsx";
 
 export function SettingsView() {
   const { t } = useTranslation();
@@ -20,6 +21,7 @@ export function SettingsView() {
       <AppearanceSection />
       <LanguageSection />
       <ImportExportSection />
+      <LocalFolderSection />
     </div>
   );
 }

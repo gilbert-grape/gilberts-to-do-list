@@ -136,7 +136,14 @@
     "importDescription": "Lade .md Dateien hoch, um To-Dos zu importieren. Dateiname oder # Überschrift bestimmt den Tag.",
     "selectFiles": ".md Dateien auswählen",
     "importing": "Importiere...",
-    "importResult": "{{created}} To-Dos importiert, {{skipped}} Duplikate übersprungen."
+    "importResult": "{{created}} To-Dos importiert, {{skipped}} Duplikate übersprungen.",
+    "localFolder": "Lokaler Ordner",
+    "connectFolder": "Ordner verbinden",
+    "disconnect": "Trennen",
+    "connected": "Verbunden",
+    "notConnected": "Nicht verbunden",
+    "folderSyncDescription": "Verbinde einen lokalen Ordner, um deine To-Dos als Markdown-Dateien zu synchronisieren. Funktioniert mit Nextcloud, Obsidian und anderen Sync-Tools.",
+    "folderSyncUnsupported": "Ordner-Synchronisation ist nur in Chrome und Edge verfügbar. Verwende Import & Export als Alternative."
   },
   "onboarding": {
     "nameTitle": "Wie heisst du?",

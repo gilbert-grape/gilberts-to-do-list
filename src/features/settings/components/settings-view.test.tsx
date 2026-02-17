@@ -14,6 +14,17 @@ vi.mock("@/app/i18n.ts", () => ({
   default: { changeLanguage: vi.fn(() => Promise.resolve()) },
 }));
 
+vi.mock("@/services/sync/folder-sync.ts", () => ({
+  useFolderSyncStore: (selector?: (s: { status: string; folderName: string }) => unknown) => {
+    const state = { status: "disconnected", folderName: "" };
+    return selector ? selector(state) : state;
+  },
+  isFolderSyncSupported: () => false,
+  connectFolder: vi.fn(),
+  disconnectFolder: vi.fn(),
+  restoreFolder: vi.fn(),
+}));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => {
@@ -53,6 +64,9 @@ vi.mock("react-i18next", () => ({
         "settings.downloadMd": "Download .md",
         "settings.importDescription": "Upload .md files to import to-dos.",
         "settings.selectFiles": "Select .md Files",
+        "settings.localFolder": "Local Folder",
+        "settings.folderSyncUnsupported":
+          "Folder sync is only available in Chrome and Edge.",
       };
       return translations[key] ?? key;
     },

@@ -136,7 +136,14 @@
     "importDescription": "Upload .md files to import to-dos. Filename or # header determines the tag.",
     "selectFiles": "Select .md Files",
     "importing": "Importing...",
-    "importResult": "{{created}} to-dos imported, {{skipped}} duplicates skipped."
+    "importResult": "{{created}} to-dos imported, {{skipped}} duplicates skipped.",
+    "localFolder": "Local Folder",
+    "connectFolder": "Connect Folder",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "folderSyncDescription": "Connect a local folder to sync your to-dos as markdown files. Works with Nextcloud, Obsidian, and other sync tools.",
+    "folderSyncUnsupported": "Folder sync is only available in Chrome and Edge. Use Import & Export as an alternative."
   },
   "onboarding": {
     "nameTitle": "What's your name?",
