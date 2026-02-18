@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTagStore } from "@/features/tags/store.ts";
 import { useTodoStore } from "../../store.ts";
@@ -131,6 +131,12 @@ export function HardcoreView(_props: HardcoreViewProps) {
     setIsPreview((prev) => !prev);
   }, []);
 
+  useEffect(() => {
+    if (!saveSuccess) return;
+    const timer = setTimeout(() => setSaveSuccess(false), 3000);
+    return () => clearTimeout(timer);
+  }, [saveSuccess]);
+
   const previewHtml = useMemo(() => {
     if (!isPreview) return "";
     return renderMarkdownHtml(markdown);
@@ -156,7 +162,7 @@ export function HardcoreView(_props: HardcoreViewProps) {
       {isPreview ? (
         <div
           data-testid="markdown-preview"
-          className="min-h-[200px] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)] prose prose-sm max-w-none"
+          className="min-h-[200px] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)] prose prose-sm dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{ __html: previewHtml }}
         />
       ) : (
@@ -164,7 +170,7 @@ export function HardcoreView(_props: HardcoreViewProps) {
           value={markdown}
           onChange={(e) => handleTextChange(e.target.value)}
           className="min-h-[200px] w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3 font-mono text-sm text-[var(--color-text)]"
-          aria-label="Markdown editor"
+          aria-label={t("hardcore.editorLabel")}
           spellCheck={false}
         />
       )}

@@ -7,6 +7,7 @@ import {
   ONBOARDING_COMPLETE_KEY,
   USER_NAME_KEY,
 } from "../constants.ts";
+import { TAG_COLORS } from "@/features/tags/colors.ts";
 import { StepIndicator } from "./step-indicator.tsx";
 import { NameStep } from "./name-step.tsx";
 import { PurposeStep } from "./purpose-step.tsx";
@@ -91,7 +92,7 @@ export function OnboardingView() {
       if (store.defaultTagChoice.kind === "create-default") {
         await useTagStore.getState().createTag({
           name: t("onboarding.defaultTagOption"),
-          color: "#64748b",
+          color: TAG_COLORS[TAG_COLORS.length - 1]!,
           isDefault: false,
         });
         const tags = useTagStore.getState().tags;

@@ -37,14 +37,15 @@ export class IndexedDBAdapter implements StorageAdapter {
 
   async createTodo(input: TodoCreate): Promise<Todo> {
     const now = new Date().toISOString();
-    const count = await this.db.todos.count();
+    const maxItem = await this.db.todos.orderBy("sortOrder").last();
+    const sortOrder = maxItem ? maxItem.sortOrder + 1 : 0;
     const todo: Todo = {
       id: crypto.randomUUID(),
       ...input,
       status: "open",
       createdAt: now,
       completedAt: null,
-      sortOrder: count,
+      sortOrder,
     };
     await this.db.todos.add(todo);
     return todo;

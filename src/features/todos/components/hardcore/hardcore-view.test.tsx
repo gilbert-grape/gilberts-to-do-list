@@ -22,6 +22,7 @@ vi.mock("react-i18next", () => ({
         "hardcore.depthJump": "Indentation jump too large",
         "hardcore.oddIndent": "Indentation must be multiples of 2 spaces",
         "common.cancel": "Cancel",
+        "hardcore.editorLabel": "Markdown editor",
       };
       if (key === "hardcore.validationError" && params) {
         return `Line ${params.line}: ${params.message}`;

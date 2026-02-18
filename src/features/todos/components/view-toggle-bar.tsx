@@ -41,6 +41,7 @@ export function ViewToggleBar({
             type="button"
             onClick={() => onViewChange(key)}
             title={t(`views.${key}`)}
+            aria-label={t(`views.${key}`)}
             className={cn(
               "flex-1 rounded-md p-2 transition-colors",
               isActive && "bg-[var(--color-primary)] text-white",

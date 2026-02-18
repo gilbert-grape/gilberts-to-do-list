@@ -216,30 +216,31 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       }
 
       // Bubble up: check if parent should auto-complete
-      const bubbleUp = async (childParentId: string | null) => {
-        if (!childParentId) return;
-        const currentTodos = get().todos;
-        const parent = currentTodos.find((t) => t.id === childParentId);
-        if (!parent || parent.status === "completed") return;
+      let bubbleParentId = todo.parentId;
+      while (bubbleParentId) {
+        const freshTodos = get().todos;
+        const parent = freshTodos.find((t) => t.id === bubbleParentId);
+        if (!parent || parent.status === "completed") break;
 
-        const siblings = currentTodos.filter(
-          (t) => t.parentId === childParentId,
+        const siblings = freshTodos.filter(
+          (t) => t.parentId === bubbleParentId,
         );
-        const allSiblingsDone = siblings.every((t) => t.status === "completed");
-        if (allSiblingsDone) {
-          set((state) => ({
-            todos: state.todos.map((t) =>
-              t.id === childParentId
-                ? { ...t, status: "completed", completedAt: now }
-                : t,
-            ),
-          }));
-          await adapter.updateTodo(childParentId, completedChanges);
-          await bubbleUp(parent.parentId);
-        }
-      };
+        if (!siblings.every((t) => t.status === "completed")) break;
 
-      await bubbleUp(todo.parentId);
+        set((state) => ({
+          todos: state.todos.map((t) =>
+            t.id === bubbleParentId
+              ? { ...t, status: "completed", completedAt: now }
+              : t,
+          ),
+        }));
+        try {
+          await adapter.updateTodo(bubbleParentId, completedChanges);
+        } catch {
+          // Best-effort: state already updated optimistically
+        }
+        bubbleParentId = parent.parentId;
+      }
 
       // Recurrence: create next occurrence when completing a recurring todo
       if (todo.recurrence && todo.dueDate) {

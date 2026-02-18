@@ -76,6 +76,7 @@ export function MainView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeView, setActiveView] = useState<ViewType>(loadSavedView);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const completedDisplayMode = useSettingsStore(
     (s) => s.completedDisplayMode,
   );
@@ -233,17 +234,29 @@ export function MainView() {
 
   const handleConfirmDelete = async () => {
     if (!deletingTodo) return;
-    await deleteTodo(deletingTodo.id);
-    setDeletingTodo(null);
+    try {
+      await deleteTodo(deletingTodo.id);
+      setDeletingTodo(null);
+      setActionError(null);
+    } catch {
+      setDeletingTodo(null);
+      setActionError(t("errors.deleteFailed"));
+    }
   };
 
   const handleDeleteWithChildren = async (mode: string) => {
     if (!deletingTodo) return;
-    await deleteTodoWithChildren(
-      deletingTodo.id,
-      mode as "delete-all" | "keep-children",
-    );
-    setDeletingTodo(null);
+    try {
+      await deleteTodoWithChildren(
+        deletingTodo.id,
+        mode as "delete-all" | "keep-children",
+      );
+      setDeletingTodo(null);
+      setActionError(null);
+    } catch {
+      setDeletingTodo(null);
+      setActionError(t("errors.deleteFailed"));
+    }
   };
 
   const hasChildren = deletingTodo
@@ -317,8 +330,15 @@ export function MainView() {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder={t("common.search")}
+        aria-label={t("common.search")}
         className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)]"
       />
+
+      {actionError && (
+        <p className="text-sm text-[var(--color-danger)]" role="alert">
+          {actionError}
+        </p>
+      )}
 
       <button
         type="button"

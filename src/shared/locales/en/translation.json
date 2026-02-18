@@ -31,8 +31,14 @@
     "main": "Your to-dos will appear here."
   },
   "errors": {
-    "saveFailed": "Save failed",
-    "loadFailed": "Load failed"
+    "saveFailed": "Save failed. Please try again.",
+    "loadFailed": "Load failed",
+    "deleteFailed": "Delete failed. Please try again.",
+    "importFailed": "Import failed. Please try again.",
+    "unexpected": "An unexpected error occurred.",
+    "somethingWentWrong": "Something went wrong",
+    "reloadMessage": "An unexpected error occurred. Please reload the page.",
+    "reload": "Reload"
   },
   "todos": {
     "newTodo": "+ New To-Do",
@@ -49,6 +55,7 @@
     "parentLabel": "Parent To-Do",
     "parentPlaceholder": "Search parent...",
     "clearParent": "Clear parent",
+    "parentNoResults": "No matching to-dos",
     "moreOptions": "More Options",
     "dueDate": "Due Date",
     "recurrence": "Recurrence",
@@ -77,7 +84,8 @@
     "unsavedChanges": "You have unsaved changes. Discard them?",
     "invalidLine": "Invalid syntax",
     "depthJump": "Indentation jump too large",
-    "oddIndent": "Indentation must be multiples of 2 spaces"
+    "oddIndent": "Indentation must be multiples of 2 spaces",
+    "editorLabel": "Markdown editor"
   },
   "tags": {
     "title": "Tag Management",

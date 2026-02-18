@@ -25,6 +25,7 @@ export function ImportExportSection() {
     created: number;
     skipped: number;
   } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   function handleExport(tagId: string) {
     const tag = tags.find((tg) => tg.id === tagId);
@@ -46,6 +47,7 @@ export function ImportExportSection() {
 
     setImporting(true);
     setImportResult(null);
+    setImportError(null);
     let created = 0;
     let skipped = 0;
 
@@ -150,6 +152,8 @@ export function ImportExportSection() {
       }
 
       setImportResult({ created, skipped });
+    } catch {
+      setImportError(t("errors.importFailed"));
     } finally {
       setImporting(false);
     }
@@ -232,6 +236,11 @@ export function ImportExportSection() {
             className="hidden"
           />
         </label>
+        {importError && (
+          <p className="text-sm text-[var(--color-danger)]" role="alert">
+            {importError}
+          </p>
+        )}
         {importResult && (
           <p className="text-xs text-[var(--color-text-secondary)]">
             {t("settings.importResult", {

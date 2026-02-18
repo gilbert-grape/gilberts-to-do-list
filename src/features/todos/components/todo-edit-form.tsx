@@ -29,6 +29,8 @@ export function TodoEditForm({ todo, onClose }: TodoEditFormProps) {
   const [recurrenceInterval, setRecurrenceInterval] = useState<number | null>(
     todo.recurrenceInterval,
   );
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Collect this todo + all its descendants to exclude from parent selection
   const excludeIds = useMemo(() => {
@@ -55,20 +57,26 @@ export function TodoEditForm({ todo, onClose }: TodoEditFormProps) {
 
   const handleSave = async () => {
     const trimmedTitle = title.trim();
-    if (!trimmedTitle) return;
+    if (!trimmedTitle || isSaving) return;
     if (selectedTagIds.length === 0) return;
+    setIsSaving(true);
+    setError(null);
 
-    await updateTodo(todo.id, {
-      title: trimmedTitle,
-      description: description.trim() || null,
-      tagIds: selectedTagIds,
-      parentId,
-      dueDate,
-      recurrence,
-      recurrenceInterval,
-    });
-
-    onClose();
+    try {
+      await updateTodo(todo.id, {
+        title: trimmedTitle,
+        description: description.trim() || null,
+        tagIds: selectedTagIds,
+        parentId,
+        dueDate,
+        recurrence,
+        recurrenceInterval,
+      });
+      onClose();
+    } catch {
+      setError(t("errors.saveFailed"));
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -120,6 +128,12 @@ export function TodoEditForm({ todo, onClose }: TodoEditFormProps) {
         onRecurrenceIntervalChange={setRecurrenceInterval}
       />
 
+      {error && (
+        <p className="text-sm text-[var(--color-danger)]" role="alert">
+          {error}
+        </p>
+      )}
+
       <div className="flex justify-end gap-2">
         <button
           type="button"
@@ -131,7 +145,7 @@ export function TodoEditForm({ todo, onClose }: TodoEditFormProps) {
         <button
           type="button"
           onClick={handleSave}
-          disabled={!title.trim() || selectedTagIds.length === 0}
+          disabled={!title.trim() || selectedTagIds.length === 0 || isSaving}
           className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
         >
           {t("common.save")}

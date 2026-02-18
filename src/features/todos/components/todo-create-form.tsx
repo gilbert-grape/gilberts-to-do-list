@@ -35,6 +35,7 @@ export function TodoCreateForm({
     null,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Inherit tags from parent when parent changes
   useEffect(() => {
@@ -61,18 +62,23 @@ export function TodoCreateForm({
     const trimmedTitle = title.trim();
     if (!trimmedTitle || isSaving) return;
     setIsSaving(true);
+    setError(null);
 
-    await createTodo({
-      title: trimmedTitle,
-      description: description.trim() || null,
-      tagIds: selectedTagIds,
-      parentId,
-      dueDate,
-      recurrence,
-      recurrenceInterval,
-    });
-
-    onClose();
+    try {
+      await createTodo({
+        title: trimmedTitle,
+        description: description.trim() || null,
+        tagIds: selectedTagIds,
+        parentId,
+        dueDate,
+        recurrence,
+        recurrenceInterval,
+      });
+      onClose();
+    } catch {
+      setError(t("errors.saveFailed"));
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -122,6 +128,12 @@ export function TodoCreateForm({
         onRecurrenceChange={setRecurrence}
         onRecurrenceIntervalChange={setRecurrenceInterval}
       />
+
+      {error && (
+        <p className="text-sm text-[var(--color-danger)]" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="flex justify-end gap-2">
         <button

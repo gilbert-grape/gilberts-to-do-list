@@ -160,13 +160,17 @@ async function pollForChanges(): Promise<void> {
         if (existing) {
           const newStatus = parsedTodo.completed ? "completed" : "open";
           if (existing.status !== newStatus) {
-            await useTodoStore.getState().updateTodo(existing.id, {
-              status: newStatus,
-              completedAt:
-                newStatus === "completed"
-                  ? new Date().toISOString()
-                  : null,
-            });
+            try {
+              await useTodoStore.getState().updateTodo(existing.id, {
+                status: newStatus,
+                completedAt:
+                  newStatus === "completed"
+                    ? new Date().toISOString()
+                    : null,
+              });
+            } catch {
+              // Store update failed — skip this item
+            }
           }
         } else {
           // Resolve parent from depth
@@ -189,30 +193,34 @@ async function pollForChanges(): Promise<void> {
             }
           }
 
-          await useTodoStore.getState().createTodo({
-            title: parsedTodo.title,
-            description: null,
-            tagIds: [tag.id],
-            parentId,
-            dueDate: null,
-            recurrence: null,
-            recurrenceInterval: null,
-          });
+          try {
+            await useTodoStore.getState().createTodo({
+              title: parsedTodo.title,
+              description: null,
+              tagIds: [tag.id],
+              parentId,
+              dueDate: null,
+              recurrence: null,
+              recurrenceInterval: null,
+            });
 
-          if (parsedTodo.completed) {
-            const newTodo = useTodoStore
-              .getState()
-              .todos.find(
-                (t) =>
-                  t.title === parsedTodo.title &&
-                  t.tagIds.includes(tag.id),
-              );
-            if (newTodo) {
-              await useTodoStore.getState().updateTodo(newTodo.id, {
-                status: "completed",
-                completedAt: new Date().toISOString(),
-              });
+            if (parsedTodo.completed) {
+              const newTodo = useTodoStore
+                .getState()
+                .todos.find(
+                  (t) =>
+                    t.title === parsedTodo.title &&
+                    t.tagIds.includes(tag.id),
+                );
+              if (newTodo) {
+                await useTodoStore.getState().updateTodo(newTodo.id, {
+                  status: "completed",
+                  completedAt: new Date().toISOString(),
+                });
+              }
             }
+          } catch {
+            // Store mutation failed — skip this item
           }
         }
       }
@@ -251,9 +259,13 @@ async function pollForChanges(): Promise<void> {
       const availableColor =
         TAG_COLORS.find((c) => !existingColors.has(c)) ?? TAG_COLORS[0]!;
 
-      await useTagStore
-        .getState()
-        .createTag({ name: resolvedName, color: availableColor, isDefault: false });
+      try {
+        await useTagStore
+          .getState()
+          .createTag({ name: resolvedName, color: availableColor, isDefault: false });
+      } catch {
+        continue; // Tag creation failed — skip this file
+      }
 
       const newTag = useTagStore
         .getState()
@@ -263,30 +275,34 @@ async function pollForChanges(): Promise<void> {
       if (!newTag) continue;
 
       for (const parsedTodo of parsed.todos) {
-        await useTodoStore.getState().createTodo({
-          title: parsedTodo.title,
-          description: null,
-          tagIds: [newTag.id],
-          parentId: null,
-          dueDate: null,
-          recurrence: null,
-          recurrenceInterval: null,
-        });
+        try {
+          await useTodoStore.getState().createTodo({
+            title: parsedTodo.title,
+            description: null,
+            tagIds: [newTag.id],
+            parentId: null,
+            dueDate: null,
+            recurrence: null,
+            recurrenceInterval: null,
+          });
 
-        if (parsedTodo.completed) {
-          const created = useTodoStore
-            .getState()
-            .todos.find(
-              (t) =>
-                t.title === parsedTodo.title &&
-                t.tagIds.includes(newTag.id),
-            );
-          if (created) {
-            await useTodoStore.getState().updateTodo(created.id, {
-              status: "completed",
-              completedAt: new Date().toISOString(),
-            });
+          if (parsedTodo.completed) {
+            const created = useTodoStore
+              .getState()
+              .todos.find(
+                (t) =>
+                  t.title === parsedTodo.title &&
+                  t.tagIds.includes(newTag.id),
+              );
+            if (created) {
+              await useTodoStore.getState().updateTodo(created.id, {
+                status: "completed",
+                completedAt: new Date().toISOString(),
+              });
+            }
           }
+        } catch {
+          // Store mutation failed — skip this item
         }
       }
 

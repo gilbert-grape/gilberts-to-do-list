@@ -31,8 +31,14 @@
     "main": "Deine To-Dos erscheinen hier."
   },
   "errors": {
-    "saveFailed": "Speichern fehlgeschlagen",
-    "loadFailed": "Laden fehlgeschlagen"
+    "saveFailed": "Speichern fehlgeschlagen. Bitte versuche es erneut.",
+    "loadFailed": "Laden fehlgeschlagen",
+    "deleteFailed": "Löschen fehlgeschlagen. Bitte versuche es erneut.",
+    "importFailed": "Import fehlgeschlagen. Bitte versuche es erneut.",
+    "unexpected": "Ein unerwarteter Fehler ist aufgetreten.",
+    "somethingWentWrong": "Etwas ist schiefgelaufen",
+    "reloadMessage": "Ein unerwarteter Fehler ist aufgetreten. Bitte lade die Seite neu.",
+    "reload": "Neu laden"
   },
   "todos": {
     "newTodo": "+ Neues To-Do",
@@ -49,6 +55,7 @@
     "parentLabel": "Übergeordnetes To-Do",
     "parentPlaceholder": "Übergeordnetes suchen...",
     "clearParent": "Zuordnung entfernen",
+    "parentNoResults": "Keine passenden To-Dos",
     "moreOptions": "Weitere Optionen",
     "dueDate": "Fälligkeitsdatum",
     "recurrence": "Wiederholung",
@@ -77,7 +84,8 @@
     "unsavedChanges": "Du hast ungespeicherte Änderungen. Verwerfen?",
     "invalidLine": "Ungültige Syntax",
     "depthJump": "Einrückungssprung zu groß",
-    "oddIndent": "Einrückung muss ein Vielfaches von 2 Leerzeichen sein"
+    "oddIndent": "Einrückung muss ein Vielfaches von 2 Leerzeichen sein",
+    "editorLabel": "Markdown-Editor"
   },
   "tags": {
     "title": "Tag-Verwaltung",

@@ -145,15 +145,15 @@ describe("StatisticsView", () => {
     setupStores([completedTodo]);
     render(<StatisticsView />);
     expect(
-      screen.getByText("To-Do Distribution by Tag"),
-    ).toBeInTheDocument();
+      screen.getAllByText("To-Do Distribution by Tag").length,
+    ).toBeGreaterThan(0);
     expect(screen.getByTestId("pie-chart")).toBeInTheDocument();
   });
 
   it("renders bar chart section", () => {
     setupStores([completedTodo]);
     render(<StatisticsView />);
-    expect(screen.getByText("Completion History")).toBeInTheDocument();
+    expect(screen.getAllByText("Completion History").length).toBeGreaterThan(0);
     expect(screen.getByTestId("bar-chart")).toBeInTheDocument();
   });
 

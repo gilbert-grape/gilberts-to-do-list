@@ -16,14 +16,20 @@ export function TagManager() {
   const [editName, setEditName] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCreate = async () => {
     const trimmed = newTagName.trim();
     if (!trimmed) return;
     if (tags.some((t) => t.name.toLowerCase() === trimmed.toLowerCase())) return;
-    await createTag({ name: trimmed, color: selectedColor, isDefault: false });
-    setNewTagName("");
-    setSelectedColor(TAG_COLORS[0]!);
+    setError(null);
+    try {
+      await createTag({ name: trimmed, color: selectedColor, isDefault: false });
+      setNewTagName("");
+      setSelectedColor(TAG_COLORS[0]!);
+    } catch {
+      setError(t("errors.saveFailed"));
+    }
   };
 
   const handleStartEdit = (tag: Tag) => {
@@ -35,9 +41,14 @@ export function TagManager() {
     if (!editingId) return;
     const trimmed = editName.trim();
     if (!trimmed) return;
-    await updateTag(editingId, { name: trimmed });
-    setEditingId(null);
-    setEditName("");
+    setError(null);
+    try {
+      await updateTag(editingId, { name: trimmed });
+      setEditingId(null);
+      setEditName("");
+    } catch {
+      setError(t("errors.saveFailed"));
+    }
   };
 
   const handleCancelEdit = () => {
@@ -58,18 +69,30 @@ export function TagManager() {
       return;
     }
 
-    await deleteTag(tag.id);
+    try {
+      await deleteTag(tag.id);
+    } catch {
+      setDeleteError(t("errors.deleteFailed"));
+    }
   };
 
   const handleConfirmDeleteDefault = async (newDefaultId: string) => {
     if (!confirmDeleteId) return;
-    await setDefaultTag(newDefaultId);
-    await deleteTag(confirmDeleteId);
-    setConfirmDeleteId(null);
+    try {
+      await setDefaultTag(newDefaultId);
+      await deleteTag(confirmDeleteId);
+      setConfirmDeleteId(null);
+    } catch {
+      setDeleteError(t("errors.deleteFailed"));
+    }
   };
 
   const handleSetDefault = async (id: string) => {
-    await setDefaultTag(id);
+    try {
+      await setDefaultTag(id);
+    } catch {
+      setError(t("errors.saveFailed"));
+    }
   };
 
   return (
@@ -113,7 +136,7 @@ export function TagManager() {
               role="radio"
               aria-checked={selectedColor === color}
               onClick={() => setSelectedColor(color)}
-              className={`h-8 w-8 rounded-full border-2 transition-all ${
+              className={`h-11 w-11 rounded-full border-2 transition-all ${
                 selectedColor === color
                   ? "border-[var(--color-text)] scale-110"
                   : "border-transparent"
@@ -125,10 +148,10 @@ export function TagManager() {
         </div>
       </div>
 
-      {/* Error message */}
-      {deleteError && (
+      {/* Error messages */}
+      {(deleteError || error) && (
         <p className="text-sm text-[var(--color-danger)]" role="alert">
-          {deleteError}
+          {deleteError || error}
         </p>
       )}
 
