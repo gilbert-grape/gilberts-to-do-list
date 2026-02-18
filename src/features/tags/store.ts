@@ -60,10 +60,16 @@ export const useTagStore = create<TagState>((set, get) => ({
 
   updateTag: async (id: string, changes: Partial<Tag>) => {
     const adapter = getAdapter();
+    const prev = get().tags;
     set((state) => ({
       tags: state.tags.map((t) => (t.id === id ? { ...t, ...changes } : t)),
     }));
-    await adapter.updateTag(id, changes);
+    try {
+      await adapter.updateTag(id, changes);
+    } catch (err) {
+      set({ tags: prev });
+      throw err;
+    }
   },
 
   deleteTag: async (id: string) => {
@@ -81,16 +87,23 @@ export const useTagStore = create<TagState>((set, get) => ({
     }
 
     const adapter = getAdapter();
+    const prev = tags;
     set((state) => ({
       tags: state.tags.filter((t) => t.id !== id),
     }));
-    await adapter.deleteTag(id);
+    try {
+      await adapter.deleteTag(id);
+    } catch (err) {
+      set({ tags: prev });
+      throw err;
+    }
     return true;
   },
 
   setDefaultTag: async (id: string) => {
     const { tags } = get();
     const adapter = getAdapter();
+    const prev = tags;
     const currentDefault = tags.find((t) => t.isDefault);
 
     set((state) => ({
@@ -100,10 +113,17 @@ export const useTagStore = create<TagState>((set, get) => ({
       })),
     }));
 
-    if (currentDefault && currentDefault.id !== id) {
-      await adapter.updateTag(currentDefault.id, { isDefault: false });
+    try {
+      await Promise.all([
+        currentDefault && currentDefault.id !== id
+          ? adapter.updateTag(currentDefault.id, { isDefault: false })
+          : Promise.resolve(),
+        adapter.updateTag(id, { isDefault: true }),
+      ]);
+    } catch (err) {
+      set({ tags: prev });
+      throw err;
     }
-    await adapter.updateTag(id, { isDefault: true });
   },
 
   getDefaultTag: () => {

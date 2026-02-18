@@ -12,7 +12,7 @@ export function SettingsView() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-1 flex-col gap-8 p-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 p-4">
       <h1 className="text-xl font-bold text-[var(--color-text)]">
         {t("nav.settings")}
       </h1>

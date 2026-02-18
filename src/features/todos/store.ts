@@ -41,6 +41,16 @@ function getAdapter(): StorageAdapter {
   return _adapter;
 }
 
+function collectDescendants(todos: Todo[], parentId: string): string[] {
+  const children = todos.filter((t) => t.parentId === parentId);
+  const ids: string[] = [];
+  for (const child of children) {
+    ids.push(child.id);
+    ids.push(...collectDescendants(todos, child.id));
+  }
+  return ids;
+}
+
 export const useTodoStore = create<TodoState>((set, get) => ({
   todos: [],
   isLoaded: false,
@@ -68,54 +78,66 @@ export const useTodoStore = create<TodoState>((set, get) => ({
 
   updateTodo: async (id: string, changes: Partial<Todo>) => {
     const adapter = getAdapter();
+    const prev = get().todos;
     set((state) => ({
       todos: state.todos.map((t) => (t.id === id ? { ...t, ...changes } : t)),
     }));
-    await adapter.updateTodo(id, changes);
+    try {
+      await adapter.updateTodo(id, changes);
+    } catch (err) {
+      set({ todos: prev });
+      throw err;
+    }
   },
 
   deleteTodo: async (id: string) => {
     const adapter = getAdapter();
+    const prev = get().todos;
     set((state) => ({
       todos: state.todos.filter((t) => t.id !== id),
     }));
-    await adapter.deleteTodo(id);
+    try {
+      await adapter.deleteTodo(id);
+    } catch (err) {
+      set({ todos: prev });
+      throw err;
+    }
   },
 
   deleteTodoWithChildren: async (id: string, mode: DeleteMode) => {
     const adapter = getAdapter();
-    const { todos } = get();
-
-    const collectDescendants = (parentId: string): string[] => {
-      const children = todos.filter((t) => t.parentId === parentId);
-      const ids: string[] = [];
-      for (const child of children) {
-        ids.push(child.id);
-        ids.push(...collectDescendants(child.id));
-      }
-      return ids;
-    };
+    const prev = get().todos;
 
     if (mode === "delete-all") {
-      const descendantIds = collectDescendants(id);
+      const descendantIds = collectDescendants(prev, id);
       const allIds = [id, ...descendantIds];
       set((state) => ({
         todos: state.todos.filter((t) => !allIds.includes(t.id)),
       }));
-      for (const deleteId of allIds) {
-        await adapter.deleteTodo(deleteId);
+      try {
+        await Promise.all(allIds.map((deleteId) => adapter.deleteTodo(deleteId)));
+      } catch (err) {
+        set({ todos: prev });
+        throw err;
       }
     } else {
       // keep-children: promote children to root (parentId = null)
-      const directChildren = todos.filter((t) => t.parentId === id);
+      const directChildren = prev.filter((t) => t.parentId === id);
       set((state) => ({
         todos: state.todos
           .filter((t) => t.id !== id)
           .map((t) => (t.parentId === id ? { ...t, parentId: null } : t)),
       }));
-      await adapter.deleteTodo(id);
-      for (const child of directChildren) {
-        await adapter.updateTodo(child.id, { parentId: null });
+      try {
+        await Promise.all([
+          adapter.deleteTodo(id),
+          ...directChildren.map((child) =>
+            adapter.updateTodo(child.id, { parentId: null }),
+          ),
+        ]);
+      } catch (err) {
+        set({ todos: prev });
+        throw err;
       }
     }
   },
@@ -126,6 +148,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
 
   reorderTodos: async (updates) => {
     const adapter = getAdapter();
+    const prev = get().todos;
     // Optimistic batch update
     set((state) => ({
       todos: state.todos.map((t) => {
@@ -137,12 +160,18 @@ export const useTodoStore = create<TodoState>((set, get) => ({
         return { ...t, ...changes };
       }),
     }));
-    // Persist each update
-    for (const update of updates) {
-      const changes: Partial<Todo> = { sortOrder: update.sortOrder };
-      if (update.parentId !== undefined) changes.parentId = update.parentId;
-      if (update.tagIds !== undefined) changes.tagIds = update.tagIds;
-      await adapter.updateTodo(update.id, changes);
+    try {
+      await Promise.all(
+        updates.map((update) => {
+          const changes: Partial<Todo> = { sortOrder: update.sortOrder };
+          if (update.parentId !== undefined) changes.parentId = update.parentId;
+          if (update.tagIds !== undefined) changes.tagIds = update.tagIds;
+          return adapter.updateTodo(update.id, changes);
+        }),
+      );
+    } catch (err) {
+      set({ todos: prev });
+      throw err;
     }
   },
 
@@ -152,22 +181,13 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     if (!todo) return;
 
     const adapter = getAdapter();
+    const prev = get().todos;
     const isCompleting = todo.status === "open";
     const now = new Date().toISOString();
 
     if (isCompleting) {
       // Cascade down: complete this todo + all descendants
-      const collectDescendants = (parentId: string): string[] => {
-        const children = todos.filter((t) => t.parentId === parentId);
-        const ids: string[] = [];
-        for (const child of children) {
-          ids.push(child.id);
-          ids.push(...collectDescendants(child.id));
-        }
-        return ids;
-      };
-
-      const descendantIds = collectDescendants(id);
+      const descendantIds = collectDescendants(todos, id);
       const allIds = new Set([id, ...descendantIds]);
       const completedChanges: Partial<Todo> = {
         status: "completed",
@@ -182,11 +202,17 @@ export const useTodoStore = create<TodoState>((set, get) => ({
         ),
       }));
 
-      for (const updateId of allIds) {
-        const target = todos.find((t) => t.id === updateId);
-        if (target && target.status === "open") {
-          await adapter.updateTodo(updateId, completedChanges);
-        }
+      try {
+        const idsToUpdate = [...allIds].filter((uid) => {
+          const target = todos.find((t) => t.id === uid);
+          return target && target.status === "open";
+        });
+        await Promise.all(
+          idsToUpdate.map((uid) => adapter.updateTodo(uid, completedChanges)),
+        );
+      } catch (err) {
+        set({ todos: prev });
+        throw err;
       }
 
       // Bubble up: check if parent should auto-complete
@@ -277,8 +303,13 @@ export const useTodoStore = create<TodoState>((set, get) => ({
         ),
       }));
 
-      for (const updateId of allIds) {
-        await adapter.updateTodo(updateId, openChanges);
+      try {
+        await Promise.all(
+          [...allIds].map((uid) => adapter.updateTodo(uid, openChanges)),
+        );
+      } catch (err) {
+        set({ todos: prev });
+        throw err;
       }
     }
   },

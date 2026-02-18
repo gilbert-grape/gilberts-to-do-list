@@ -20,6 +20,7 @@ export function TagManager() {
   const handleCreate = async () => {
     const trimmed = newTagName.trim();
     if (!trimmed) return;
+    if (tags.some((t) => t.name.toLowerCase() === trimmed.toLowerCase())) return;
     await createTag({ name: trimmed, color: selectedColor, isDefault: false });
     setNewTagName("");
     setSelectedColor(TAG_COLORS[0]!);

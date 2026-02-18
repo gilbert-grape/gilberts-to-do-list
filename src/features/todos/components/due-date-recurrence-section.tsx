@@ -96,6 +96,7 @@ export function DueDateRecurrenceSection({
               <option value="daily">{t("todos.recurrenceDaily")}</option>
               <option value="weekly">{t("todos.recurrenceWeekly")}</option>
               <option value="monthly">{t("todos.recurrenceMonthly")}</option>
+              <option value="yearly">{t("todos.recurrenceYearly")}</option>
               <option value="custom">{t("todos.recurrenceCustom")}</option>
             </select>
           </div>

@@ -450,13 +450,13 @@ describe("MainView", () => {
     it("renders create sibling button on todo items", () => {
       setupStores({ todos: [openTodo] });
       render(<MainView />);
-      expect(screen.getByLabelText("Create sibling")).toBeInTheDocument();
+      expect(screen.getByLabelText("+ New To-Do")).toBeInTheDocument();
     });
 
     it("renders create sub-todo button on todo items", () => {
       setupStores({ todos: [openTodo] });
       render(<MainView />);
-      expect(screen.getByLabelText("Create sub-todo")).toBeInTheDocument();
+      expect(screen.getByLabelText("Sub-Todos")).toBeInTheDocument();
     });
 
     it("opens create form with parent when create child is clicked", async () => {
@@ -464,7 +464,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MainView />);
 
-      await user.click(screen.getByLabelText("Create sub-todo"));
+      await user.click(screen.getByLabelText("Sub-Todos"));
       // Create form should appear
       expect(
         screen.getByPlaceholderText("What needs to be done?"),
@@ -476,7 +476,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MainView />);
 
-      await user.click(screen.getByLabelText("Create sibling"));
+      await user.click(screen.getByLabelText("+ New To-Do"));
       expect(
         screen.getByPlaceholderText("What needs to be done?"),
       ).toBeInTheDocument();

@@ -1,5 +1,8 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { format, isPast, isToday } from "date-fns";
+import { de, enUS } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/shared/utils/index.ts";
 import { useTagStore } from "@/features/tags/store.ts";
 import type { Todo } from "../types.ts";
@@ -15,6 +18,8 @@ export interface TodoItemProps {
   dragHandleSlot?: ReactNode;
 }
 
+const DATE_LOCALES: Record<string, Locale> = { de, en: enUS };
+
 export function TodoItem({
   todo,
   onToggle,
@@ -25,9 +30,18 @@ export function TodoItem({
   onCreateChild,
   dragHandleSlot,
 }: TodoItemProps) {
-  const { tags } = useTagStore();
+  const { t, i18n } = useTranslation();
+  const todoTags = useTagStore(
+    useShallow((s) => s.tags.filter((tag) => todo.tagIds.includes(tag.id))),
+  );
   const isCompleted = todo.status === "completed";
-  const todoTags = tags.filter((tag) => todo.tagIds.includes(tag.id));
+
+  const dueDate = useMemo(
+    () => (todo.dueDate ? new Date(todo.dueDate + "T00:00:00") : null),
+    [todo.dueDate],
+  );
+
+  const dateLocale = DATE_LOCALES[i18n?.language] ?? enUS;
 
   return (
     <li className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
@@ -87,21 +101,20 @@ export function TodoItem({
         </span>
       )}
 
-      {todo.dueDate && (
+      {dueDate && (
         <span
           className={cn(
             "shrink-0 text-xs",
             isCompleted
               ? "text-[var(--color-text-secondary)] opacity-60"
-              : isPast(new Date(todo.dueDate + "T00:00:00")) &&
-                  !isToday(new Date(todo.dueDate + "T00:00:00"))
+              : isPast(dueDate) && !isToday(dueDate)
                 ? "font-medium text-[var(--color-danger)]"
-                : isToday(new Date(todo.dueDate + "T00:00:00"))
+                : isToday(dueDate)
                   ? "font-medium text-[var(--color-warning)]"
                   : "text-[var(--color-text-secondary)]",
           )}
         >
-          {format(new Date(todo.dueDate + "T00:00:00"), "MMM d")}
+          {format(dueDate, "MMM d", { locale: dateLocale })}
         </span>
       )}
 
@@ -120,7 +133,7 @@ export function TodoItem({
         <button
           type="button"
           onClick={() => onCreateSibling(todo)}
-          aria-label="Create sibling"
+          aria-label={t("todos.newTodo")}
           className="p-1 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"
         >
           <svg
@@ -143,7 +156,7 @@ export function TodoItem({
         <button
           type="button"
           onClick={() => onCreateChild(todo)}
-          aria-label="Create sub-todo"
+          aria-label={t("todos.subTodos")}
           className="p-1 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"
         >
           <svg
@@ -166,7 +179,7 @@ export function TodoItem({
         <button
           type="button"
           onClick={() => onEdit(todo)}
-          aria-label="Edit"
+          aria-label={t("common.edit")}
           className="p-1 text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
         >
           <svg
@@ -189,7 +202,7 @@ export function TodoItem({
         <button
           type="button"
           onClick={() => onDelete(todo)}
-          aria-label="Delete"
+          aria-label={t("common.delete")}
           className="p-1 text-[var(--color-text-secondary)] hover:text-[var(--color-danger)]"
         >
           <svg

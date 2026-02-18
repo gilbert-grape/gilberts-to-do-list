@@ -516,6 +516,7 @@ export function MainView() {
             {
               label: t("todos.keepChildren"),
               value: "keep-children",
+              variant: "default" as const,
             },
           ]}
           cancelLabel={t("common.cancel")}

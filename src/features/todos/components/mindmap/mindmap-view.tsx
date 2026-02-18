@@ -72,7 +72,7 @@ export function MindmapView({
 
   return (
     <div
-      className="h-[500px] w-full overflow-hidden rounded-lg border border-[var(--color-border)]"
+      className="h-[max(500px,60vh)] w-full overflow-hidden rounded-lg border border-[var(--color-border)]"
       style={
         {
           "--xy-background-color": "var(--color-bg)",

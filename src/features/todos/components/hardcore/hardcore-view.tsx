@@ -172,8 +172,8 @@ export function HardcoreView(_props: HardcoreViewProps) {
       {/* Validation errors */}
       {errors.length > 0 && (
         <div className="space-y-1" role="alert">
-          {errors.map((error, i) => (
-            <p key={i} className="text-xs text-[var(--color-danger)]">
+          {errors.map((error) => (
+            <p key={`${error.line}-${error.message}`} className="text-xs text-[var(--color-danger)]">
               {t("hardcore.validationError", {
                 line: error.line,
                 message: t(`hardcore.${error.message}`),
@@ -185,7 +185,7 @@ export function HardcoreView(_props: HardcoreViewProps) {
 
       {/* Save success message */}
       {saveSuccess && (
-        <p className="text-xs text-green-600">{t("hardcore.saveSuccess")}</p>
+        <p className="text-xs text-[var(--color-success)]">{t("hardcore.saveSuccess")}</p>
       )}
 
       {/* Button bar */}

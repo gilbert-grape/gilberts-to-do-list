@@ -103,25 +103,25 @@ describe("TodoItem", () => {
 
   it("renders edit button when onEdit is provided", () => {
     render(<TodoItem todo={openTodo} onToggle={vi.fn()} onEdit={vi.fn()} />);
-    expect(screen.getByLabelText("Edit")).toBeInTheDocument();
+    expect(screen.getByLabelText("common.edit")).toBeInTheDocument();
   });
 
   it("does not render edit button when onEdit is not provided", () => {
     render(<TodoItem todo={openTodo} onToggle={vi.fn()} />);
-    expect(screen.queryByLabelText("Edit")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("common.edit")).not.toBeInTheDocument();
   });
 
   it("calls onEdit with todo when edit is clicked", async () => {
     const user = userEvent.setup();
     const handleEdit = vi.fn();
     render(<TodoItem todo={openTodo} onToggle={vi.fn()} onEdit={handleEdit} />);
-    await user.click(screen.getByLabelText("Edit"));
+    await user.click(screen.getByLabelText("common.edit"));
     expect(handleEdit).toHaveBeenCalledWith(openTodo);
   });
 
   it("renders delete button when onDelete is provided", () => {
     render(<TodoItem todo={openTodo} onToggle={vi.fn()} onDelete={vi.fn()} />);
-    expect(screen.getByLabelText("Delete")).toBeInTheDocument();
+    expect(screen.getByLabelText("common.delete")).toBeInTheDocument();
   });
 
   it("calls onDelete with todo when delete is clicked", async () => {
@@ -130,7 +130,7 @@ describe("TodoItem", () => {
     render(
       <TodoItem todo={openTodo} onToggle={vi.fn()} onDelete={handleDelete} />,
     );
-    await user.click(screen.getByLabelText("Delete"));
+    await user.click(screen.getByLabelText("common.delete"));
     expect(handleDelete).toHaveBeenCalledWith(openTodo);
   });
 
@@ -173,12 +173,12 @@ describe("TodoItem", () => {
     render(
       <TodoItem todo={openTodo} onToggle={vi.fn()} onCreateSibling={vi.fn()} />,
     );
-    expect(screen.getByLabelText("Create sibling")).toBeInTheDocument();
+    expect(screen.getByLabelText("todos.newTodo")).toBeInTheDocument();
   });
 
   it("does not render create sibling button when not provided", () => {
     render(<TodoItem todo={openTodo} onToggle={vi.fn()} />);
-    expect(screen.queryByLabelText("Create sibling")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("todos.newTodo")).not.toBeInTheDocument();
   });
 
   it("calls onCreateSibling with todo when clicked", async () => {
@@ -191,7 +191,7 @@ describe("TodoItem", () => {
         onCreateSibling={handleSibling}
       />,
     );
-    await user.click(screen.getByLabelText("Create sibling"));
+    await user.click(screen.getByLabelText("todos.newTodo"));
     expect(handleSibling).toHaveBeenCalledWith(openTodo);
   });
 
@@ -199,7 +199,7 @@ describe("TodoItem", () => {
     render(
       <TodoItem todo={openTodo} onToggle={vi.fn()} onCreateChild={vi.fn()} />,
     );
-    expect(screen.getByLabelText("Create sub-todo")).toBeInTheDocument();
+    expect(screen.getByLabelText("todos.subTodos")).toBeInTheDocument();
   });
 
   it("calls onCreateChild with todo when clicked", async () => {
@@ -212,7 +212,7 @@ describe("TodoItem", () => {
         onCreateChild={handleChild}
       />,
     );
-    await user.click(screen.getByLabelText("Create sub-todo"));
+    await user.click(screen.getByLabelText("todos.subTodos"));
     expect(handleChild).toHaveBeenCalledWith(openTodo);
   });
 

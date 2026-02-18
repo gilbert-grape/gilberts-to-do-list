@@ -1,6 +1,7 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { Todo } from "../../types.ts";
 import type { Tag } from "@/features/tags/types.ts";
+import { getContrastColor } from "@/shared/utils/index.ts";
 
 export interface MindmapGraph {
   nodes: Node[];
@@ -12,14 +13,6 @@ const TAG_NODE_GAP = 40;
 const TODO_NODE_WIDTH = 180;
 const TODO_NODE_GAP = 20;
 const TIER_HEIGHT = 120;
-
-function getContrastColor(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.5 ? "#000000" : "#ffffff";
-}
 
 export function buildMindmapGraph(todos: Todo[], tags: Tag[]): MindmapGraph {
   const nodes: Node[] = [];
@@ -143,5 +136,3 @@ export function buildMindmapGraph(todos: Todo[], tags: Tag[]): MindmapGraph {
 
   return { nodes, edges };
 }
-
-export { getContrastColor };

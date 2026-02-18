@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettingsStore } from "../store.ts";
 
@@ -7,6 +7,10 @@ export function ProfileSection() {
   const userName = useSettingsStore((s) => s.userName);
   const setUserName = useSettingsStore((s) => s.setUserName);
   const [name, setName] = useState(userName);
+  const [showSaved, setShowSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => () => clearTimeout(savedTimer.current), []);
 
   const isUnchanged = name.trim() === userName;
   const isEmpty = name.trim() === "";
@@ -15,6 +19,9 @@ export function ProfileSection() {
     const trimmed = name.trim();
     if (trimmed && trimmed !== userName) {
       setUserName(trimmed);
+      setShowSaved(true);
+      clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setShowSaved(false), 2000);
     }
   };
 
@@ -45,6 +52,11 @@ export function ProfileSection() {
         >
           {t("common.save")}
         </button>
+        {showSaved && (
+          <span className="self-center text-sm text-[var(--color-success)]">
+            {t("settings.saved")}
+          </span>
+        )}
       </div>
     </div>
   );

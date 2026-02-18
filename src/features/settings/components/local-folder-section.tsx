@@ -38,7 +38,7 @@ export function LocalFolderSection() {
           {status === "connected" ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2 rounded-lg bg-[var(--color-surface)] px-3 py-2">
-                <span className="h-2 w-2 rounded-full bg-green-500" />
+                <span className="h-2 w-2 rounded-full bg-[var(--color-success)]" />
                 <span className="text-sm text-[var(--color-text)]">
                   {t("settings.connected")}
                 </span>
@@ -49,7 +49,7 @@ export function LocalFolderSection() {
               <button
                 type="button"
                 onClick={() => void disconnectFolder()}
-                className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)]"
+                className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-bg)]"
               >
                 {t("settings.disconnect")}
               </button>
@@ -57,7 +57,7 @@ export function LocalFolderSection() {
           ) : (
             <div className="space-y-2">
               <div className="flex items-center gap-2 rounded-lg bg-[var(--color-surface)] px-3 py-2">
-                <span className="h-2 w-2 rounded-full bg-gray-400" />
+                <span className="h-2 w-2 rounded-full bg-[var(--color-border)]" />
                 <span className="text-sm text-[var(--color-text-secondary)]">
                   {t("settings.notConnected")}
                 </span>
@@ -65,7 +65,7 @@ export function LocalFolderSection() {
               <button
                 type="button"
                 onClick={() => void connectFolder()}
-                className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]"
               >
                 {t("settings.connectFolder")}
               </button>

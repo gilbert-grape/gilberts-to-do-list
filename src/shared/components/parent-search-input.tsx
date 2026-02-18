@@ -90,10 +90,7 @@ export function ParentSearchInput({
           onFocus={() => {
             if (query.trim()) setIsOpen(true);
           }}
-          onBlur={() => {
-            // Delay to allow click on dropdown item
-            setTimeout(() => setIsOpen(false), 200);
-          }}
+          onBlur={() => setIsOpen(false)}
           placeholder={t("todos.parentPlaceholder")}
           className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)]"
         />
@@ -109,7 +106,10 @@ export function ParentSearchInput({
               key={todo.id}
               role="option"
               aria-selected={false}
-              onMouseDown={() => handleSelect(todo)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleSelect(todo);
+              }}
               className="cursor-pointer px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-primary)] hover:text-white"
             >
               {todo.title}

@@ -34,6 +34,7 @@ export function TodoCreateForm({
   const [recurrenceInterval, setRecurrenceInterval] = useState<number | null>(
     null,
   );
+  const [isSaving, setIsSaving] = useState(false);
 
   // Inherit tags from parent when parent changes
   useEffect(() => {
@@ -58,7 +59,8 @@ export function TodoCreateForm({
 
   const handleSave = async () => {
     const trimmedTitle = title.trim();
-    if (!trimmedTitle) return;
+    if (!trimmedTitle || isSaving) return;
+    setIsSaving(true);
 
     await createTodo({
       title: trimmedTitle,
@@ -132,7 +134,7 @@ export function TodoCreateForm({
         <button
           type="button"
           onClick={handleSave}
-          disabled={!title.trim()}
+          disabled={!title.trim() || selectedTagIds.length === 0 || isSaving}
           className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
         >
           {t("common.save")}

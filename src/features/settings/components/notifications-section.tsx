@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettingsStore } from "../store.ts";
 import type { NotificationTypes } from "../store.ts";
@@ -22,6 +22,10 @@ export function NotificationsSection() {
     "idle" | "sending" | "success" | "error"
   >("idle");
   const [testError, setTestError] = useState("");
+  const [showSaved, setShowSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => () => clearTimeout(savedTimer.current), []);
 
   const maskedToken =
     tokenDraft.length > 8
@@ -34,6 +38,9 @@ export function NotificationsSection() {
   const handleSave = () => {
     setBotToken(tokenDraft.trim());
     setChatId(chatIdDraft.trim());
+    setShowSaved(true);
+    clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setShowSaved(false), 2000);
   };
 
   const handleTest = async () => {
@@ -146,6 +153,11 @@ export function NotificationsSection() {
         >
           {t("common.save")}
         </button>
+        {showSaved && (
+          <span className="self-center text-sm text-[var(--color-success)]">
+            {t("settings.saved")}
+          </span>
+        )}
         <button
           type="button"
           onClick={() => void handleTest()}
@@ -160,10 +172,10 @@ export function NotificationsSection() {
 
       {/* Test result feedback */}
       {testStatus === "success" && (
-        <p className="text-sm text-green-600">{t("settings.testSuccess")}</p>
+        <p className="text-sm text-[var(--color-success)]">{t("settings.testSuccess")}</p>
       )}
       {testStatus === "error" && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-[var(--color-danger)]">
           {t("settings.testFailed")}: {testError}
         </p>
       )}

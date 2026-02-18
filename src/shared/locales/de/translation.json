@@ -56,6 +56,7 @@
     "recurrenceDaily": "Täglich",
     "recurrenceWeekly": "Wöchentlich",
     "recurrenceMonthly": "Monatlich",
+    "recurrenceYearly": "Jährlich",
     "recurrenceCustom": "Benutzerdefiniert",
     "recurrenceCustomInterval": "Alle {{count}} Tage",
     "customInterval": "Alle X Tage",
@@ -159,7 +160,8 @@
     "notifyDueTodo": "To-Do fällig",
     "notifyOverdueTodo": "To-Do überfällig",
     "notifyDailySummary": "Tägliche Zusammenfassung",
-    "notifyWeeklySummary": "Wöchentliche Zusammenfassung"
+    "notifyWeeklySummary": "Wöchentliche Zusammenfassung",
+    "saved": "Gespeichert!"
   },
   "onboarding": {
     "nameTitle": "Wie heisst du?",

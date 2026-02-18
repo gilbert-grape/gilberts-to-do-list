@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildMindmapGraph, getContrastColor } from "./mindmap-graph-utils.ts";
+import { buildMindmapGraph } from "./mindmap-graph-utils.ts";
+import { getContrastColor } from "@/shared/utils/color.ts";
 import type { Todo } from "../../types.ts";
 import type { Tag } from "@/features/tags/types.ts";
 
