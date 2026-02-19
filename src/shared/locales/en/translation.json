@@ -171,7 +171,14 @@
     "notifyOverdueTodo": "To-do overdue",
     "notifyDailySummary": "Daily summary",
     "notifyWeeklySummary": "Weekly summary",
-    "saved": "Saved!"
+    "saved": "Saved!",
+    "tabTags": "Tags",
+    "tabGeneral": "General",
+    "tabAppearance": "Appearance",
+    "tabData": "Data & Notifications",
+    "layout": "Layout",
+    "layoutNormal": "Normal",
+    "layoutCompact": "Compact"
   },
   "onboarding": {
     "nameTitle": "What's your name?",

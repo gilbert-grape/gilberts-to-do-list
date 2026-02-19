@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SettingsView } from "./settings-view.tsx";
 import { useSettingsStore } from "../store.ts";
@@ -34,6 +35,10 @@ vi.mock("react-i18next", () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
         "nav.settings": "Settings",
+        "settings.tabTags": "Tags",
+        "settings.tabGeneral": "General",
+        "settings.tabAppearance": "Appearance",
+        "settings.tabData": "Data & Notifications",
         "settings.profile": "Profile",
         "settings.displayName": "Display Name",
         "settings.completedDisplay": "Completed Todos Display",
@@ -88,6 +93,9 @@ vi.mock("react-i18next", () => ({
         "settings.notifyOverdueTodo": "To-do overdue",
         "settings.notifyDailySummary": "Daily summary",
         "settings.notifyWeeklySummary": "Weekly summary",
+        "settings.layout": "Layout",
+        "settings.layoutNormal": "Normal",
+        "settings.layoutCompact": "Compact",
       };
       return translations[key] ?? key;
     },
@@ -137,37 +145,50 @@ describe("SettingsView", () => {
     expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 
-  it("renders profile section", () => {
+  it("renders all tab buttons", () => {
     render(<SettingsView />);
-    expect(screen.getByText("Profile")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Löli")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Tags" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "General" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Appearance" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Data & Notifications" })).toBeInTheDocument();
   });
 
-  it("renders tag manager section", () => {
+  it("renders tag manager section on default tab", () => {
     render(<SettingsView />);
     expect(screen.getByText("Tag Management")).toBeInTheDocument();
   });
 
-  it("renders completed display section", () => {
+  it("renders profile section on general tab", async () => {
     render(<SettingsView />);
-    expect(screen.getByText("Completed Todos Display")).toBeInTheDocument();
-    expect(screen.getByLabelText("Show at Bottom")).toBeChecked();
+    await userEvent.click(screen.getByRole("tab", { name: "General" }));
+    expect(screen.getByText("Profile")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Löli")).toBeInTheDocument();
   });
 
-  it("renders appearance section", () => {
+  it("renders language section on general tab", async () => {
     render(<SettingsView />);
-    expect(screen.getByText("Appearance")).toBeInTheDocument();
-    expect(screen.getByLabelText("Auto")).toBeChecked();
-  });
-
-  it("renders language section", () => {
-    render(<SettingsView />);
+    await userEvent.click(screen.getByRole("tab", { name: "General" }));
     expect(screen.getByText("Language")).toBeInTheDocument();
     expect(screen.getByLabelText("English")).toBeChecked();
   });
 
-  it("renders notifications section", () => {
+  it("renders appearance section on appearance tab", async () => {
     render(<SettingsView />);
+    await userEvent.click(screen.getByRole("tab", { name: "Appearance" }));
+    expect(screen.getByText("Theme")).toBeInTheDocument();
+    expect(screen.getByLabelText("Auto")).toBeChecked();
+  });
+
+  it("renders completed display section on appearance tab", async () => {
+    render(<SettingsView />);
+    await userEvent.click(screen.getByRole("tab", { name: "Appearance" }));
+    expect(screen.getByText("Completed Todos Display")).toBeInTheDocument();
+    expect(screen.getByLabelText("Show at Bottom")).toBeChecked();
+  });
+
+  it("renders notifications section on data tab", async () => {
+    render(<SettingsView />);
+    await userEvent.click(screen.getByRole("tab", { name: "Data & Notifications" }));
     expect(screen.getByText("Notifications")).toBeInTheDocument();
   });
 });
