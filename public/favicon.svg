@@ -1,4 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#3b82f6"/>
-  <path d="M148 256l60 60 156-156" stroke="#fff" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="check" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <!-- List lines -->
+  <line x1="200" y1="176" x2="380" y2="176" stroke="#fff" stroke-opacity="0.5" stroke-width="28" stroke-linecap="round"/>
+  <line x1="200" y1="256" x2="340" y2="256" stroke="#fff" stroke-opacity="0.5" stroke-width="28" stroke-linecap="round"/>
+  <line x1="200" y1="336" x2="360" y2="336" stroke="#fff" stroke-opacity="0.5" stroke-width="28" stroke-linecap="round"/>
+  <!-- Bullet dots -->
+  <circle cx="140" cy="176" r="18" fill="#fff" fill-opacity="0.5"/>
+  <circle cx="140" cy="256" r="18" fill="#fff" fill-opacity="0.5"/>
+  <circle cx="140" cy="336" r="18" fill="#fff" fill-opacity="0.5"/>
+  <!-- Big checkmark overlay -->
+  <path d="M130 270l80 80 172-180" stroke="url(#check)" stroke-width="52" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg>

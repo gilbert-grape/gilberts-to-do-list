@@ -1,6 +1,6 @@
 {
   "app": {
-    "greeting": "Hello {{name}}!",
+    "greeting": "{{name}}'s To-Do",
     "title": "Gilberts To-Do List"
   },
   "common": {
@@ -14,6 +14,7 @@
     "next": "Next"
   },
   "nav": {
+    "home": "Home",
     "statistics": "Statistics",
     "settings": "Settings"
   },
