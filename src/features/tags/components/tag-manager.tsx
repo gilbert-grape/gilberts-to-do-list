@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTagStore } from "../store.ts";
 import { TAG_COLORS } from "../colors.ts";
@@ -7,8 +7,14 @@ import type { Tag } from "../types.ts";
 
 export function TagManager() {
   const { t } = useTranslation();
-  const { tags, createTag, updateTag, deleteTag, setDefaultTag } =
+  const { tags, isLoaded, loadTags, createTag, updateTag, deleteTag, setDefaultTag } =
     useTagStore();
+
+  useEffect(() => {
+    if (!isLoaded) {
+      void loadTags();
+    }
+  }, [isLoaded, loadTags]);
 
   const [newTagName, setNewTagName] = useState("");
   const [selectedColor, setSelectedColor] = useState<string>(TAG_COLORS[0]!);
