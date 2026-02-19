@@ -7,7 +7,7 @@ export interface TagState {
   tags: Tag[];
   isLoaded: boolean;
   loadTags: () => Promise<void>;
-  createTag: (input: TagCreate) => Promise<void>;
+  createTag: (input: TagCreate) => Promise<Tag>;
   updateTag: (id: string, changes: Partial<Tag>) => Promise<void>;
   deleteTag: (id: string) => Promise<boolean>;
   setDefaultTag: (id: string) => Promise<void>;
@@ -56,6 +56,7 @@ export const useTagStore = create<TagState>((set, get) => ({
     const adapter = getAdapter();
     const tag = await adapter.createTag({ ...input, isDefault: false });
     set((state) => ({ tags: [...state.tags, tag] }));
+    return tag;
   },
 
   updateTag: async (id: string, changes: Partial<Tag>) => {

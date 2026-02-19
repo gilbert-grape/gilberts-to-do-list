@@ -95,6 +95,7 @@
     "default": "Default",
     "setDefault": "Set as default",
     "selectNewDefault": "Select a new default tag:",
+    "addNew": "Create new tag",
     "errors": {
       "lastTag": "Cannot delete the last tag"
     }

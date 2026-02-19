@@ -95,6 +95,7 @@
     "default": "Standard",
     "setDefault": "Als Standard setzen",
     "selectNewDefault": "Wähle einen neuen Standard-Tag:",
+    "addNew": "Neuen Tag erstellen",
     "errors": {
       "lastTag": "Der letzte Tag kann nicht gelöscht werden"
     }

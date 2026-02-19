@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useTodoStore } from "../store.ts";
 import { useTagStore } from "@/features/tags/store.ts";
 import { TagChip } from "@/shared/components/tag-chip.tsx";
+import { InlineTagCreate } from "@/features/tags/components/inline-tag-create.tsx";
 import { ParentSearchInput } from "@/shared/components/parent-search-input.tsx";
 import {
   DueDateRecurrenceSection,
@@ -118,6 +119,11 @@ export function TodoCreateForm({
             onClick={() => toggleTag(tag.id)}
           />
         ))}
+        <InlineTagCreate
+          onTagCreated={(tagId) =>
+            setSelectedTagIds((prev) => [...prev, tagId])
+          }
+        />
       </div>
 
       <DueDateRecurrenceSection
