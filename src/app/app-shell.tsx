@@ -1,27 +1,165 @@
-import { Outlet, useNavigate, useLocation } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  Outlet,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router";
 import { useTranslation } from "react-i18next";
 import { useSettingsStore } from "@/features/settings/store.ts";
+import { setStorageAdapter } from "@/features/tags/store.ts";
+import { setTodoStorageAdapter } from "@/features/todos/store.ts";
+import { db } from "@/services/storage/indexeddb/db.ts";
+import { IndexedDBAdapter } from "@/services/storage/indexeddb/indexeddb-adapter.ts";
 
 export function AppShell() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const userName = useSettingsStore((s) => s.userName);
+  const layoutMode = useSettingsStore((s) => s.layoutMode);
   const isOnboarding = location.pathname === "/onboarding";
+  const adapterInitialized = useRef(false);
+
+  useEffect(() => {
+    if (!adapterInitialized.current) {
+      const adapter = new IndexedDBAdapter(db);
+      setStorageAdapter(adapter);
+      setTodoStorageAdapter(adapter);
+      adapterInitialized.current = true;
+    }
+  }, []);
+  const isCompact = layoutMode === "compact" && !isOnboarding;
+
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [headerSearchQuery, setHeaderSearchQuery] = useState("");
+
+  const handleSearchSubmit = () => {
+    if (headerSearchQuery.trim()) {
+      void navigate(`/?q=${encodeURIComponent(headerSearchQuery.trim())}`);
+    } else {
+      // Clear the q param if empty
+      if (location.pathname === "/") {
+        searchParams.delete("q");
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  };
+
+  const handleSearchClose = () => {
+    setSearchOpen(false);
+    setHeaderSearchQuery("");
+    // Clear q param when closing search
+    if (location.pathname === "/") {
+      searchParams.delete("q");
+      setSearchParams(searchParams, { replace: true });
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearchSubmit();
+    } else if (e.key === "Escape") {
+      handleSearchClose();
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--color-bg)]">
       <header className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
-        <h1
-          className="cursor-pointer text-lg font-semibold text-[var(--color-text)]"
-          onClick={() => void navigate("/")}
-        >
-          {isOnboarding
-            ? t("app.title")
-            : t("app.greeting", { name: userName })}
-        </h1>
+        {isCompact && searchOpen ? (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <input
+              type="text"
+              value={headerSearchQuery}
+              onChange={(e) => setHeaderSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder={t("common.search")}
+              aria-label={t("common.search")}
+              autoFocus
+              className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)]"
+            />
+            <button
+              type="button"
+              onClick={handleSearchClose}
+              className="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+              aria-label={t("common.cancel")}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <h1
+            className="cursor-pointer text-lg font-semibold text-[var(--color-text)]"
+            onClick={() => void navigate("/")}
+          >
+            {isOnboarding
+              ? t("app.title")
+              : t("app.greeting", { name: userName })}
+          </h1>
+        )}
         {!isOnboarding && (
           <div className="flex gap-2">
+            {isCompact && !searchOpen && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(true)}
+                  className="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                  aria-label={t("common.search")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void navigate("/?create=1")}
+                  className="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                  aria-label={t("todos.newTodo")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </button>
+              </>
+            )}
             <button
               onClick={() => void navigate("/")}
               className="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
