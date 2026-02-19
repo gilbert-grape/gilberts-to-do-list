@@ -20,7 +20,7 @@ export function TagChip({
       className={cn(
         "inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full px-3 py-1 text-sm font-medium transition-all",
         "ring-2 ring-transparent",
-        selected && "ring-white/50 shadow-md",
+        selected && "ring-[var(--color-text)] shadow-md",
         !selected && "opacity-70 hover:opacity-100",
       )}
       style={{
