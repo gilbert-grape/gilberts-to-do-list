@@ -303,6 +303,7 @@ export function MindmapView({
       if (node.type === "todoNode") {
         return {
           ...node,
+          draggable: true,
           data: {
             ...node.data,
             onToggle: handleToggle,
