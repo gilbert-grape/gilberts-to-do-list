@@ -52,6 +52,30 @@ function distributeAngles(
   return Array.from({ length: count }, (_, i) => startAngle + step * (i + 0.5));
 }
 
+/**
+ * Given a source and target position, pick the best handle pair.
+ * The source handle faces toward the target; the target handle faces toward the source.
+ */
+function pickHandles(
+  src: { x: number; y: number },
+  tgt: { x: number; y: number },
+): { sourceHandle: string; targetHandle: string } {
+  const dx = tgt.x - src.x;
+  const dy = tgt.y - src.y;
+  const angle = Math.atan2(dy, dx); // radians, 0 = right, PI/2 = down
+
+  // Quadrants: right (-45°..45°), down (45°..135°), left (135°..-135°), up (-135°..-45°)
+  if (angle >= -Math.PI / 4 && angle < Math.PI / 4) {
+    return { sourceHandle: "source-right", targetHandle: "target-left" };
+  } else if (angle >= Math.PI / 4 && angle < (3 * Math.PI) / 4) {
+    return { sourceHandle: "source-bottom", targetHandle: "target-top" };
+  } else if (angle >= (-3 * Math.PI) / 4 && angle < -Math.PI / 4) {
+    return { sourceHandle: "source-top", targetHandle: "target-bottom" };
+  } else {
+    return { sourceHandle: "source-left", targetHandle: "target-right" };
+  }
+}
+
 export interface MindmapGraphOptions {
   centerLabel?: string;
   collapseThreshold?: number;
@@ -408,5 +432,21 @@ export function buildMindmapGraph(
     });
   }
 
+  assignEdgeHandles(nodes, edges);
+
   return { nodes, edges };
+}
+
+/** Assign optimal sourceHandle/targetHandle to edges based on node positions. */
+export function assignEdgeHandles(nodes: Node[], edges: Edge[]): void {
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+  for (const edge of edges) {
+    const srcNode = nodeMap.get(edge.source);
+    const tgtNode = nodeMap.get(edge.target);
+    if (srcNode && tgtNode) {
+      const handles = pickHandles(srcNode.position, tgtNode.position);
+      edge.sourceHandle = handles.sourceHandle;
+      edge.targetHandle = handles.targetHandle;
+    }
+  }
 }

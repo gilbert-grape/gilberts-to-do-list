@@ -1,9 +1,12 @@
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import {
   ReactFlow,
   Controls,
   Background,
   BackgroundVariant,
+  applyNodeChanges,
+  type Node,
+  type NodeChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
@@ -16,7 +19,7 @@ import {
 import { useTagStore } from "@/features/tags/store.ts";
 import { useSettingsStore } from "@/features/settings/store.ts";
 import { useTodoStore } from "../../store.ts";
-import { buildMindmapGraph } from "./mindmap-graph-utils.ts";
+import { buildMindmapGraph, assignEdgeHandles } from "./mindmap-graph-utils.ts";
 import { CenterNode } from "./center-node.tsx";
 import { TagNode } from "./tag-node.tsx";
 import { TodoNode } from "./todo-node.tsx";
@@ -256,7 +259,7 @@ export function MindmapView({
 
   const rootLabel = userName ? `${userName}'s To Do` : "My To Do";
 
-  const { nodes, edges } = useMemo(() => {
+  const computedGraph = useMemo(() => {
     const graph = buildMindmapGraph(filteredTodos, tags, {
       centerLabel: rootLabel,
       collapseThreshold,
@@ -287,6 +290,7 @@ export function MindmapView({
       if (node.type === "tagNode") {
         return {
           ...node,
+          draggable: true,
           data: {
             ...node.data,
             onDrillDown: handleDrillDown,
@@ -332,6 +336,8 @@ export function MindmapView({
           id: `edge-${anchor.sourceId}-action`,
           source: anchor.sourceId,
           target: actionNodeId,
+          sourceHandle: "source-bottom",
+          targetHandle: "target-top",
           style: { stroke: "var(--color-primary)", strokeDasharray: "4 2" },
         });
       }
@@ -373,6 +379,8 @@ export function MindmapView({
           id: `edge-${anchor.sourceId}-input`,
           source: anchor.sourceId,
           target: inputNodeId,
+          sourceHandle: "source-bottom",
+          targetHandle: "target-top",
           style: { stroke: "var(--color-primary)", strokeDasharray: "4 2" },
         });
       }
@@ -401,6 +409,28 @@ export function MindmapView({
     handleCreateRootTodo,
   ]);
 
+  // Interactive node state: allows tag nodes to be dragged while
+  // resetting positions whenever the computed graph changes.
+  const [interactiveNodes, setInteractiveNodes] = useState<Node[]>(
+    computedGraph.nodes,
+  );
+
+  useEffect(() => {
+    setInteractiveNodes(computedGraph.nodes);
+  }, [computedGraph.nodes]);
+
+  // Derive edges from current (possibly dragged) node positions so
+  // edge handles stay optimal after a tag node is moved.
+  const activeEdges = useMemo(() => {
+    const edgeCopies = computedGraph.edges.map((e) => ({ ...e }));
+    assignEdgeHandles(interactiveNodes, edgeCopies);
+    return edgeCopies;
+  }, [interactiveNodes, computedGraph.edges]);
+
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setInteractiveNodes((nds) => applyNodeChanges(changes, nds));
+  }, []);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
@@ -428,8 +458,9 @@ export function MindmapView({
         data-testid="mindmap-container"
       >
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
+          nodes={interactiveNodes}
+          edges={activeEdges}
+          onNodesChange={onNodesChange}
           nodeTypes={nodeTypes}
           nodesDraggable={false}
           nodesConnectable={false}

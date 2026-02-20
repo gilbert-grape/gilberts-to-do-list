@@ -31,15 +31,19 @@ export function CollapsedTodoGroupNode({ data }: NodeProps) {
         }
       }}
     >
-      <Handle type="target" position={Position.Top} style={hiddenHandle} />
+      <Handle type="target" position={Position.Top} style={hiddenHandle} id="target-top" />
+      <Handle type="target" position={Position.Bottom} style={hiddenHandle} id="target-bottom" />
       <Handle type="target" position={Position.Left} style={hiddenHandle} id="target-left" />
+      <Handle type="target" position={Position.Right} style={hiddenHandle} id="target-right" />
       <span className="text-sm text-[var(--color-text)]">
         {openCount > 0 && `${openCount} open`}
         {openCount > 0 && completedCount > 0 && " · "}
         {completedCount > 0 && `${completedCount} done`}
         {openCount === 0 && completedCount === 0 && `${count} todos`}
       </span>
-      <Handle type="source" position={Position.Bottom} style={hiddenHandle} />
+      <Handle type="source" position={Position.Top} style={hiddenHandle} id="source-top" />
+      <Handle type="source" position={Position.Bottom} style={hiddenHandle} id="source-bottom" />
+      <Handle type="source" position={Position.Left} style={hiddenHandle} id="source-left" />
       <Handle type="source" position={Position.Right} style={hiddenHandle} id="source-right" />
     </div>
   );

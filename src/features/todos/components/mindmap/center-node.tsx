@@ -49,7 +49,10 @@ export function CenterNode({ data }: NodeProps) {
       >
         +
       </button>
-      <Handle type="source" position={Position.Bottom} style={hiddenHandle} />
+      <Handle type="source" position={Position.Top} style={hiddenHandle} id="source-top" />
+      <Handle type="source" position={Position.Bottom} style={hiddenHandle} id="source-bottom" />
+      <Handle type="source" position={Position.Left} style={hiddenHandle} id="source-left" />
+      <Handle type="source" position={Position.Right} style={hiddenHandle} id="source-right" />
     </div>
   );
 }
