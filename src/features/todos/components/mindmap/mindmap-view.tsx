@@ -282,7 +282,7 @@ export function MindmapView({
   const computedGraph = useMemo(() => {
     const graph = buildMindmapGraph(filteredTodos, tags, {
       centerLabel: rootLabel,
-      collapseThreshold,
+      collapseThreshold: focusTagId ? Infinity : collapseThreshold,
       focusTagId,
     });
 
@@ -297,6 +297,15 @@ export function MindmapView({
             onAddAction: handleCenterAddAction,
             onAddTag: handleCenterAddTag,
             onAddTodo: handleCenterAddTodo,
+          },
+        };
+      }
+      if (node.type === "collapsedTodoGroupNode") {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            onExpand: handleDrillDown,
           },
         };
       }
