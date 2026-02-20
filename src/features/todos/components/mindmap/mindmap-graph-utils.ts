@@ -337,9 +337,10 @@ export function buildMindmapGraph(
       for (const tid of todo.tagIds) {
         if (allTagIdSet.has(tid)) {
           const tag = tags.find((t) => t.id === tid);
+          const sourceId = tid === focusTagId ? "center" : `tag-${tid}`;
           edges.push({
             id: `edge-tag-${tid}-todo-${todo.id}`,
-            source: `tag-${tid}`,
+            source: sourceId,
             target: `todo-${todo.id}`,
             style: { stroke: tag?.color ?? "#888888" },
           });
