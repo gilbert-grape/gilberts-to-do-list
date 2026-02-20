@@ -419,7 +419,7 @@ export function MindmapView({
         onNavigate={handleBreadcrumbNavigate}
       />
       <div
-        className="h-[calc(100vh-14rem)] w-full overflow-hidden rounded-lg border border-[var(--color-border)]"
+        className="h-[calc(100vh-9.5rem)] w-full overflow-hidden rounded-lg border border-[var(--color-border)]"
         style={
           {
             "--xy-background-color": "var(--color-bg)",
