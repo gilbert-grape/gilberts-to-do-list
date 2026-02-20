@@ -150,9 +150,35 @@ export function buildMindmapGraph(
     Math.PI,
   );
 
+  // Pre-compute todo groupings so the BFS can reserve angular space for todos
+  const childrenMap = new Map<string | null, Todo[]>();
+  for (const todo of todos) {
+    const existing = childrenMap.get(todo.parentId) ?? [];
+    existing.push(todo);
+    childrenMap.set(todo.parentId, existing);
+  }
+
+  const todoIds = new Set(todos.map((t) => t.id));
+  const rootTodos = todos.filter(
+    (t) => t.parentId === null || !todoIds.has(t.parentId),
+  );
+
+  const todosByTag = new Map<string, Todo[]>();
+  for (const todo of rootTodos) {
+    const primaryTagId = todo.tagIds.find(
+      (tid) => allTagIdSet.has(tid) && relevantTodoTagIds.has(tid),
+    );
+    if (primaryTagId) {
+      const group = todosByTag.get(primaryTagId) ?? [];
+      group.push(todo);
+      todosByTag.set(primaryTagId, group);
+    }
+  }
+
   const tagAngleMap = new Map<string, number>();
   const tagTierMap = new Map<string, number>();
   const tagChildAnglesMap = new Map<string, number[]>();
+  const tagTodoAngleMap = new Map<string, number>();
   let maxTagTier = 0;
 
   // Calculate angular weight for each root tag (based on descendant count)
@@ -210,57 +236,38 @@ export function buildMindmapGraph(
       });
     }
 
-    // Queue children
+    // Queue children – reserve an angular slot for todos alongside children
+    // so their edges don't cross.
     const children = tags.filter((t) => t.parentId === tag.id);
-    if (children.length > 0) {
-      const childAngles = distributeAngles(
-        children.length,
-        angleStart,
-        angleEnd,
-      );
-      tagChildAnglesMap.set(tag.id, childAngles);
-      const childSlice =
-        children.length > 1
-          ? (angleEnd - angleStart) / children.length
+    const hasTodos = (todosByTag.get(tag.id)?.length ?? 0) > 0;
+    const todoSlots = hasTodos ? 1 : 0;
+    const totalSlots = children.length + todoSlots;
+
+    if (totalSlots > 0) {
+      const allAngles = distributeAngles(totalSlots, angleStart, angleEnd);
+      const sliceSize =
+        totalSlots > 1
+          ? (angleEnd - angleStart) / totalSlots
           : (angleEnd - angleStart);
+
+      // Children get the first N slots
+      const childAngles = allAngles.slice(0, children.length);
+      tagChildAnglesMap.set(tag.id, childAngles);
 
       children.forEach((child, ci) => {
         tagQueue.push({
           tag: child,
           tier: tier + 1,
           parentAngle: childAngles[ci]!,
-          angleStart: childAngles[ci]! - childSlice / 2,
-          angleEnd: childAngles[ci]! + childSlice / 2,
+          angleStart: childAngles[ci]! - sliceSize / 2,
+          angleEnd: childAngles[ci]! + sliceSize / 2,
         });
       });
-    }
-  }
 
-  // Build parent-child map for todos
-  const childrenMap = new Map<string | null, Todo[]>();
-  for (const todo of todos) {
-    const existing = childrenMap.get(todo.parentId) ?? [];
-    existing.push(todo);
-    childrenMap.set(todo.parentId, existing);
-  }
-
-  // Root todos: those with no parent, or parent not in the todos list
-  const todoIds = new Set(todos.map((t) => t.id));
-  const rootTodos = todos.filter(
-    (t) => t.parentId === null || !todoIds.has(t.parentId),
-  );
-
-  // Group root todos by their primary tag (filtered by relevance in drill-down)
-  const todosByTag = new Map<string, Todo[]>();
-  for (const todo of rootTodos) {
-    // Use first relevant active tag as primary placement
-    const primaryTagId = todo.tagIds.find(
-      (tid) => allTagIdSet.has(tid) && relevantTodoTagIds.has(tid),
-    );
-    if (primaryTagId) {
-      const group = todosByTag.get(primaryTagId) ?? [];
-      group.push(todo);
-      todosByTag.set(primaryTagId, group);
+      // Todo group gets the last slot
+      if (hasTodos) {
+        tagTodoAngleMap.set(tag.id, allAngles[children.length]!);
+      }
     }
   }
 
@@ -278,9 +285,10 @@ export function buildMindmapGraph(
       RING_RADIUS_BASE + tagTier * RING_RADIUS_STEP + TODO_RING_EXTRA;
 
     // Check if we should collapse this tag's todos
+    const collapsedAngle = tagTodoAngleMap.get(tagId) ?? tagAngle;
     if (tagTodos.length > collapseThreshold) {
       collapsedTagIds.add(tagId);
-      const pos = polarToCartesian(tagAngle, todoRadius);
+      const pos = polarToCartesian(collapsedAngle, todoRadius);
       const completedCount = tagTodos.filter(
         (t) => t.status === "completed",
       ).length;
@@ -306,22 +314,9 @@ export function buildMindmapGraph(
       continue;
     }
 
-    // Spread todos in a small arc, avoiding overlap with child tags
-    const childAngles = tagChildAnglesMap.get(tagId);
-    let todoCenter = tagAngle;
-
-    if (childAngles && childAngles.length > 0) {
-      // Offset todos away from child tags so they don't stack on top.
-      // Shift by 60° and pick the direction furthest from any child.
-      const offset = Math.PI / 3;
-      const plusMin = Math.min(
-        ...childAngles.map((a) => Math.abs(tagAngle + offset - a)),
-      );
-      const minusMin = Math.min(
-        ...childAngles.map((a) => Math.abs(tagAngle - offset - a)),
-      );
-      todoCenter = tagAngle + (plusMin >= minusMin ? offset : -offset);
-    }
+    // Use the pre-computed todo angle (allocated alongside children in the BFS)
+    // so edges from the same parent don't cross.
+    const todoCenter = tagTodoAngleMap.get(tagId) ?? tagAngle;
 
     const spreadAngle = Math.min(
       Math.PI / 4,
