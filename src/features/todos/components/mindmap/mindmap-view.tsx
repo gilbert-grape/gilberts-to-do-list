@@ -463,7 +463,7 @@ export function MindmapView({
   }, []);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
       <div className="flex items-center gap-3">
         <MindmapFilterBar
           statusFilter={statusFilter}
@@ -479,7 +479,7 @@ export function MindmapView({
         />
       </div>
       <div
-        className="h-[max(500px,60vh)] w-full overflow-hidden rounded-lg border border-[var(--color-border)]"
+        className="min-h-[500px] w-full flex-1 overflow-hidden rounded-lg border border-[var(--color-border)]"
         style={
           {
             "--xy-background-color": "var(--color-bg)",
