@@ -72,7 +72,16 @@
     "statusCompleted": "Erledigt",
     "subTodos": "Unter-To-Dos",
     "allTab": "Alle",
-    "dragHandle": "Ziehen zum Sortieren"
+    "dragHandle": "Ziehen zum Sortieren",
+    "due": {
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "thisWeek": "Diese Woche",
+      "nextWeek": "Nächste Woche",
+      "thisMonth": "Diesen Monat",
+      "nextMonth": "Nächsten Monat",
+      "custom": "Individuell"
+    }
   },
   "hardcore": {
     "selectTag": "Tag auswählen",
@@ -97,6 +106,9 @@
     "setDefault": "Als Standard setzen",
     "selectNewDefault": "Wähle einen neuen Standard-Tag:",
     "addNew": "Neuen Tag erstellen",
+    "parentTag": "Übergeordneter Tag",
+    "noParent": "Keiner (Hauptebene)",
+    "changeParent": "Übergeordneten ändern",
     "errors": {
       "lastTag": "Der letzte Tag kann nicht gelöscht werden"
     }

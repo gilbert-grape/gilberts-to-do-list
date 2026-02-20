@@ -72,7 +72,16 @@
     "statusCompleted": "Completed",
     "subTodos": "Sub-Todos",
     "allTab": "All",
-    "dragHandle": "Drag to reorder"
+    "dragHandle": "Drag to reorder",
+    "due": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This Week",
+      "nextWeek": "Next Week",
+      "thisMonth": "This Month",
+      "nextMonth": "Next Month",
+      "custom": "Custom"
+    }
   },
   "hardcore": {
     "selectTag": "Select tag",
@@ -97,6 +106,9 @@
     "setDefault": "Set as default",
     "selectNewDefault": "Select a new default tag:",
     "addNew": "Create new tag",
+    "parentTag": "Parent Tag",
+    "noParent": "None (root level)",
+    "changeParent": "Change Parent",
     "errors": {
       "lastTag": "Cannot delete the last tag"
     }

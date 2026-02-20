@@ -9,6 +9,7 @@ import {
   DueDateRecurrenceSection,
   type RecurrenceType,
 } from "./due-date-recurrence-section.tsx";
+import { DueDateChips } from "./due-date-chips.tsx";
 
 export interface TodoCreateFormProps {
   onClose: () => void;
@@ -125,6 +126,8 @@ export function TodoCreateForm({
           }
         />
       </div>
+
+      <DueDateChips dueDate={dueDate} onDueDateChange={setDueDate} />
 
       <DueDateRecurrenceSection
         dueDate={dueDate}
