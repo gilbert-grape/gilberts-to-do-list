@@ -88,6 +88,8 @@ interface InputMode {
   type: "tag" | "todo";
 }
 
+const CENTER_ACTION_ID = "__center__";
+
 export function MindmapView({
   todos,
   onToggle,
@@ -156,6 +158,15 @@ export function MindmapView({
     [actionTagId],
   );
 
+  const handleCenterAddAction = useCallback(() => {
+    if (actionTagId === CENTER_ACTION_ID) {
+      setActionTagId(null);
+    } else {
+      setActionTagId(CENTER_ACTION_ID);
+      setInputMode(null);
+    }
+  }, [actionTagId]);
+
   const handleSelectAction = useCallback(
     (_tagId: string, choice: ActionChoice) => {
       if (actionTagId) {
@@ -164,6 +175,40 @@ export function MindmapView({
       }
     },
     [actionTagId],
+  );
+
+  const handleCreateRootTag = useCallback(
+    async (_parentTagId: string, name: string) => {
+      const parentId = focusTagId ?? null;
+      const colorIndex = tags.length % TAG_COLORS.length;
+      await createTag({
+        name,
+        color: TAG_COLORS[colorIndex]!,
+        isDefault: false,
+        parentId,
+      });
+      setInputMode(null);
+    },
+    [focusTagId, tags.length, createTag],
+  );
+
+  const handleCreateRootTodo = useCallback(
+    async (_tagId: string, title: string) => {
+      const defaultTag = tags.find((t) => t.isDefault);
+      const tagId = focusTagId ?? defaultTag?.id ?? tags[0]?.id;
+      if (!tagId) return;
+      await createTodo({
+        title,
+        description: null,
+        tagIds: [tagId],
+        parentId: null,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      setInputMode(null);
+    },
+    [focusTagId, tags, createTodo],
   );
 
   const handleCancelInput = useCallback(() => {
@@ -220,6 +265,15 @@ export function MindmapView({
 
     // Inject callbacks into node data
     const nodesWithCallbacks = graph.nodes.map((node) => {
+      if (node.type === "centerNode") {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            onAddAction: handleCenterAddAction,
+          },
+        };
+      }
       if (node.type === "todoNode") {
         return {
           ...node,
@@ -245,19 +299,27 @@ export function MindmapView({
 
     const resultEdges = [...graph.edges];
 
+    // Helper: find anchor node and source id for action/input
+    const findAnchor = (id: string) => {
+      if (id === CENTER_ACTION_ID) {
+        const centerNode = nodesWithCallbacks.find((n) => n.id === "center");
+        return centerNode ? { node: centerNode, sourceId: "center" } : null;
+      }
+      const tagNode = nodesWithCallbacks.find((n) => n.id === `tag-${id}`);
+      return tagNode ? { node: tagNode, sourceId: `tag-${id}` } : null;
+    };
+
     // Inject ephemeral action node
     if (actionTagId) {
-      const tagNode = nodesWithCallbacks.find(
-        (n) => n.id === `tag-${actionTagId}`,
-      );
-      if (tagNode) {
+      const anchor = findAnchor(actionTagId);
+      if (anchor) {
         const actionNodeId = `action-${actionTagId}`;
         nodesWithCallbacks.push({
           id: actionNodeId,
           type: "tagActionNode",
           position: {
-            x: tagNode.position.x + EPHEMERAL_OFFSET.x,
-            y: tagNode.position.y + EPHEMERAL_OFFSET.y,
+            x: anchor.node.position.x + EPHEMERAL_OFFSET.x,
+            y: anchor.node.position.y + EPHEMERAL_OFFSET.y,
           },
           data: {
             tagId: actionTagId,
@@ -267,8 +329,8 @@ export function MindmapView({
           },
         });
         resultEdges.push({
-          id: `edge-tag-${actionTagId}-action`,
-          source: `tag-${actionTagId}`,
+          id: `edge-${anchor.sourceId}-action`,
+          source: anchor.sourceId,
           target: actionNodeId,
           style: { stroke: "var(--color-primary)", strokeDasharray: "4 2" },
         });
@@ -277,40 +339,39 @@ export function MindmapView({
 
     // Inject ephemeral input node
     if (inputMode) {
-      const tagNode = nodesWithCallbacks.find(
-        (n) => n.id === `tag-${inputMode.tagId}`,
-      );
-      if (tagNode) {
+      const anchor = findAnchor(inputMode.tagId);
+      if (anchor) {
         const inputNodeId =
           inputMode.type === "tag"
             ? `input-tag-${inputMode.tagId}`
             : `input-todo-${inputMode.tagId}`;
         const inputNodeType =
           inputMode.type === "tag" ? "tagInputNode" : "todoInputNode";
+        const isCenter = inputMode.tagId === CENTER_ACTION_ID;
 
         nodesWithCallbacks.push({
           id: inputNodeId,
           type: inputNodeType,
           position: {
-            x: tagNode.position.x + EPHEMERAL_OFFSET.x,
-            y: tagNode.position.y + EPHEMERAL_OFFSET.y,
+            x: anchor.node.position.x + EPHEMERAL_OFFSET.x,
+            y: anchor.node.position.y + EPHEMERAL_OFFSET.y,
           },
           data:
             inputMode.type === "tag"
               ? {
                   parentTagId: inputMode.tagId,
-                  onCreateTag: handleCreateTag,
+                  onCreateTag: isCenter ? handleCreateRootTag : handleCreateTag,
                   onCancel: handleCancelInput,
                 }
               : {
                   tagId: inputMode.tagId,
-                  onCreateTodo: handleCreateTodo,
+                  onCreateTodo: isCenter ? handleCreateRootTodo : handleCreateTodo,
                   onCancel: handleCancelInput,
                 },
         });
         resultEdges.push({
-          id: `edge-tag-${inputMode.tagId}-input`,
-          source: `tag-${inputMode.tagId}`,
+          id: `edge-${anchor.sourceId}-input`,
+          source: anchor.sourceId,
           target: inputNodeId,
           style: { stroke: "var(--color-primary)", strokeDasharray: "4 2" },
         });
@@ -331,10 +392,13 @@ export function MindmapView({
     handleTitleClick,
     handleDrillDown,
     handleAddAction,
+    handleCenterAddAction,
     handleSelectAction,
     handleCancelInput,
     handleCreateTag,
     handleCreateTodo,
+    handleCreateRootTag,
+    handleCreateRootTodo,
   ]);
 
   return (
