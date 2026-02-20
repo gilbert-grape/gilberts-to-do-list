@@ -1,73 +1,197 @@
-# React + TypeScript + Vite
+# Gilberts To-Do List
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern to-do list PWA built with React, TypeScript, Vite, and TailwindCSS. Features tags, drag & drop hierarchy, mindmap view, recurring tasks, i18n (EN/DE), and full offline support via IndexedDB.
 
-Currently, two official plugins are available:
+## Quick Start (Development)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open http://localhost:5173
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Command           | Description                     |
+|-------------------|---------------------------------|
+| `npm run dev`     | Start dev server with HMR       |
+| `npm run build`   | Type-check and build for prod   |
+| `npm run preview` | Preview production build locally|
+| `npm run test`    | Run all tests                   |
+| `npm run lint`    | Lint with ESLint                |
+| `npm run format`  | Format with Prettier            |
+
+## Production Build
+
+```bash
+npm run build
 ```
+
+Output is in `dist/`. This is a static site (no server-side code) — serve the `dist/` folder with any web server.
+
+---
+
+## Installation on Raspberry Pi
+
+The app is a static PWA with no backend. You only need a lightweight web server (nginx) on your Pi to serve the built files.
+
+### Prerequisites
+
+- Raspberry Pi with Raspberry Pi OS (Lite or Desktop)
+- SSH access or direct terminal
+- The Pi is connected to your local network
+
+### Step 1: Update the system
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+### Step 2: Install nginx
+
+```bash
+sudo apt install -y nginx
+```
+
+nginx starts automatically and is reachable at `http://<pi-ip-address>`.
+
+### Step 3: Build the app
+
+On your development machine (not the Pi), build the app:
+
+```bash
+npm run build
+```
+
+### Step 4: Copy the build to the Pi
+
+From your development machine, copy the `dist/` folder to the Pi:
+
+```bash
+scp -r dist/* pi@<pi-ip-address>:/var/www/html/
+```
+
+Replace `<pi-ip-address>` with your Pi's IP (find it with `hostname -I` on the Pi).
+
+### Step 5: Configure nginx for SPA routing
+
+The app uses client-side routing, so nginx needs to serve `index.html` for all routes.
+
+```bash
+sudo nano /etc/nginx/sites-available/default
+```
+
+Replace the `location /` block with:
+
+```nginx
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html;
+    index index.html;
+
+    server_name _;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static assets
+    location ~* \.(js|css|png|svg|ico|woff2)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
+Restart nginx:
+
+```bash
+sudo nginx -t && sudo systemctl restart nginx
+```
+
+### Step 6: Open the app
+
+Open a browser and navigate to:
+
+```
+http://<pi-ip-address>
+```
+
+The app works as a PWA — you can add it to your home screen on mobile devices for an app-like experience.
+
+### Updating the app
+
+After building a new version, just copy the files again:
+
+```bash
+scp -r dist/* pi@<pi-ip-address>:/var/www/html/
+```
+
+No restart needed — nginx serves the new files immediately.
+
+### Optional: Access via hostname
+
+To access the Pi by name instead of IP:
+
+```bash
+sudo apt install -y avahi-daemon
+```
+
+The app is then reachable at `http://<hostname>.local` (default: `http://raspberrypi.local`).
+
+### Optional: HTTPS with self-signed certificate
+
+For PWA features like "Add to Home Screen" on some browsers, HTTPS may be required:
+
+```bash
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout /etc/ssl/private/selfsigned.key \
+  -out /etc/ssl/certs/selfsigned.crt \
+  -subj "/CN=raspberrypi.local"
+```
+
+Update the nginx config to add an HTTPS server block:
+
+```nginx
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+
+    ssl_certificate /etc/ssl/certs/selfsigned.crt;
+    ssl_certificate_key /etc/ssl/private/selfsigned.key;
+
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(js|css|png|svg|ico|woff2)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
+```bash
+sudo nginx -t && sudo systemctl restart nginx
+```
+
+---
+
+## Tech Stack
+
+- **React 19** + TypeScript
+- **Vite 7** (build + dev server)
+- **TailwindCSS 4**
+- **Zustand** (state management)
+- **Dexie / IndexedDB** (local storage)
+- **React Flow** (mindmap view)
+- **dnd-kit** (drag & drop)
+- **i18next** (EN/DE localization)
+- **Vite PWA** (offline support + installable)
+- **Vitest** + Testing Library (tests)
