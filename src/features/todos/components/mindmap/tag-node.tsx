@@ -8,16 +8,25 @@ interface TagNodeData {
   label: string;
   color: string;
   textColor: string;
+  layoutMode?: "normal" | "compact";
   onDrillDown?: (tagId: string) => void;
   onAddAction?: (tagId: string) => void;
+  onAddTag?: (tagId: string) => void;
+  onAddTodo?: (tagId: string) => void;
   [key: string]: unknown;
 }
 
 const hiddenHandle = { opacity: 0, pointerEvents: "none" as const };
 
+function stopEvent(e: React.MouseEvent | React.PointerEvent) {
+  e.stopPropagation();
+  e.nativeEvent.stopImmediatePropagation();
+}
+
 export function TagNode({ data }: NodeProps) {
-  const { tagId, label, color, textColor, onDrillDown, onAddAction } =
+  const { tagId, label, color, textColor, layoutMode, onDrillDown, onAddAction, onAddTag, onAddTodo } =
     data as TagNodeData;
+  const isNormal = layoutMode === "normal";
   const addClickedRef = useRef(false);
 
   const handleDrillDown = useCallback(() => {
@@ -40,11 +49,33 @@ export function TagNode({ data }: NodeProps) {
     [tagId, onAddAction],
   );
 
+  const handleAddTagClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      e.nativeEvent.stopImmediatePropagation();
+      addClickedRef.current = true;
+      onAddTag?.(tagId);
+    },
+    [tagId, onAddTag],
+  );
+
+  const handleAddTodoClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      e.nativeEvent.stopImmediatePropagation();
+      addClickedRef.current = true;
+      onAddTodo?.(tagId);
+    },
+    [tagId, onAddTodo],
+  );
+
   const longPressHandlers = useLongPress(handleDrillDown);
 
   return (
     <div
-      className="group relative rounded-lg px-4 py-2 pr-8 text-center text-sm font-semibold shadow-md transition-shadow hover:shadow-lg active:ring-2 active:ring-[var(--color-primary)] active:ring-opacity-50"
+      className={`group relative rounded-lg px-4 py-2 ${isNormal ? "pr-14" : "pr-8"} text-center text-sm font-semibold shadow-md transition-shadow hover:shadow-lg active:ring-2 active:ring-[var(--color-primary)] active:ring-opacity-50`}
       style={{ backgroundColor: color, color: textColor }}
       data-testid="tag-node"
       onClick={handleDrillDown}
@@ -55,24 +86,47 @@ export function TagNode({ data }: NodeProps) {
       <Handle type="target" position={Position.Left} style={hiddenHandle} id="target-left" />
       <Handle type="target" position={Position.Right} style={hiddenHandle} id="target-right" />
       {label}
-      <button
-        type="button"
-        onClick={handleAdd}
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-        onPointerDown={(e) => {
-          e.stopPropagation();
-          e.nativeEvent.stopImmediatePropagation();
-        }}
-        className="nodrag nopan nowheel absolute right-1 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-xs font-bold opacity-70 transition-opacity hover:opacity-100"
-        style={{ backgroundColor: textColor, color, pointerEvents: "all" }}
-        aria-label={`Add to ${label}`}
-        data-testid="tag-add-button"
-      >
-        +
-      </button>
+      {isNormal ? (
+        <div className="absolute right-1 top-1/2 z-10 flex -translate-y-1/2 gap-0.5">
+          <button
+            type="button"
+            onClick={handleAddTagClick}
+            onMouseDown={stopEvent}
+            onPointerDown={stopEvent}
+            className="nodrag nopan nowheel flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold opacity-70 transition-opacity hover:opacity-100"
+            style={{ backgroundColor: textColor, color, pointerEvents: "all" }}
+            aria-label={`Add tag to ${label}`}
+            data-testid="tag-add-tag-button"
+          >
+            #
+          </button>
+          <button
+            type="button"
+            onClick={handleAddTodoClick}
+            onMouseDown={stopEvent}
+            onPointerDown={stopEvent}
+            className="nodrag nopan nowheel flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold opacity-70 transition-opacity hover:opacity-100"
+            style={{ backgroundColor: textColor, color, pointerEvents: "all" }}
+            aria-label={`Add todo to ${label}`}
+            data-testid="tag-add-todo-button"
+          >
+            ✓
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleAdd}
+          onMouseDown={stopEvent}
+          onPointerDown={stopEvent}
+          className="nodrag nopan nowheel absolute right-1 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-xs font-bold opacity-70 transition-opacity hover:opacity-100"
+          style={{ backgroundColor: textColor, color, pointerEvents: "all" }}
+          aria-label={`Add to ${label}`}
+          data-testid="tag-add-button"
+        >
+          +
+        </button>
+      )}
       <Handle type="source" position={Position.Top} style={hiddenHandle} id="source-top" />
       <Handle type="source" position={Position.Bottom} style={hiddenHandle} id="source-bottom" />
       <Handle type="source" position={Position.Left} style={hiddenHandle} id="source-left" />

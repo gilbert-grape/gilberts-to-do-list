@@ -39,19 +39,48 @@ describe("TagNode", () => {
     expect(screen.getByTestId("handle-target-top")).toBeInTheDocument();
   });
 
-  it("renders add button", () => {
-    render(<TagNode {...defaultProps} />);
-    expect(screen.getByTestId("tag-add-button")).toBeInTheDocument();
-  });
-
-  it("calls onAddAction when add button is clicked", () => {
+  it("compact: renders single + button that calls onAddAction", () => {
     const onAddAction = vi.fn();
     const props = {
       ...defaultProps,
-      data: { ...defaultProps.data, onAddAction },
+      data: { ...defaultProps.data, layoutMode: "compact", onAddAction },
     } as never;
     render(<TagNode {...props} />);
+    expect(screen.getByTestId("tag-add-button")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("tag-add-button"));
     expect(onAddAction).toHaveBeenCalledWith("t1");
+  });
+
+  it("normal: renders # and ✓ buttons", () => {
+    const props = {
+      ...defaultProps,
+      data: { ...defaultProps.data, layoutMode: "normal" },
+    } as never;
+    render(<TagNode {...props} />);
+    expect(screen.getByTestId("tag-add-tag-button")).toBeInTheDocument();
+    expect(screen.getByTestId("tag-add-todo-button")).toBeInTheDocument();
+    expect(screen.queryByTestId("tag-add-button")).not.toBeInTheDocument();
+  });
+
+  it("normal: # button calls onAddTag", () => {
+    const onAddTag = vi.fn();
+    const props = {
+      ...defaultProps,
+      data: { ...defaultProps.data, layoutMode: "normal", onAddTag },
+    } as never;
+    render(<TagNode {...props} />);
+    fireEvent.click(screen.getByTestId("tag-add-tag-button"));
+    expect(onAddTag).toHaveBeenCalledWith("t1");
+  });
+
+  it("normal: ✓ button calls onAddTodo", () => {
+    const onAddTodo = vi.fn();
+    const props = {
+      ...defaultProps,
+      data: { ...defaultProps.data, layoutMode: "normal", onAddTodo },
+    } as never;
+    render(<TagNode {...props} />);
+    fireEvent.click(screen.getByTestId("tag-add-todo-button"));
+    expect(onAddTodo).toHaveBeenCalledWith("t1");
   });
 });

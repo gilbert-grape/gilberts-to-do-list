@@ -214,6 +214,16 @@ export function MindmapView({
     [focusTagId, tags, createTodo],
   );
 
+  const handleDirectAddTag = useCallback((tagId: string) => {
+    setInputMode({ tagId, type: "tag" });
+    setActionTagId(null);
+  }, []);
+
+  const handleDirectAddTodo = useCallback((tagId: string) => {
+    setInputMode({ tagId, type: "todo" });
+    setActionTagId(null);
+  }, []);
+
   const handleCancelInput = useCallback(() => {
     setActionTagId(null);
     setInputMode(null);
@@ -293,8 +303,11 @@ export function MindmapView({
           draggable: true,
           data: {
             ...node.data,
+            layoutMode,
             onDrillDown: handleDrillDown,
             onAddAction: handleAddAction,
+            onAddTag: handleDirectAddTag,
+            onAddTodo: handleDirectAddTodo,
           },
         };
       }
@@ -407,6 +420,8 @@ export function MindmapView({
     handleCreateTodo,
     handleCreateRootTag,
     handleCreateRootTodo,
+    handleDirectAddTag,
+    handleDirectAddTodo,
   ]);
 
   // Interactive node state: allows tag nodes to be dragged while
