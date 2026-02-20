@@ -262,7 +262,7 @@ async function pollForChanges(): Promise<void> {
       try {
         await useTagStore
           .getState()
-          .createTag({ name: resolvedName, color: availableColor, isDefault: false });
+          .createTag({ name: resolvedName, color: availableColor, isDefault: false, parentId: null });
       } catch {
         continue; // Tag creation failed — skip this file
       }

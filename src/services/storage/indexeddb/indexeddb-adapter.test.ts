@@ -18,6 +18,7 @@ describe("IndexedDBAdapter", () => {
     name: "Work",
     color: "#3b82f6",
     isDefault: false,
+    parentId: null,
   };
 
   const sampleTodo: TodoCreate = {
@@ -44,6 +45,21 @@ describe("IndexedDBAdapter", () => {
       const stored = await testDb.tags.get(tag.id);
       expect(stored).toEqual(tag);
     });
+
+    it("creates a child tag with parentId", async () => {
+      const parent = await adapter.createTag(sampleTag);
+      const child = await adapter.createTag({
+        ...sampleTag,
+        name: "Child",
+        parentId: parent.id,
+      });
+      expect(child.parentId).toBe(parent.id);
+    });
+
+    it("defaults parentId to null when not provided via spread", async () => {
+      const tag = await adapter.createTag(sampleTag);
+      expect(tag.parentId).toBeNull();
+    });
   });
 
   describe("getAllTags", () => {
@@ -58,6 +74,7 @@ describe("IndexedDBAdapter", () => {
         name: "Personal",
         color: "#ef4444",
         isDefault: true,
+        parentId: null,
       });
       const tags = await adapter.getAllTags();
       expect(tags).toHaveLength(2);
@@ -101,6 +118,7 @@ describe("IndexedDBAdapter", () => {
         name: "Keep",
         color: "#000",
         isDefault: false,
+        parentId: null,
       });
       await adapter.deleteTag(tag1.id);
       const tags = await adapter.getAllTags();

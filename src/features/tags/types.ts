@@ -5,6 +5,7 @@ export const tagSchema = z.object({
   name: z.string().min(1).max(50),
   color: z.string(),
   isDefault: z.boolean(),
+  parentId: z.string().uuid().nullable(),
 });
 
 export type Tag = z.infer<typeof tagSchema>;

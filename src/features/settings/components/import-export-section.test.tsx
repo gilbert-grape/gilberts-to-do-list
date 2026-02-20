@@ -44,6 +44,7 @@ const tag1: Tag = {
   name: "Work",
   color: "#3b82f6",
   isDefault: true,
+  parentId: null,
 };
 
 const tag2: Tag = {
@@ -51,6 +52,7 @@ const tag2: Tag = {
   name: "Personal",
   color: "#22c55e",
   isDefault: false,
+  parentId: null,
 };
 
 const todo1: Todo = {
@@ -93,6 +95,7 @@ function setupStores(todos: Todo[] = [], tags: Tag[] = [tag1, tag2]) {
         name: input.name,
         color: input.color,
         isDefault: false,
+        parentId: null,
       };
       useTagStore.setState((s) => ({ tags: [...s.tags, newTag] }));
     }),

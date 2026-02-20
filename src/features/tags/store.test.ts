@@ -31,6 +31,7 @@ describe("useTagStore", () => {
         name: "Existing",
         color: "#3b82f6",
         isDefault: true,
+        parentId: null,
       });
       await useTagStore.getState().loadTags();
       const { tags } = useTagStore.getState();
@@ -51,6 +52,7 @@ describe("useTagStore", () => {
         name: "Work",
         color: "#3b82f6",
         isDefault: false,
+        parentId: null,
       });
       const { tags } = useTagStore.getState();
       expect(tags).toHaveLength(2);
@@ -63,10 +65,35 @@ describe("useTagStore", () => {
         name: "Sneaky",
         color: "#ef4444",
         isDefault: true,
+        parentId: null,
       });
       const { tags } = useTagStore.getState();
       const sneaky = tags.find((t) => t.name === "Sneaky");
       expect(sneaky?.isDefault).toBe(false);
+    });
+
+    it("creates a tag with parentId", async () => {
+      await useTagStore.getState().loadTags();
+      const parentId = useTagStore.getState().tags[0]!.id;
+      const child = await useTagStore.getState().createTag({
+        name: "Child",
+        color: "#22c55e",
+        isDefault: false,
+        parentId,
+      });
+      expect(child.parentId).toBe(parentId);
+    });
+
+    it("rejects non-existent parentId", async () => {
+      await useTagStore.getState().loadTags();
+      await expect(
+        useTagStore.getState().createTag({
+          name: "Orphan",
+          color: "#22c55e",
+          isDefault: false,
+          parentId: "550e8400-e29b-41d4-a716-446655440000",
+        }),
+      ).rejects.toThrow("Parent tag not found");
     });
   });
 
@@ -77,6 +104,35 @@ describe("useTagStore", () => {
       await useTagStore.getState().updateTag(tagId, { name: "Updated" });
       const tag = useTagStore.getState().tags.find((t) => t.id === tagId);
       expect(tag?.name).toBe("Updated");
+    });
+
+    it("rejects self-referencing parentId", async () => {
+      await useTagStore.getState().loadTags();
+      const tagId = useTagStore.getState().tags[0]!.id;
+      await expect(
+        useTagStore.getState().updateTag(tagId, { parentId: tagId }),
+      ).rejects.toThrow("A tag cannot be its own parent");
+    });
+
+    it("rejects cycle in tag hierarchy", async () => {
+      await useTagStore.getState().loadTags();
+      const tagA = useTagStore.getState().tags[0]!;
+      const tagB = await useTagStore.getState().createTag({
+        name: "B",
+        color: "#22c55e",
+        isDefault: false,
+        parentId: tagA.id,
+      });
+      const tagC = await useTagStore.getState().createTag({
+        name: "C",
+        color: "#a855f7",
+        isDefault: false,
+        parentId: tagB.id,
+      });
+      // A → B → C, now try to set A.parentId = C → cycle
+      await expect(
+        useTagStore.getState().updateTag(tagA.id, { parentId: tagC.id }),
+      ).rejects.toThrow("Cycle detected in tag hierarchy");
     });
   });
 
@@ -95,6 +151,7 @@ describe("useTagStore", () => {
         name: "Second",
         color: "#22c55e",
         isDefault: false,
+        parentId: null,
       });
       const defaultTag = useTagStore.getState().tags.find((t) => t.isDefault);
       const result = await useTagStore.getState().deleteTag(defaultTag!.id);
@@ -107,6 +164,7 @@ describe("useTagStore", () => {
         name: "Deletable",
         color: "#22c55e",
         isDefault: false,
+        parentId: null,
       });
       const toDelete = useTagStore
         .getState()
@@ -114,6 +172,46 @@ describe("useTagStore", () => {
       const result = await useTagStore.getState().deleteTag(toDelete!.id);
       expect(result).toBe(true);
       expect(useTagStore.getState().tags).toHaveLength(1);
+    });
+
+    it("reparents children to grandparent on delete", async () => {
+      await useTagStore.getState().loadTags();
+      const tagA = useTagStore.getState().tags[0]!; // General (default)
+      const tagB = await useTagStore.getState().createTag({
+        name: "B",
+        color: "#22c55e",
+        isDefault: false,
+        parentId: tagA.id,
+      });
+      await useTagStore.getState().createTag({
+        name: "C",
+        color: "#a855f7",
+        isDefault: false,
+        parentId: tagB.id,
+      });
+      // Delete B → C should become child of A
+      await useTagStore.getState().deleteTag(tagB.id);
+      const tagC = useTagStore.getState().tags.find((t) => t.name === "C");
+      expect(tagC?.parentId).toBe(tagA.id);
+    });
+
+    it("promotes children to root when deleting a root tag", async () => {
+      await useTagStore.getState().loadTags();
+      const rootTag = await useTagStore.getState().createTag({
+        name: "Root",
+        color: "#22c55e",
+        isDefault: false,
+        parentId: null,
+      });
+      await useTagStore.getState().createTag({
+        name: "Child",
+        color: "#a855f7",
+        isDefault: false,
+        parentId: rootTag.id,
+      });
+      await useTagStore.getState().deleteTag(rootTag.id);
+      const child = useTagStore.getState().tags.find((t) => t.name === "Child");
+      expect(child?.parentId).toBeNull();
     });
   });
 
@@ -124,6 +222,7 @@ describe("useTagStore", () => {
         name: "New Default",
         color: "#a855f7",
         isDefault: false,
+        parentId: null,
       });
       const newDefault = useTagStore
         .getState()
@@ -142,6 +241,7 @@ describe("useTagStore", () => {
         name: "Second",
         color: "#a855f7",
         isDefault: false,
+        parentId: null,
       });
       const second = useTagStore
         .getState()

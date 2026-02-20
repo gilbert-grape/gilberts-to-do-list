@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { buildHierarchy } from "./hierarchy.ts";
+import { buildHierarchy, buildTagHierarchy } from "./hierarchy.ts";
 import type { Todo } from "@/features/todos/types.ts";
+import type { Tag } from "@/features/tags/types.ts";
 
 function makeTodo(overrides: Partial<Todo> & { id: string }): Todo {
   return {
@@ -87,5 +88,58 @@ describe("buildHierarchy", () => {
       "Root B",
       "Child of B",
     ]);
+  });
+});
+
+function makeTag(overrides: Partial<Tag> & { id: string; name: string }): Tag {
+  return {
+    color: "#3b82f6",
+    isDefault: false,
+    parentId: null,
+    ...overrides,
+  };
+}
+
+describe("buildTagHierarchy", () => {
+  it("returns empty array for empty input", () => {
+    expect(buildTagHierarchy([])).toEqual([]);
+  });
+
+  it("returns flat tags with depth 0, sorted alphabetically", () => {
+    const tags = [
+      makeTag({ id: "1", name: "Zebra" }),
+      makeTag({ id: "2", name: "Apple" }),
+    ];
+    const result = buildTagHierarchy(tags);
+    expect(result).toHaveLength(2);
+    expect(result[0]!.tag.name).toBe("Apple");
+    expect(result[0]!.depth).toBe(0);
+    expect(result[1]!.tag.name).toBe("Zebra");
+    expect(result[1]!.depth).toBe(0);
+  });
+
+  it("nests children under parents with correct depth", () => {
+    const tags = [
+      makeTag({ id: "1", name: "Parent" }),
+      makeTag({ id: "2", name: "Child", parentId: "1" }),
+      makeTag({ id: "3", name: "Grandchild", parentId: "2" }),
+    ];
+    const result = buildTagHierarchy(tags);
+    expect(result).toHaveLength(3);
+    expect(result[0]!.tag.name).toBe("Parent");
+    expect(result[0]!.depth).toBe(0);
+    expect(result[1]!.tag.name).toBe("Child");
+    expect(result[1]!.depth).toBe(1);
+    expect(result[2]!.tag.name).toBe("Grandchild");
+    expect(result[2]!.depth).toBe(2);
+  });
+
+  it("treats orphan tags as roots", () => {
+    const tags = [
+      makeTag({ id: "1", name: "Orphan", parentId: "nonexistent" }),
+    ];
+    const result = buildTagHierarchy(tags);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.depth).toBe(0);
   });
 });

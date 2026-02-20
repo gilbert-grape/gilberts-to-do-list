@@ -1,3 +1,3 @@
 export { cn } from "./cn.ts";
 export { getContrastColor } from "./color.ts";
-export { buildHierarchy } from "./hierarchy.ts";
+export { buildHierarchy, buildTagHierarchy } from "./hierarchy.ts";

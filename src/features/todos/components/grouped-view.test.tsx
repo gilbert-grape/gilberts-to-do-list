@@ -25,6 +25,7 @@ const workTag: Tag = {
   name: "Work",
   color: "#3b82f6",
   isDefault: false,
+  parentId: null,
 };
 
 const personalTag: Tag = {
@@ -32,6 +33,7 @@ const personalTag: Tag = {
   name: "Personal",
   color: "#22c55e",
   isDefault: true,
+  parentId: null,
 };
 
 const workTodo: Todo = {

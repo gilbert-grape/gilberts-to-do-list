@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTagStore } from "@/features/tags/store.ts";
 import { useSettingsStore } from "@/features/settings/store.ts";
-import { cn, buildHierarchy } from "@/shared/utils/index.ts";
+import { cn, buildHierarchy, buildTagHierarchy } from "@/shared/utils/index.ts";
 import { SortableTodoList } from "./sortable-todo-list.tsx";
 import { TodoItem } from "./todo-item.tsx";
 import type { Todo } from "../types.ts";
@@ -47,9 +47,11 @@ export function GroupedView({
     });
   };
 
+  const tagHierarchy = buildTagHierarchy(tags);
+
   return (
     <div className="space-y-4">
-      {tags.map((tag) => {
+      {tagHierarchy.map(({ tag, depth: tagDepth }) => {
         const tagTodos = todos
           .filter((todo) => todo.tagIds.includes(tag.id))
           .filter(
@@ -68,7 +70,7 @@ export function GroupedView({
         const completedHierarchy = buildHierarchy(completedTagTodos);
 
         return (
-          <div key={tag.id}>
+          <div key={tag.id} style={{ marginLeft: tagDepth * 16 }}>
             <button
               type="button"
               onClick={() => toggleCollapse(tag.id)}

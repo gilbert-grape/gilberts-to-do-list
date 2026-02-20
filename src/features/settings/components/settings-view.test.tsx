@@ -130,7 +130,7 @@ describe("SettingsView", () => {
     });
     useTagStore.setState({
       tags: [
-        { id: "tag-1", name: "General", color: "#ef4444", isDefault: true },
+        { id: "tag-1", name: "General", color: "#ef4444", isDefault: true, parentId: null },
       ],
       isLoaded: true,
     });

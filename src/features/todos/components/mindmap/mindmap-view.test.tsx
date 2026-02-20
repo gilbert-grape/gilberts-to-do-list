@@ -38,6 +38,7 @@ const tag1: Tag = {
   name: "General",
   color: "#ef4444",
   isDefault: true,
+  parentId: null,
 };
 
 const todo1: Todo = {
@@ -73,10 +74,10 @@ describe("MindmapView", () => {
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
     const flow = screen.getByTestId("react-flow");
-    // 1 tag node + 1 todo node = 2 nodes
-    expect(flow.getAttribute("data-nodes")).toBe("2");
-    // 1 tag-to-todo edge
-    expect(flow.getAttribute("data-edges")).toBe("1");
+    // 1 center node + 1 tag node + 1 todo node = 3 nodes
+    expect(flow.getAttribute("data-nodes")).toBe("3");
+    // 1 center-to-tag edge + 1 tag-to-todo edge = 2 edges
+    expect(flow.getAttribute("data-edges")).toBe("2");
   });
 
   it("renders Controls and Background", () => {
@@ -92,7 +93,8 @@ describe("MindmapView", () => {
       <MindmapView todos={[]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
     const flow = screen.getByTestId("react-flow");
-    expect(flow.getAttribute("data-nodes")).toBe("0");
+    // Center node is always present
+    expect(flow.getAttribute("data-nodes")).toBe("1");
     expect(flow.getAttribute("data-edges")).toBe("0");
   });
 });

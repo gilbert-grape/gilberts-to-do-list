@@ -8,6 +8,7 @@ import type { Theme, ColorAccent } from "@/app/theme.ts";
 import i18n from "@/app/i18n.ts";
 
 export type CompletedDisplayMode = "hidden" | "bottom" | "toggleable";
+export type LayoutMode = "normal" | "compact";
 export type { Theme, ColorAccent };
 export type Language = "en" | "de";
 
@@ -27,8 +28,16 @@ const VALID_THEMES: Theme[] = ["light", "dark", "auto"];
 const COLOR_ACCENT_KEY = "color-accent";
 const VALID_ACCENTS: ColorAccent[] = ["blue", "purple", "green", "orange"];
 
+const LAYOUT_MODE_KEY = "layout-mode";
+const VALID_LAYOUT_MODES: LayoutMode[] = ["normal", "compact"];
+
 const LANGUAGE_KEY = "language";
 const VALID_LANGUAGES: Language[] = ["en", "de"];
+
+const MINDMAP_COLLAPSE_THRESHOLD_KEY = "mindmap-collapse-threshold";
+const DEFAULT_COLLAPSE_THRESHOLD = 5;
+const MIN_COLLAPSE_THRESHOLD = 3;
+const MAX_COLLAPSE_THRESHOLD = 15;
 
 const TELEGRAM_BOT_TOKEN_KEY = "telegram-bot-token";
 const TELEGRAM_CHAT_ID_KEY = "telegram-chat-id";
@@ -85,6 +94,18 @@ function loadColorAccent(): ColorAccent {
   return "blue";
 }
 
+function loadLayoutMode(): LayoutMode {
+  try {
+    const saved = localStorage.getItem(LAYOUT_MODE_KEY);
+    if (saved && VALID_LAYOUT_MODES.includes(saved as LayoutMode)) {
+      return saved as LayoutMode;
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  return "normal";
+}
+
 function loadLanguage(): Language {
   try {
     const saved = localStorage.getItem(LANGUAGE_KEY);
@@ -95,6 +116,21 @@ function loadLanguage(): Language {
     // localStorage unavailable
   }
   return "en";
+}
+
+function loadMindmapCollapseThreshold(): number {
+  try {
+    const saved = localStorage.getItem(MINDMAP_COLLAPSE_THRESHOLD_KEY);
+    if (saved) {
+      const num = Number(saved);
+      if (Number.isInteger(num) && num >= MIN_COLLAPSE_THRESHOLD && num <= MAX_COLLAPSE_THRESHOLD) {
+        return num;
+      }
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  return DEFAULT_COLLAPSE_THRESHOLD;
 }
 
 function loadTelegramBotToken(): string {
@@ -128,17 +164,21 @@ function loadNotificationTypes(): NotificationTypes {
 export interface SettingsState {
   userName: string;
   completedDisplayMode: CompletedDisplayMode;
+  layoutMode: LayoutMode;
   theme: Theme;
   colorAccent: ColorAccent;
   language: Language;
   telegramBotToken: string;
   telegramChatId: string;
+  mindmapCollapseThreshold: number;
   notificationTypes: NotificationTypes;
   setUserName: (name: string) => void;
   setCompletedDisplayMode: (mode: CompletedDisplayMode) => void;
+  setLayoutMode: (mode: LayoutMode) => void;
   setTheme: (theme: Theme) => void;
   setColorAccent: (accent: ColorAccent) => void;
   setLanguage: (language: Language) => void;
+  setMindmapCollapseThreshold: (threshold: number) => void;
   setTelegramBotToken: (token: string) => void;
   setTelegramChatId: (chatId: string) => void;
   setNotificationTypes: (types: NotificationTypes) => void;
@@ -147,9 +187,11 @@ export interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set) => ({
   userName: loadUserName(),
   completedDisplayMode: loadCompletedDisplayMode(),
+  layoutMode: loadLayoutMode(),
   theme: loadTheme(),
   colorAccent: loadColorAccent(),
   language: loadLanguage(),
+  mindmapCollapseThreshold: loadMindmapCollapseThreshold(),
   telegramBotToken: loadTelegramBotToken(),
   telegramChatId: loadTelegramChatId(),
   notificationTypes: loadNotificationTypes(),
@@ -170,6 +212,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       // localStorage unavailable
     }
     set({ completedDisplayMode: mode });
+  },
+
+  setLayoutMode: (mode) => {
+    try {
+      localStorage.setItem(LAYOUT_MODE_KEY, mode);
+    } catch {
+      // localStorage unavailable
+    }
+    set({ layoutMode: mode });
   },
 
   setTheme: (theme) => {
@@ -200,6 +251,16 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }
     void i18n.changeLanguage(language);
     set({ language });
+  },
+
+  setMindmapCollapseThreshold: (threshold) => {
+    const clamped = Math.max(MIN_COLLAPSE_THRESHOLD, Math.min(MAX_COLLAPSE_THRESHOLD, Math.round(threshold)));
+    try {
+      localStorage.setItem(MINDMAP_COLLAPSE_THRESHOLD_KEY, String(clamped));
+    } catch {
+      // localStorage unavailable
+    }
+    set({ mindmapCollapseThreshold: clamped });
   },
 
   setTelegramBotToken: (token) => {

@@ -6,6 +6,7 @@ import { CompletedDisplaySection } from "./completed-display-section.tsx";
 import { LayoutSection } from "./layout-section.tsx";
 import { AppearanceSection } from "./appearance-section.tsx";
 import { LanguageSection } from "./language-section.tsx";
+import { MindmapSection } from "./mindmap-section.tsx";
 import { ImportExportSection } from "./import-export-section.tsx";
 import { LocalFolderSection } from "./local-folder-section.tsx";
 import { NotificationsSection } from "./notifications-section.tsx";
@@ -60,6 +61,7 @@ export function SettingsView() {
             <AppearanceSection />
             <LayoutSection />
             <CompletedDisplaySection />
+            <MindmapSection />
           </>
         )}
         {activeTab === "data" && (

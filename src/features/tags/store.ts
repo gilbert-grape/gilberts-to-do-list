@@ -45,6 +45,7 @@ export const useTagStore = create<TagState>((set, get) => ({
         name: DEFAULT_TAG_NAME,
         color: DEFAULT_TAG_COLOR,
         isDefault: true,
+        parentId: null,
       });
       tags = [defaultTag];
     }
@@ -54,6 +55,9 @@ export const useTagStore = create<TagState>((set, get) => ({
 
   createTag: async (input: TagCreate) => {
     const adapter = getAdapter();
+    if (input.parentId && !get().tags.some((t) => t.id === input.parentId)) {
+      throw new Error("Parent tag not found");
+    }
     const tag = await adapter.createTag({ ...input, isDefault: false });
     set((state) => ({ tags: [...state.tags, tag] }));
     return tag;
@@ -61,7 +65,27 @@ export const useTagStore = create<TagState>((set, get) => ({
 
   updateTag: async (id: string, changes: Partial<Tag>) => {
     const adapter = getAdapter();
-    const prev = get().tags;
+    const { tags } = get();
+
+    if (changes.parentId !== undefined && changes.parentId !== null) {
+      if (changes.parentId === id) {
+        throw new Error("A tag cannot be its own parent");
+      }
+      // Walk up the chain from the proposed parent to detect cycles
+      let current = changes.parentId;
+      const visited = new Set<string>();
+      while (current) {
+        if (current === id) {
+          throw new Error("Cycle detected in tag hierarchy");
+        }
+        if (visited.has(current)) break;
+        visited.add(current);
+        const parentTag = tags.find((t) => t.id === current);
+        current = parentTag?.parentId ?? null;
+      }
+    }
+
+    const prev = tags;
     set((state) => ({
       tags: state.tags.map((t) => (t.id === id ? { ...t, ...changes } : t)),
     }));
@@ -89,10 +113,21 @@ export const useTagStore = create<TagState>((set, get) => ({
 
     const adapter = getAdapter();
     const prev = tags;
+    const children = tags.filter((t) => t.parentId === id);
+    const newParentId = tagToDelete.parentId;
+
+    // Optimistic: reparent children + remove tag
     set((state) => ({
-      tags: state.tags.filter((t) => t.id !== id),
+      tags: state.tags
+        .map((t) =>
+          t.parentId === id ? { ...t, parentId: newParentId } : t,
+        )
+        .filter((t) => t.id !== id),
     }));
     try {
+      for (const child of children) {
+        await adapter.updateTag(child.id, { parentId: newParentId });
+      }
       await adapter.deleteTag(id);
     } catch (err) {
       set({ tags: prev });

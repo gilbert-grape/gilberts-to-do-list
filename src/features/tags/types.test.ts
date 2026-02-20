@@ -7,6 +7,7 @@ describe("tagSchema", () => {
     name: "Work",
     color: "#3b82f6",
     isDefault: false,
+    parentId: null,
   };
 
   it("validates a correct tag", () => {
@@ -53,6 +54,29 @@ describe("tagSchema", () => {
     const result = tagSchema.safeParse({ ...validTag, isDefault: "yes" });
     expect(result.success).toBe(false);
   });
+
+  it("accepts null parentId", () => {
+    const result = tagSchema.safeParse({ ...validTag, parentId: null });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts valid UUID parentId", () => {
+    const result = tagSchema.safeParse({
+      ...validTag,
+      parentId: "660e8400-e29b-41d4-a716-446655440000",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects non-UUID parentId", () => {
+    const result = tagSchema.safeParse({ ...validTag, parentId: "not-a-uuid" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing parentId", () => {
+    const result = tagSchema.safeParse({ ...validTag, parentId: undefined });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("tagCreateSchema", () => {
@@ -60,6 +84,7 @@ describe("tagCreateSchema", () => {
     name: "Personal",
     color: "#ef4444",
     isDefault: true,
+    parentId: null,
   };
 
   it("validates a correct tag create input", () => {

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MainView } from "./main-view.tsx";
 import { useTodoStore } from "../store.ts";
@@ -105,6 +106,7 @@ const defaultTag: Tag = {
   name: "General",
   color: "#ef4444",
   isDefault: true,
+  parentId: null,
 };
 
 const openTodo: Todo = {
@@ -188,19 +190,19 @@ describe("MainView", () => {
 
   it("shows loading state initially", () => {
     setupStores({ tagsLoaded: false, todosLoaded: false });
-    render(<MainView />);
+    render(<MemoryRouter><MainView /></MemoryRouter>);
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
   it("shows new todo button when loaded", () => {
     setupStores();
-    render(<MainView />);
+    render(<MemoryRouter><MainView /></MemoryRouter>);
     expect(screen.getByText("+ New To-Do")).toBeInTheDocument();
   });
 
   it("shows empty state message when no todos", () => {
     setupStores();
-    render(<MainView />);
+    render(<MemoryRouter><MainView /></MemoryRouter>);
     expect(
       screen.getByText("Your to-dos will appear here."),
     ).toBeInTheDocument();
@@ -208,13 +210,13 @@ describe("MainView", () => {
 
   it("renders open todos", () => {
     setupStores({ todos: [openTodo] });
-    render(<MainView />);
+    render(<MemoryRouter><MainView /></MemoryRouter>);
     expect(screen.getByText("Buy milk")).toBeInTheDocument();
   });
 
   it("renders completed section with count", () => {
     setupStores({ todos: [completedTodo] });
-    render(<MainView />);
+    render(<MemoryRouter><MainView /></MemoryRouter>);
     expect(screen.getByText("Completed (1)")).toBeInTheDocument();
     expect(screen.getByText("Walk the dog")).toBeInTheDocument();
   });
@@ -222,7 +224,7 @@ describe("MainView", () => {
   it("toggles create form on button click", async () => {
     const user = userEvent.setup();
     setupStores();
-    render(<MainView />);
+    render(<MemoryRouter><MainView /></MemoryRouter>);
 
     await user.click(screen.getByText("+ New To-Do"));
     expect(
@@ -233,7 +235,7 @@ describe("MainView", () => {
 
   it("separates open and completed todos", () => {
     setupStores({ todos: [openTodo, completedTodo] });
-    render(<MainView />);
+    render(<MemoryRouter><MainView /></MemoryRouter>);
     expect(screen.getByText("Buy milk")).toBeInTheDocument();
     expect(screen.getByText("Walk the dog")).toBeInTheDocument();
     expect(screen.getByText("Completed (1)")).toBeInTheDocument();
@@ -242,14 +244,14 @@ describe("MainView", () => {
   describe("search", () => {
     it("renders search bar", () => {
       setupStores();
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByPlaceholderText("Search...")).toBeInTheDocument();
     });
 
     it("filters todos by title", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo, openTodo2] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.type(screen.getByPlaceholderText("Search..."), "milk");
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
@@ -259,7 +261,7 @@ describe("MainView", () => {
     it("filters todos by description", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo, openTodo2] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.type(screen.getByPlaceholderText("Search..."), "store");
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
@@ -269,7 +271,7 @@ describe("MainView", () => {
     it("shows no results message when search has no matches", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.type(screen.getByPlaceholderText("Search..."), "xyz");
       expect(screen.getByText("No results found.")).toBeInTheDocument();
@@ -278,7 +280,7 @@ describe("MainView", () => {
     it("restores todos when search is cleared", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo, openTodo2] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       const searchInput = screen.getByPlaceholderText("Search...");
       await user.type(searchInput, "milk");
@@ -293,14 +295,14 @@ describe("MainView", () => {
   describe("view toggle", () => {
     it("renders view toggle bar", () => {
       setupStores();
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByTitle("Flat List")).toBeInTheDocument();
     });
 
     it("renders TagTabsView when Tag Tabs is selected", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByTitle("Tag Tabs"));
       // TagTabsView renders an "All" tab
@@ -312,7 +314,7 @@ describe("MainView", () => {
     it("renders GroupedView when Grouped is selected", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByTitle("Grouped"));
       // GroupedView renders tag name as group header
@@ -323,7 +325,7 @@ describe("MainView", () => {
     it("returns to flat list when Flat List is clicked after switching", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo, completedTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByTitle("Tag Tabs"));
       await user.click(screen.getByTitle("Flat List"));
@@ -334,7 +336,7 @@ describe("MainView", () => {
     it("persists selected view to localStorage", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByTitle("Tag Tabs"));
       expect(localStorage.getItem("gilberts-todo-active-view")).toBe("tagTabs");
@@ -343,7 +345,7 @@ describe("MainView", () => {
     it("restores view from localStorage on mount", () => {
       localStorage.setItem("gilberts-todo-active-view", "grouped");
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       // GroupedView renders the tag name as group header
       expect(screen.getByText("General")).toBeInTheDocument();
@@ -352,7 +354,7 @@ describe("MainView", () => {
     it("renders MindmapView when Mindmap is selected", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByTitle("Mindmap"));
       expect(
@@ -364,7 +366,7 @@ describe("MainView", () => {
     it("renders HardcoreView when Hardcore is selected", async () => {
       const user = userEvent.setup();
       setupStores();
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByTitle("Hardcore"));
       expect(
@@ -376,7 +378,7 @@ describe("MainView", () => {
     it("does not show empty state for hardcore view", async () => {
       const user = userEvent.setup();
       setupStores();
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByTitle("Hardcore"));
       await screen.findByTestId("hardcore-view");
@@ -388,7 +390,7 @@ describe("MainView", () => {
     it("falls back to flatList for invalid localStorage value", () => {
       localStorage.setItem("gilberts-todo-active-view", "invalid");
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       // Should render flat list (no "All" tab, no group header)
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
@@ -400,7 +402,7 @@ describe("MainView", () => {
     it("shows confirm dialog when delete is clicked", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByLabelText("Delete"));
       expect(screen.getByText("Delete Todo")).toBeInTheDocument();
@@ -410,7 +412,7 @@ describe("MainView", () => {
     it("deletes todo on confirm", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByLabelText("Delete"));
       await user.click(
@@ -423,7 +425,7 @@ describe("MainView", () => {
     it("cancels delete on cancel", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByLabelText("Delete"));
       // Click Cancel in dialog
@@ -439,7 +441,7 @@ describe("MainView", () => {
     it("shows edit form when edit is clicked", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByLabelText("Edit"));
       expect(screen.getByDisplayValue("Buy milk")).toBeInTheDocument();
@@ -449,20 +451,20 @@ describe("MainView", () => {
   describe("inline create", () => {
     it("renders create sibling button on todo items", () => {
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByLabelText("+ New To-Do")).toBeInTheDocument();
     });
 
     it("renders create sub-todo button on todo items", () => {
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByLabelText("Sub-Todos")).toBeInTheDocument();
     });
 
     it("opens create form with parent when create child is clicked", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByLabelText("Sub-Todos"));
       // Create form should appear
@@ -474,7 +476,7 @@ describe("MainView", () => {
     it("opens create form when create sibling is clicked", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByLabelText("+ New To-Do"));
       expect(
@@ -487,7 +489,7 @@ describe("MainView", () => {
     it("opens detail view when todo title is clicked", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByText("Buy milk"));
       // Detail view should show the todo title as heading
@@ -498,7 +500,7 @@ describe("MainView", () => {
     it("returns to list view on back click", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByText("Buy milk"));
       await user.click(screen.getByLabelText("Back"));
@@ -509,7 +511,7 @@ describe("MainView", () => {
     it("opens edit form from detail view", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByText("Buy milk"));
       await user.click(screen.getByText("Edit"));
@@ -520,7 +522,7 @@ describe("MainView", () => {
     it("opens delete dialog from detail view", async () => {
       const user = userEvent.setup();
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByText("Buy milk"));
       await user.click(screen.getByText("Delete"));
@@ -531,13 +533,13 @@ describe("MainView", () => {
   describe("drag and drop", () => {
     it("renders drag handles on open todos in flat list", () => {
       setupStores({ todos: [openTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByLabelText("Drag to reorder")).toBeInTheDocument();
     });
 
     it("does not render drag handles on completed todos", () => {
       setupStores({ todos: [completedTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(
         screen.queryByLabelText("Drag to reorder"),
       ).not.toBeInTheDocument();
@@ -561,7 +563,7 @@ describe("MainView", () => {
         sortOrder: 1,
       };
       setupStores({ todos: [openTodo, childTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       // Both parent and child appear as flat items
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
@@ -577,7 +579,7 @@ describe("MainView", () => {
     it("hides completed section when mode is hidden", () => {
       useSettingsStore.setState({ completedDisplayMode: "hidden" });
       setupStores({ todos: [openTodo, completedTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
       expect(screen.queryByText("Walk the dog")).not.toBeInTheDocument();
       expect(screen.queryByText(/Completed/)).not.toBeInTheDocument();
@@ -586,7 +588,7 @@ describe("MainView", () => {
     it("shows completed section at bottom when mode is bottom", () => {
       useSettingsStore.setState({ completedDisplayMode: "bottom" });
       setupStores({ todos: [openTodo, completedTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
       expect(screen.getByText("Walk the dog")).toBeInTheDocument();
       expect(screen.getByText("Completed (1)")).toBeInTheDocument();
@@ -595,7 +597,7 @@ describe("MainView", () => {
     it("shows toggle button when mode is toggleable", () => {
       useSettingsStore.setState({ completedDisplayMode: "toggleable" });
       setupStores({ todos: [openTodo, completedTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
       expect(screen.getByText("Show Completed (1)")).toBeInTheDocument();
       expect(screen.queryByText("Walk the dog")).not.toBeInTheDocument();
@@ -605,7 +607,7 @@ describe("MainView", () => {
       const user = userEvent.setup();
       useSettingsStore.setState({ completedDisplayMode: "toggleable" });
       setupStores({ todos: [openTodo, completedTodo] });
-      render(<MainView />);
+      render(<MemoryRouter><MainView /></MemoryRouter>);
 
       await user.click(screen.getByText("Show Completed (1)"));
       expect(screen.getByText("Walk the dog")).toBeInTheDocument();

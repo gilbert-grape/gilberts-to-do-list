@@ -75,7 +75,7 @@ export function ImportExportSection() {
             TAG_COLORS.find((c) => !existingColors.has(c)) ?? TAG_COLORS[0]!;
           await useTagStore
             .getState()
-            .createTag({ name: tagName, color: availableColor, isDefault: false });
+            .createTag({ name: tagName, color: availableColor, isDefault: false, parentId: null });
           tag = useTagStore
             .getState()
             .tags.find(

@@ -11,6 +11,7 @@ const tag: Tag = {
   name: "Work",
   color: "#3b82f6",
   isDefault: true,
+  parentId: null,
 };
 
 const openTodo: Todo = {
@@ -89,6 +90,7 @@ describe("TodoItem", () => {
       name: "Personal",
       color: "#22c55e",
       isDefault: false,
+      parentId: null,
     };
     useTagStore.setState({ tags: [tag, tag2], isLoaded: true });
 

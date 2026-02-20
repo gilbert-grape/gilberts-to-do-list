@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTagStore } from "@/features/tags/store.ts";
 import { useSettingsStore } from "@/features/settings/store.ts";
-import { cn, buildHierarchy } from "@/shared/utils/index.ts";
+import { cn, buildHierarchy, buildTagHierarchy } from "@/shared/utils/index.ts";
+import type { Tag } from "@/features/tags/types.ts";
 import { SortableTodoList } from "./sortable-todo-list.tsx";
 import { TodoItem } from "./todo-item.tsx";
 import type { Todo } from "../types.ts";
@@ -38,10 +39,22 @@ export function TagTabsView({
   const [activeTagId, setActiveTagId] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
 
+  const tagHierarchy = buildTagHierarchy(tags);
+
+  const getDescendantTagIds = (tagId: string, allTags: Tag[]): string[] => {
+    const children = allTags.filter((t) => t.parentId === tagId);
+    return children.flatMap((c) => [c.id, ...getDescendantTagIds(c.id, allTags)]);
+  };
+
   const filteredTodos =
     activeTagId === null
       ? todos
-      : todos.filter((todo) => todo.tagIds.includes(activeTagId));
+      : (() => {
+          const relevantTagIds = [activeTagId, ...getDescendantTagIds(activeTagId, tags)];
+          return todos.filter((todo) =>
+            todo.tagIds.some((id) => relevantTagIds.includes(id)),
+          );
+        })();
 
   const openTodos = filteredTodos.filter((todo) => todo.status === "open");
   const completedTodos = filteredTodos.filter(
@@ -67,7 +80,7 @@ export function TagTabsView({
         >
           {t("todos.allTab")}
         </button>
-        {tags.map((tag) => (
+        {tagHierarchy.map(({ tag, depth }) => (
           <button
             key={tag.id}
             type="button"
@@ -84,9 +97,10 @@ export function TagTabsView({
               borderColor: tag.color,
               borderWidth: activeTagId !== tag.id ? 1 : 0,
               color: activeTagId === tag.id ? "white" : tag.color,
+              marginLeft: depth > 0 ? depth * 8 : undefined,
             }}
           >
-            {tag.name}
+            {depth > 0 ? `└ ${tag.name}` : tag.name}
           </button>
         ))}
       </div>

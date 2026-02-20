@@ -17,6 +17,9 @@ vi.mock("react-i18next", () => ({
         "tags.setDefault": "Set as default",
         "tags.selectNewDefault": "Select a new default tag:",
         "tags.errors.lastTag": "Cannot delete the last tag",
+        "tags.parentTag": "Parent Tag",
+        "tags.noParent": "None (root level)",
+        "tags.changeParent": "Change Parent",
         "common.save": "Save",
         "common.cancel": "Cancel",
         "common.edit": "Edit",
@@ -50,6 +53,7 @@ const defaultTag: Tag = {
   name: "General",
   color: "#ef4444",
   isDefault: true,
+  parentId: null,
 };
 
 const secondTag: Tag = {
@@ -57,6 +61,7 @@ const secondTag: Tag = {
   name: "Work",
   color: "#3b82f6",
   isDefault: false,
+  parentId: null,
 };
 
 describe("TagManager", () => {
@@ -77,8 +82,9 @@ describe("TagManager", () => {
   it("renders all tags", () => {
     setupStore([defaultTag, secondTag]);
     render(<TagManager />);
-    expect(screen.getByText("General")).toBeInTheDocument();
-    expect(screen.getByText("Work")).toBeInTheDocument();
+    // Tag names appear in both the tag list spans and the parent selector dropdowns
+    expect(screen.getAllByText("General").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Work").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows default badge on default tag", () => {
@@ -107,6 +113,7 @@ describe("TagManager", () => {
         name: "NewTag",
         color: "#ef4444",
         isDefault: false,
+        parentId: null,
       });
     });
 
@@ -168,7 +175,7 @@ describe("TagManager", () => {
       await user.click(editButtons[0]!);
       await user.click(screen.getByText("Cancel"));
 
-      expect(screen.getByText("General")).toBeInTheDocument();
+      expect(screen.getAllByText("General").length).toBeGreaterThanOrEqual(1);
       expect(mockUpdateTag).not.toHaveBeenCalled();
     });
   });

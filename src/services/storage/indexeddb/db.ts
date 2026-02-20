@@ -26,6 +26,15 @@ export class AppDatabase extends Dexie {
       todos: "id, status, *tagIds, parentId, sortOrder",
       meta: "key",
     });
+    this.version(4).stores({
+      tags: "id, parentId",
+      todos: "id, status, *tagIds, parentId, sortOrder",
+      meta: "key",
+    }).upgrade(tx => {
+      return tx.table("tags").toCollection().modify(tag => {
+        if (tag.parentId === undefined) tag.parentId = null;
+      });
+    });
   }
 }
 

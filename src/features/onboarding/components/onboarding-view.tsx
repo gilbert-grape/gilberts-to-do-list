@@ -80,6 +80,7 @@ export function OnboardingView() {
           name: tag.name,
           color: tag.color,
           isDefault: false,
+          parentId: null,
         });
         const tags = useTagStore.getState().tags;
         const created = tags[tags.length - 1];
@@ -94,6 +95,7 @@ export function OnboardingView() {
           name: t("onboarding.defaultTagOption"),
           color: TAG_COLORS[TAG_COLORS.length - 1]!,
           isDefault: false,
+          parentId: null,
         });
         const tags = useTagStore.getState().tags;
         const defaultTag = tags[tags.length - 1];

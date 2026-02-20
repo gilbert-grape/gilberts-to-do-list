@@ -11,6 +11,8 @@ interface TodoNodeData {
   [key: string]: unknown;
 }
 
+const hiddenHandle = { opacity: 0, pointerEvents: "none" as const };
+
 export function TodoNode({ data }: NodeProps) {
   const { todoId, label, completed, onToggle, onTitleClick } =
     data as TodoNodeData;
@@ -23,11 +25,8 @@ export function TodoNode({ data }: NodeProps) {
       )}
       data-testid="todo-node"
     >
-      <Handle
-        type="target"
-        position={Position.Top}
-        style={{ opacity: 0, pointerEvents: "none" }}
-      />
+      <Handle type="target" position={Position.Top} style={hiddenHandle} />
+      <Handle type="target" position={Position.Left} style={hiddenHandle} id="target-left" />
       <input
         type="checkbox"
         checked={completed}
@@ -45,11 +44,8 @@ export function TodoNode({ data }: NodeProps) {
       >
         {label}
       </button>
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{ opacity: 0, pointerEvents: "none" }}
-      />
+      <Handle type="source" position={Position.Bottom} style={hiddenHandle} />
+      <Handle type="source" position={Position.Right} style={hiddenHandle} id="source-right" />
     </div>
   );
 }

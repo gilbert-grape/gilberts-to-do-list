@@ -3,7 +3,20 @@ import { useTranslation } from "react-i18next";
 import { useTagStore } from "../store.ts";
 import { TAG_COLORS } from "../colors.ts";
 import { TagChip } from "@/shared/components/tag-chip.tsx";
+import { buildTagHierarchy } from "@/shared/utils/index.ts";
 import type { Tag } from "../types.ts";
+
+function getDescendantIds(tagId: string, tags: Tag[]): Set<string> {
+  const result = new Set<string>();
+  const children = tags.filter((t) => t.parentId === tagId);
+  for (const child of children) {
+    result.add(child.id);
+    for (const id of getDescendantIds(child.id, tags)) {
+      result.add(id);
+    }
+  }
+  return result;
+}
 
 export function TagManager() {
   const { t } = useTranslation();
@@ -18,11 +31,14 @@ export function TagManager() {
 
   const [newTagName, setNewTagName] = useState("");
   const [selectedColor, setSelectedColor] = useState<string>(TAG_COLORS[0]!);
+  const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const hierarchy = buildTagHierarchy(tags);
 
   const handleCreate = async () => {
     const trimmed = newTagName.trim();
@@ -30,9 +46,15 @@ export function TagManager() {
     if (tags.some((t) => t.name.toLowerCase() === trimmed.toLowerCase())) return;
     setError(null);
     try {
-      await createTag({ name: trimmed, color: selectedColor, isDefault: false });
+      await createTag({
+        name: trimmed,
+        color: selectedColor,
+        isDefault: false,
+        parentId: selectedParentId,
+      });
       setNewTagName("");
       setSelectedColor(TAG_COLORS[0]!);
+      setSelectedParentId(null);
     } catch {
       setError(t("errors.saveFailed"));
     }
@@ -101,6 +123,14 @@ export function TagManager() {
     }
   };
 
+  const handleChangeParent = async (tagId: string, newParentId: string | null) => {
+    try {
+      await updateTag(tagId, { parentId: newParentId });
+    } catch {
+      setError(t("errors.saveFailed"));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-[var(--color-text)]">
@@ -128,6 +158,23 @@ export function TagManager() {
             {t("tags.create")}
           </button>
         </div>
+
+        {/* Parent selector */}
+        <select
+          value={selectedParentId ?? ""}
+          onChange={(e) =>
+            setSelectedParentId(e.target.value || null)
+          }
+          className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)]"
+          aria-label={t("tags.parentTag")}
+        >
+          <option value="">{t("tags.noParent")}</option>
+          {tags.map((tag) => (
+            <option key={tag.id} value={tag.id}>
+              {tag.name}
+            </option>
+          ))}
+        </select>
 
         {/* Color picker */}
         <div
@@ -192,88 +239,112 @@ export function TagManager() {
         </div>
       )}
 
-      {/* Tag list */}
+      {/* Tag list (hierarchical) */}
       <ul className="space-y-2">
-        {tags.map((tag) => (
-          <li
-            key={tag.id}
-            className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3"
-          >
-            <div
-              className="h-4 w-4 shrink-0 rounded-full"
-              style={{ backgroundColor: tag.color }}
-            />
+        {hierarchy.map(({ tag, depth }) => {
+          const descendantIds = getDescendantIds(tag.id, tags);
+          const validParents = tags.filter(
+            (t) => t.id !== tag.id && !descendantIds.has(t.id),
+          );
 
-            {editingId === tag.id ? (
-              <div className="flex flex-1 items-center gap-2">
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveEdit();
-                    if (e.key === "Escape") handleCancelEdit();
-                  }}
-                  maxLength={50}
-                  className="flex-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2 py-1 text-sm text-[var(--color-text)]"
-                  autoFocus
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveEdit}
-                  className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
-                >
-                  {t("common.save")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="text-sm text-[var(--color-text-secondary)]"
-                >
-                  {t("common.cancel")}
-                </button>
-              </div>
-            ) : (
-              <>
-                <span className="flex-1 text-sm text-[var(--color-text)]">
-                  {tag.name}
-                </span>
+          return (
+            <li
+              key={tag.id}
+              className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3"
+              style={{ marginLeft: depth * 24 }}
+            >
+              <div
+                className="h-4 w-4 shrink-0 rounded-full"
+                style={{ backgroundColor: tag.color }}
+              />
 
-                {tag.isDefault && (
-                  <span className="rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs text-white">
-                    {t("tags.default")}
-                  </span>
-                )}
-
-                {!tag.isDefault && (
+              {editingId === tag.id ? (
+                <div className="flex flex-1 items-center gap-2">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveEdit();
+                      if (e.key === "Escape") handleCancelEdit();
+                    }}
+                    maxLength={50}
+                    className="flex-1 rounded border border-[var(--color-border)] bg-[var(--color-bg)] px-2 py-1 text-sm text-[var(--color-text)]"
+                    autoFocus
+                  />
                   <button
                     type="button"
-                    onClick={() => handleSetDefault(tag.id)}
-                    className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"
+                    onClick={handleSaveEdit}
+                    className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
                   >
-                    {t("tags.setDefault")}
+                    {t("common.save")}
                   </button>
-                )}
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="text-sm text-[var(--color-text-secondary)]"
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span className="flex-1 text-sm text-[var(--color-text)]">
+                    {tag.name}
+                  </span>
 
-                <button
-                  type="button"
-                  onClick={() => handleStartEdit(tag)}
-                  className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
-                >
-                  {t("common.edit")}
-                </button>
+                  {tag.isDefault && (
+                    <span className="rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs text-white">
+                      {t("tags.default")}
+                    </span>
+                  )}
 
-                <button
-                  type="button"
-                  onClick={() => handleDelete(tag)}
-                  className="text-sm text-[var(--color-danger)] hover:text-[var(--color-danger)]/80"
-                >
-                  {t("common.delete")}
-                </button>
-              </>
-            )}
-          </li>
-        ))}
+                  {!tag.isDefault && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetDefault(tag.id)}
+                      className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"
+                    >
+                      {t("tags.setDefault")}
+                    </button>
+                  )}
+
+                  <select
+                    value={tag.parentId ?? ""}
+                    onChange={(e) =>
+                      handleChangeParent(tag.id, e.target.value || null)
+                    }
+                    className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-1 py-0.5 text-xs text-[var(--color-text-secondary)]"
+                    aria-label={t("tags.changeParent")}
+                  >
+                    <option value="">{t("tags.noParent")}</option>
+                    {validParents.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => handleStartEdit(tag)}
+                    className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
+                  >
+                    {t("common.edit")}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(tag)}
+                    className="text-sm text-[var(--color-danger)] hover:text-[var(--color-danger)]/80"
+                  >
+                    {t("common.delete")}
+                  </button>
+                </>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

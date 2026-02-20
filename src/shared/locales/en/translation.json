@@ -190,7 +190,22 @@
     "tabData": "Data & Notifications",
     "layout": "Layout",
     "layoutNormal": "Normal",
-    "layoutCompact": "Compact"
+    "layoutCompact": "Compact",
+    "mindmap": "Mind Map",
+    "mindmapCollapseThreshold": "Todos per Tag",
+    "mindmapCollapseHint": "Todos are grouped when exceeding this number.",
+    "mindmapFilterAll": "All",
+    "mindmapFilterOpen": "Open",
+    "mindmapFilterCompleted": "Completed",
+    "mindmapFilterDueAll": "All Dates",
+    "mindmapFilterDueOverdue": "Overdue",
+    "mindmapFilterDueToday": "Today",
+    "mindmapFilterDueThisWeek": "This Week",
+    "mindmapFilterDueThisMonth": "This Month",
+    "mindmapAddTag": "Add sub-tag",
+    "mindmapAddTodo": "Add to-do",
+    "mindmapTagPlaceholder": "Tag name...",
+    "mindmapTodoPlaceholder": "To-Do title..."
   },
   "onboarding": {
     "nameTitle": "What's your name?",

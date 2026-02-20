@@ -29,6 +29,7 @@ export function InlineTagCreate({ onTagCreated }: InlineTagCreateProps) {
         name: trimmedName,
         color: selectedColor,
         isDefault: false,
+        parentId: null,
       });
       onTagCreated(tag.id);
       setName("");

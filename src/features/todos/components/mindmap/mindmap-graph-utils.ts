@@ -8,49 +8,221 @@ export interface MindmapGraph {
   edges: Edge[];
 }
 
-const TAG_NODE_WIDTH = 120;
-const TAG_NODE_GAP = 40;
-const TODO_NODE_WIDTH = 180;
-const TODO_NODE_GAP = 20;
-const TIER_HEIGHT = 120;
+// Layout constants
+const RING_RADIUS_BASE = 200;
+const RING_RADIUS_STEP = 180;
+const TODO_RING_EXTRA = 160;
 
-export function buildMindmapGraph(todos: Todo[], tags: Tag[]): MindmapGraph {
+function getDescendantTagIds(tagId: string, tags: Tag[]): string[] {
+  const children = tags.filter((t) => t.parentId === tagId);
+  return children.flatMap((c) => [c.id, ...getDescendantTagIds(c.id, tags)]);
+}
+
+function tagHasTodos(tag: Tag, todos: Todo[], tags: Tag[]): boolean {
+  if (todos.some((todo) => todo.tagIds.includes(tag.id))) return true;
+  const descendantIds = getDescendantTagIds(tag.id, tags);
+  return descendantIds.some((dId) =>
+    todos.some((todo) => todo.tagIds.includes(dId)),
+  );
+}
+
+/** Convert polar coordinates to cartesian (x, y) */
+function polarToCartesian(
+  angle: number,
+  radius: number,
+): { x: number; y: number } {
+  return {
+    x: Math.round(radius * Math.cos(angle)),
+    y: Math.round(radius * Math.sin(angle)),
+  };
+}
+
+/**
+ * Distribute items evenly across an angular range.
+ * Returns center angles for each item.
+ */
+function distributeAngles(
+  count: number,
+  startAngle: number,
+  endAngle: number,
+): number[] {
+  if (count === 0) return [];
+  if (count === 1) return [(startAngle + endAngle) / 2];
+  const step = (endAngle - startAngle) / count;
+  return Array.from({ length: count }, (_, i) => startAngle + step * (i + 0.5));
+}
+
+export interface MindmapGraphOptions {
+  centerLabel?: string;
+  collapseThreshold?: number;
+  focusTagId?: string | null;
+}
+
+export function buildMindmapGraph(
+  todos: Todo[],
+  tags: Tag[],
+  centerLabelOrOptions?: string | MindmapGraphOptions,
+): MindmapGraph {
+  const options: MindmapGraphOptions =
+    typeof centerLabelOrOptions === "string"
+      ? { centerLabel: centerLabelOrOptions }
+      : centerLabelOrOptions ?? {};
+
+  const collapseThreshold = options.collapseThreshold ?? Infinity;
+  const focusTagId = options.focusTagId ?? null;
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  // Only include tags that have at least one todo
-  const activeTags = tags.filter((tag) =>
-    todos.some((todo) => todo.tagIds.includes(tag.id)),
+  // Determine center label
+  const focusTag = focusTagId ? tags.find((t) => t.id === focusTagId) : null;
+  const centerLabel = focusTag
+    ? focusTag.name
+    : (options.centerLabel ?? "My To Do");
+
+  // Always create center node
+  nodes.push({
+    id: "center",
+    type: "centerNode",
+    position: { x: 0, y: 0 },
+    data: { label: centerLabel },
+  });
+
+  if (todos.length === 0 && tags.length === 0) {
+    return { nodes, edges };
+  }
+
+  // Active tags: tag itself has todos OR a descendant has todos
+  const activeTagIds = new Set<string>();
+  for (const tag of tags) {
+    if (tagHasTodos(tag, todos, tags)) {
+      activeTagIds.add(tag.id);
+    }
+  }
+  const activeTags = tags.filter((t) => activeTagIds.has(t.id));
+  const activeTagIdSet = new Set(activeTags.map((t) => t.id));
+
+  // When focused on a tag, only show its direct children as "root" tags
+  // and only todos that belong to the focused tag or its descendants
+  let rootTags: Tag[];
+  let relevantTodoTagIds: Set<string>;
+
+  if (focusTagId && activeTagIdSet.has(focusTagId)) {
+    rootTags = activeTags.filter((t) => t.parentId === focusTagId);
+    const descendantIds = getDescendantTagIds(focusTagId, tags);
+    relevantTodoTagIds = new Set([focusTagId, ...descendantIds]);
+  } else {
+    rootTags = activeTags.filter(
+      (t) => t.parentId === null || !activeTagIdSet.has(t.parentId),
+    );
+    relevantTodoTagIds = activeTagIdSet;
+  }
+
+  // BFS to build tag hierarchy with tiers
+  interface TagQueueItem {
+    tag: Tag;
+    tier: number;
+    parentAngle: number;
+    angleStart: number;
+    angleEnd: number;
+  }
+
+  // Distribute root tags around full circle (starting from top: -PI/2)
+  const rootAngles = distributeAngles(
+    rootTags.length,
+    -Math.PI,
+    Math.PI,
   );
 
-  // Tier 0: Tag nodes
-  const totalTagWidth =
-    activeTags.length * TAG_NODE_WIDTH + (activeTags.length - 1) * TAG_NODE_GAP;
-  const tagStartX = -totalTagWidth / 2;
+  const tagAngleMap = new Map<string, number>();
+  const tagTierMap = new Map<string, number>();
+  let maxTagTier = 0;
 
-  activeTags.forEach((tag, i) => {
+  // Calculate angular weight for each root tag (based on descendant count)
+  const rootSliceSize =
+    rootTags.length > 0 ? (2 * Math.PI) / rootTags.length : 0;
+
+  const tagQueue: TagQueueItem[] = rootTags.map((tag, i) => ({
+    tag,
+    tier: 0,
+    parentAngle: rootAngles[i]!,
+    angleStart: rootAngles[i]! - rootSliceSize / 2,
+    angleEnd: rootAngles[i]! + rootSliceSize / 2,
+  }));
+
+  let tagIdx = 0;
+  while (tagIdx < tagQueue.length) {
+    const item = tagQueue[tagIdx]!;
+    tagIdx++;
+
+    const { tag, tier, parentAngle, angleStart, angleEnd } = item;
+    const radius = RING_RADIUS_BASE + tier * RING_RADIUS_STEP;
+    const pos = polarToCartesian(parentAngle, radius);
+
+    tagAngleMap.set(tag.id, parentAngle);
+    tagTierMap.set(tag.id, tier);
+    if (tier > maxTagTier) maxTagTier = tier;
+
     nodes.push({
       id: `tag-${tag.id}`,
       type: "tagNode",
-      position: {
-        x: tagStartX + i * (TAG_NODE_WIDTH + TAG_NODE_GAP),
-        y: 0,
-      },
+      position: pos,
       data: {
+        tagId: tag.id,
         label: tag.name,
         color: tag.color,
         textColor: getContrastColor(tag.color),
       },
     });
-  });
 
-  // Build parent-child map
+    // Edge: center → root tag, or parent tag → child tag
+    if (tier === 0) {
+      edges.push({
+        id: `edge-center-tag-${tag.id}`,
+        source: "center",
+        target: `tag-${tag.id}`,
+        style: { stroke: tag.color },
+      });
+    } else if (tag.parentId && activeTagIdSet.has(tag.parentId)) {
+      const parentTag = activeTags.find((t) => t.id === tag.parentId);
+      edges.push({
+        id: `edge-tag-${tag.parentId}-subtag-${tag.id}`,
+        source: `tag-${tag.parentId}`,
+        target: `tag-${tag.id}`,
+        style: { stroke: parentTag?.color ?? "#888888" },
+      });
+    }
+
+    // Queue children
+    const children = activeTags.filter((t) => t.parentId === tag.id);
+    if (children.length > 0) {
+      const childAngles = distributeAngles(
+        children.length,
+        angleStart,
+        angleEnd,
+      );
+      const childSlice =
+        children.length > 1
+          ? (angleEnd - angleStart) / children.length
+          : (angleEnd - angleStart);
+
+      children.forEach((child, ci) => {
+        tagQueue.push({
+          tag: child,
+          tier: tier + 1,
+          parentAngle: childAngles[ci]!,
+          angleStart: childAngles[ci]! - childSlice / 2,
+          angleEnd: childAngles[ci]! + childSlice / 2,
+        });
+      });
+    }
+  }
+
+  // Build parent-child map for todos
   const childrenMap = new Map<string | null, Todo[]>();
   for (const todo of todos) {
-    const parentKey = todo.parentId;
-    const existing = childrenMap.get(parentKey) ?? [];
+    const existing = childrenMap.get(todo.parentId) ?? [];
     existing.push(todo);
-    childrenMap.set(parentKey, existing);
+    childrenMap.set(todo.parentId, existing);
   }
 
   // Root todos: those with no parent, or parent not in the todos list
@@ -59,72 +231,160 @@ export function buildMindmapGraph(todos: Todo[], tags: Tag[]): MindmapGraph {
     (t) => t.parentId === null || !todoIds.has(t.parentId),
   );
 
-  // Position todos by tier using BFS
-  interface QueueItem {
-    todo: Todo;
-    tier: number;
-  }
-
-  const queue: QueueItem[] = rootTodos.map((todo) => ({ todo, tier: 1 }));
-  const tierGroups = new Map<number, Todo[]>();
-
-  // BFS to assign tiers
-  let idx = 0;
-  while (idx < queue.length) {
-    const item = queue[idx]!;
-    idx++;
-    const group = tierGroups.get(item.tier) ?? [];
-    group.push(item.todo);
-    tierGroups.set(item.tier, group);
-
-    const children = childrenMap.get(item.todo.id) ?? [];
-    for (const child of children) {
-      queue.push({ todo: child, tier: item.tier + 1 });
+  // Group root todos by their primary tag (filtered by relevance in drill-down)
+  const todosByTag = new Map<string, Todo[]>();
+  for (const todo of rootTodos) {
+    // Use first relevant active tag as primary placement
+    const primaryTagId = todo.tagIds.find(
+      (tid) => activeTagIdSet.has(tid) && relevantTodoTagIds.has(tid),
+    );
+    if (primaryTagId) {
+      const group = todosByTag.get(primaryTagId) ?? [];
+      group.push(todo);
+      todosByTag.set(primaryTagId, group);
     }
   }
 
-  // Position each tier's nodes
-  for (const [tier, tierTodos] of tierGroups) {
-    const totalWidth =
-      tierTodos.length * TODO_NODE_WIDTH +
-      (tierTodos.length - 1) * TODO_NODE_GAP;
-    const startX = -totalWidth / 2;
+  // Position todos radially around their tag
+  const todoAngleMap = new Map<string, number>();
+  const todoTierMap = new Map<string, number>();
 
-    tierTodos.forEach((todo, i) => {
+  // Track which tags are collapsed (todos exceed threshold)
+  const collapsedTagIds = new Set<string>();
+
+  for (const [tagId, tagTodos] of todosByTag) {
+    const tagAngle = tagAngleMap.get(tagId) ?? 0;
+    const tagTier = tagTierMap.get(tagId) ?? 0;
+    const todoRadius =
+      RING_RADIUS_BASE + tagTier * RING_RADIUS_STEP + TODO_RING_EXTRA;
+
+    // Check if we should collapse this tag's todos
+    if (tagTodos.length > collapseThreshold) {
+      collapsedTagIds.add(tagId);
+      const pos = polarToCartesian(tagAngle, todoRadius);
+      const completedCount = tagTodos.filter(
+        (t) => t.status === "completed",
+      ).length;
+
+      nodes.push({
+        id: `collapsed-${tagId}`,
+        type: "collapsedTodoGroupNode",
+        position: pos,
+        data: {
+          tagId,
+          count: tagTodos.length,
+          completedCount,
+        },
+      });
+
+      const tag = activeTags.find((t) => t.id === tagId);
+      edges.push({
+        id: `edge-tag-${tagId}-collapsed-${tagId}`,
+        source: `tag-${tagId}`,
+        target: `collapsed-${tagId}`,
+        style: { stroke: tag?.color ?? "#888888" },
+      });
+      continue;
+    }
+
+    // Spread todos in a small arc around the tag's angle
+    const spreadAngle = Math.min(
+      Math.PI / 4,
+      (tagTodos.length - 1) * 0.15 + 0.1,
+    );
+    const todoAngles = distributeAngles(
+      tagTodos.length,
+      tagAngle - spreadAngle,
+      tagAngle + spreadAngle,
+    );
+
+    tagTodos.forEach((todo, i) => {
+      const angle = todoAngles[i]!;
+      const pos = polarToCartesian(angle, todoRadius);
+
+      todoAngleMap.set(todo.id, angle);
+      todoTierMap.set(todo.id, 0);
+
       nodes.push({
         id: `todo-${todo.id}`,
         type: "todoNode",
-        position: {
-          x: startX + i * (TODO_NODE_WIDTH + TODO_NODE_GAP),
-          y: tier * TIER_HEIGHT,
-        },
+        position: pos,
         data: {
           todoId: todo.id,
           label: todo.title,
           completed: todo.status === "completed",
         },
       });
+
+      // Edges: tag → todo (use tag color)
+      for (const tid of todo.tagIds) {
+        if (activeTagIdSet.has(tid)) {
+          const tag = activeTags.find((t) => t.id === tid);
+          edges.push({
+            id: `edge-tag-${tid}-todo-${todo.id}`,
+            source: `tag-${tid}`,
+            target: `todo-${todo.id}`,
+            style: { stroke: tag?.color ?? "#888888" },
+          });
+        }
+      }
     });
   }
 
-  // Edges: tag → root todos (use tag color)
+  // Handle child todos (nested BFS)
+  interface TodoQueueItem {
+    todo: Todo;
+    depth: number;
+    parentAngle: number;
+    parentRadius: number;
+  }
+
+  const todoQueue: TodoQueueItem[] = [];
   for (const todo of rootTodos) {
-    for (const tagId of todo.tagIds) {
-      if (activeTags.some((t) => t.id === tagId)) {
-        const tag = activeTags.find((t) => t.id === tagId);
-        edges.push({
-          id: `edge-tag-${tagId}-todo-${todo.id}`,
-          source: `tag-${tagId}`,
-          target: `todo-${todo.id}`,
-          style: { stroke: tag?.color ?? "#888888" },
-        });
-      }
+    // Skip child-todo expansion for collapsed tags
+    const primaryTagId = todo.tagIds.find((tid) => activeTagIdSet.has(tid));
+    if (primaryTagId && collapsedTagIds.has(primaryTagId)) continue;
+
+    const children = childrenMap.get(todo.id) ?? [];
+    const angle = todoAngleMap.get(todo.id) ?? 0;
+    const parentTagTier = primaryTagId ? (tagTierMap.get(primaryTagId) ?? 0) : 0;
+    const radius =
+      RING_RADIUS_BASE + parentTagTier * RING_RADIUS_STEP + TODO_RING_EXTRA;
+
+    for (const child of children) {
+      todoQueue.push({
+        todo: child,
+        depth: 1,
+        parentAngle: angle,
+        parentRadius: radius,
+      });
     }
   }
 
-  // Edges: parent → child todos (neutral color)
-  for (const todo of todos) {
-    if (todo.parentId !== null && todoIds.has(todo.parentId)) {
+  let todoIdx = 0;
+  while (todoIdx < todoQueue.length) {
+    const item = todoQueue[todoIdx]!;
+    todoIdx++;
+
+    const { todo, depth, parentAngle, parentRadius } = item;
+    const radius = parentRadius + TODO_RING_EXTRA * 0.7;
+    const pos = polarToCartesian(parentAngle, radius);
+
+    todoAngleMap.set(todo.id, parentAngle);
+
+    nodes.push({
+      id: `todo-${todo.id}`,
+      type: "todoNode",
+      position: pos,
+      data: {
+        todoId: todo.id,
+        label: todo.title,
+        completed: todo.status === "completed",
+      },
+    });
+
+    // Edge: parent todo → child todo
+    if (todo.parentId && todoIds.has(todo.parentId)) {
       edges.push({
         id: `edge-parent-${todo.parentId}-child-${todo.id}`,
         source: `todo-${todo.parentId}`,
@@ -132,6 +392,27 @@ export function buildMindmapGraph(todos: Todo[], tags: Tag[]): MindmapGraph {
         style: { stroke: "#888888" },
       });
     }
+
+    // Queue children of this todo
+    const children = childrenMap.get(todo.id) ?? [];
+    const spreadAngle = Math.min(
+      Math.PI / 6,
+      (children.length - 1) * 0.12 + 0.08,
+    );
+    const childAngles = distributeAngles(
+      children.length,
+      parentAngle - spreadAngle,
+      parentAngle + spreadAngle,
+    );
+
+    children.forEach((child, ci) => {
+      todoQueue.push({
+        todo: child,
+        depth: depth + 1,
+        parentAngle: childAngles[ci]!,
+        parentRadius: radius,
+      });
+    });
   }
 
   return { nodes, edges };

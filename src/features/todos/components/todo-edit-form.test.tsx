@@ -41,6 +41,7 @@ const defaultTag: Tag = {
   name: "General",
   color: "#ef4444",
   isDefault: true,
+  parentId: null,
 };
 
 const workTag: Tag = {
@@ -48,6 +49,7 @@ const workTag: Tag = {
   name: "Work",
   color: "#3b82f6",
   isDefault: false,
+  parentId: null,
 };
 
 const existingTodo: Todo = {
