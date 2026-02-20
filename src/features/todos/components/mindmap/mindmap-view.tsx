@@ -170,6 +170,16 @@ export function MindmapView({
     }
   }, [actionTagId]);
 
+  const handleCenterAddTag = useCallback(() => {
+    setInputMode({ tagId: CENTER_ACTION_ID, type: "tag" });
+    setActionTagId(null);
+  }, []);
+
+  const handleCenterAddTodo = useCallback(() => {
+    setInputMode({ tagId: CENTER_ACTION_ID, type: "todo" });
+    setActionTagId(null);
+  }, []);
+
   const handleSelectAction = useCallback(
     (_tagId: string, choice: ActionChoice) => {
       if (actionTagId) {
@@ -283,7 +293,10 @@ export function MindmapView({
           ...node,
           data: {
             ...node.data,
+            layoutMode,
             onAddAction: handleCenterAddAction,
+            onAddTag: handleCenterAddTag,
+            onAddTodo: handleCenterAddTodo,
           },
         };
       }
@@ -414,6 +427,8 @@ export function MindmapView({
     handleDrillDown,
     handleAddAction,
     handleCenterAddAction,
+    handleCenterAddTag,
+    handleCenterAddTodo,
     handleSelectAction,
     handleCancelInput,
     handleCreateTag,

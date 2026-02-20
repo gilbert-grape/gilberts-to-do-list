@@ -105,12 +105,12 @@ export function TagNode({ data }: NodeProps) {
             onClick={handleAddTodoClick}
             onMouseDown={stopEvent}
             onPointerDown={stopEvent}
-            className="nodrag nopan nowheel flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold opacity-70 transition-opacity hover:opacity-100"
+            className="nodrag nopan nowheel flex h-5 w-5 items-center justify-center rounded-full text-[10px] opacity-70 transition-opacity hover:opacity-100"
             style={{ backgroundColor: textColor, color, pointerEvents: "all" }}
             aria-label={`Add todo to ${label}`}
             data-testid="tag-add-todo-button"
           >
-            ✓
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3 w-3"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" /></svg>
           </button>
         </div>
       ) : (
