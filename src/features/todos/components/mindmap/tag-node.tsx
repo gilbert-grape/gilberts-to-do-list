@@ -93,7 +93,7 @@ export function TagNode({ data }: NodeProps) {
             onClick={handleAddTagClick}
             onMouseDown={stopEvent}
             onPointerDown={stopEvent}
-            className="nodrag nopan nowheel flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold opacity-70 transition-opacity hover:opacity-100"
+            className="nodrag nopan nowheel flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold opacity-70 transition-opacity hover:opacity-100"
             style={{ backgroundColor: textColor, color, pointerEvents: "all" }}
             aria-label={`Add tag to ${label}`}
             data-testid="tag-add-tag-button"
