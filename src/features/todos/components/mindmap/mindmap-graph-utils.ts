@@ -311,24 +311,16 @@ export function buildMindmapGraph(
     let todoCenter = tagAngle;
 
     if (childAngles && childAngles.length > 0) {
-      // Find the largest angular gap between child tags and place todos there
-      const sorted = [...childAngles].sort((a, b) => a - b);
-      let maxGap = 0;
-      let gapMid = tagAngle;
-
-      for (let i = 0; i < sorted.length; i++) {
-        const next =
-          i + 1 < sorted.length
-            ? sorted[i + 1]!
-            : sorted[0]! + 2 * Math.PI;
-        const gap = next - sorted[i]!;
-        if (gap > maxGap) {
-          maxGap = gap;
-          gapMid = sorted[i]! + gap / 2;
-        }
-      }
-
-      todoCenter = gapMid;
+      // Offset todos away from child tags so they don't stack on top.
+      // Shift by 60° and pick the direction furthest from any child.
+      const offset = Math.PI / 3;
+      const plusMin = Math.min(
+        ...childAngles.map((a) => Math.abs(tagAngle + offset - a)),
+      );
+      const minusMin = Math.min(
+        ...childAngles.map((a) => Math.abs(tagAngle - offset - a)),
+      );
+      todoCenter = tagAngle + (plusMin >= minusMin ? offset : -offset);
     }
 
     const spreadAngle = Math.min(
