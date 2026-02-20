@@ -88,13 +88,13 @@ describe("MindmapView", () => {
     expect(screen.getByTestId("background")).toBeInTheDocument();
   });
 
-  it("renders empty graph when no todos", () => {
+  it("renders tags even when no todos", () => {
     render(
       <MindmapView todos={[]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
     const flow = screen.getByTestId("react-flow");
-    // Center node is always present
-    expect(flow.getAttribute("data-nodes")).toBe("1");
-    expect(flow.getAttribute("data-edges")).toBe("0");
+    // Center node + tag1 from store
+    expect(flow.getAttribute("data-nodes")).toBe("2");
+    expect(flow.getAttribute("data-edges")).toBe("1");
   });
 });

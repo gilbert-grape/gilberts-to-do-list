@@ -14,6 +14,13 @@ interface TagActionNodeData {
 
 const hiddenHandle = { opacity: 0, pointerEvents: "none" as const };
 
+function stopEvent(e: React.MouseEvent | React.PointerEvent) {
+  e.stopPropagation();
+  e.nativeEvent.stopImmediatePropagation();
+}
+
+const interactiveClass = "nodrag nopan nowheel";
+
 function NormalActions({
   tagId,
   onSelectAction,
@@ -25,16 +32,22 @@ function NormalActions({
     <div className="flex gap-1" data-testid="action-normal">
       <button
         type="button"
-        onClick={() => onSelectAction?.(tagId, "tag")}
-        className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-xs font-medium text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+        onClick={(e) => { stopEvent(e); onSelectAction?.(tagId, "tag"); }}
+        onMouseDown={stopEvent}
+        onPointerDown={stopEvent}
+        className={`${interactiveClass} rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-xs font-medium text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]`}
+        style={{ pointerEvents: "all" }}
         data-testid="action-add-tag"
       >
         + Tag
       </button>
       <button
         type="button"
-        onClick={() => onSelectAction?.(tagId, "todo")}
-        className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-xs font-medium text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+        onClick={(e) => { stopEvent(e); onSelectAction?.(tagId, "todo"); }}
+        onMouseDown={stopEvent}
+        onPointerDown={stopEvent}
+        className={`${interactiveClass} rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-xs font-medium text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]`}
+        style={{ pointerEvents: "all" }}
         data-testid="action-add-todo"
       >
         + To-Do
@@ -54,8 +67,11 @@ function RadialActions({
     <div className="relative h-16 w-16" data-testid="action-radial">
       <button
         type="button"
-        onClick={() => onSelectAction?.(tagId, "tag")}
-        className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-bold text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+        onClick={(e) => { stopEvent(e); onSelectAction?.(tagId, "tag"); }}
+        onMouseDown={stopEvent}
+        onPointerDown={stopEvent}
+        className={`${interactiveClass} absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-bold text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]`}
+        style={{ pointerEvents: "all" }}
         aria-label="Add sub-tag"
         data-testid="action-add-tag"
       >
@@ -63,8 +79,11 @@ function RadialActions({
       </button>
       <button
         type="button"
-        onClick={() => onSelectAction?.(tagId, "todo")}
-        className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-bold text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+        onClick={(e) => { stopEvent(e); onSelectAction?.(tagId, "todo"); }}
+        onMouseDown={stopEvent}
+        onPointerDown={stopEvent}
+        className={`${interactiveClass} absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-bold text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]`}
+        style={{ pointerEvents: "all" }}
         aria-label="Add to-do"
         data-testid="action-add-todo"
       >

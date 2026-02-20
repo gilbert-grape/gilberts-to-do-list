@@ -91,30 +91,23 @@ export function buildMindmapGraph(
     return { nodes, edges };
   }
 
-  // Active tags: tag itself has todos OR a descendant has todos
-  const activeTagIds = new Set<string>();
-  for (const tag of tags) {
-    if (tagHasTodos(tag, todos, tags)) {
-      activeTagIds.add(tag.id);
-    }
-  }
-  const activeTags = tags.filter((t) => activeTagIds.has(t.id));
-  const activeTagIdSet = new Set(activeTags.map((t) => t.id));
+  // Show all tags in the mindmap (including empty ones)
+  const allTagIdSet = new Set(tags.map((t) => t.id));
 
   // When focused on a tag, only show its direct children as "root" tags
   // and only todos that belong to the focused tag or its descendants
   let rootTags: Tag[];
   let relevantTodoTagIds: Set<string>;
 
-  if (focusTagId && activeTagIdSet.has(focusTagId)) {
-    rootTags = activeTags.filter((t) => t.parentId === focusTagId);
+  if (focusTagId && allTagIdSet.has(focusTagId)) {
+    rootTags = tags.filter((t) => t.parentId === focusTagId);
     const descendantIds = getDescendantTagIds(focusTagId, tags);
     relevantTodoTagIds = new Set([focusTagId, ...descendantIds]);
   } else {
-    rootTags = activeTags.filter(
-      (t) => t.parentId === null || !activeTagIdSet.has(t.parentId),
+    rootTags = tags.filter(
+      (t) => t.parentId === null || !allTagIdSet.has(t.parentId),
     );
-    relevantTodoTagIds = activeTagIdSet;
+    relevantTodoTagIds = allTagIdSet;
   }
 
   // BFS to build tag hierarchy with tiers
@@ -182,8 +175,8 @@ export function buildMindmapGraph(
         target: `tag-${tag.id}`,
         style: { stroke: tag.color },
       });
-    } else if (tag.parentId && activeTagIdSet.has(tag.parentId)) {
-      const parentTag = activeTags.find((t) => t.id === tag.parentId);
+    } else if (tag.parentId && allTagIdSet.has(tag.parentId)) {
+      const parentTag = tags.find((t) => t.id === tag.parentId);
       edges.push({
         id: `edge-tag-${tag.parentId}-subtag-${tag.id}`,
         source: `tag-${tag.parentId}`,
@@ -193,7 +186,7 @@ export function buildMindmapGraph(
     }
 
     // Queue children
-    const children = activeTags.filter((t) => t.parentId === tag.id);
+    const children = tags.filter((t) => t.parentId === tag.id);
     if (children.length > 0) {
       const childAngles = distributeAngles(
         children.length,
@@ -236,7 +229,7 @@ export function buildMindmapGraph(
   for (const todo of rootTodos) {
     // Use first relevant active tag as primary placement
     const primaryTagId = todo.tagIds.find(
-      (tid) => activeTagIdSet.has(tid) && relevantTodoTagIds.has(tid),
+      (tid) => allTagIdSet.has(tid) && relevantTodoTagIds.has(tid),
     );
     if (primaryTagId) {
       const group = todosByTag.get(primaryTagId) ?? [];
@@ -277,7 +270,7 @@ export function buildMindmapGraph(
         },
       });
 
-      const tag = activeTags.find((t) => t.id === tagId);
+      const tag = tags.find((t) => t.id === tagId);
       edges.push({
         id: `edge-tag-${tagId}-collapsed-${tagId}`,
         source: `tag-${tagId}`,
@@ -318,8 +311,8 @@ export function buildMindmapGraph(
 
       // Edges: tag → todo (use tag color)
       for (const tid of todo.tagIds) {
-        if (activeTagIdSet.has(tid)) {
-          const tag = activeTags.find((t) => t.id === tid);
+        if (allTagIdSet.has(tid)) {
+          const tag = tags.find((t) => t.id === tid);
           edges.push({
             id: `edge-tag-${tid}-todo-${todo.id}`,
             source: `tag-${tid}`,
@@ -342,7 +335,7 @@ export function buildMindmapGraph(
   const todoQueue: TodoQueueItem[] = [];
   for (const todo of rootTodos) {
     // Skip child-todo expansion for collapsed tags
-    const primaryTagId = todo.tagIds.find((tid) => activeTagIdSet.has(tid));
+    const primaryTagId = todo.tagIds.find((tid) => allTagIdSet.has(tid));
     if (primaryTagId && collapsedTagIds.has(primaryTagId)) continue;
 
     const children = childrenMap.get(todo.id) ?? [];

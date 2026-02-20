@@ -58,7 +58,10 @@ export function TagInputNode({ data }: NodeProps) {
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleSubmit}
-        className="w-28 border-none bg-transparent text-xs text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-secondary)]"
+        onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); }}
+        onPointerDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); }}
+        className="nodrag nopan nowheel w-28 border-none bg-transparent text-xs text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-secondary)]"
+        style={{ pointerEvents: "all" }}
         placeholder="Tag name..."
         maxLength={50}
         data-testid="tag-input-field"

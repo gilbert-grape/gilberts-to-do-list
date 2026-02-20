@@ -13,6 +13,11 @@ interface TodoNodeData {
 
 const hiddenHandle = { opacity: 0, pointerEvents: "none" as const };
 
+function stopEvent(e: React.MouseEvent | React.PointerEvent) {
+  e.stopPropagation();
+  e.nativeEvent.stopImmediatePropagation();
+}
+
 export function TodoNode({ data }: NodeProps) {
   const { todoId, label, completed, onToggle, onTitleClick } =
     data as TodoNodeData;
@@ -31,16 +36,22 @@ export function TodoNode({ data }: NodeProps) {
         type="checkbox"
         checked={completed}
         onChange={() => onToggle?.(todoId)}
-        className="h-4 w-4 shrink-0 accent-[var(--color-success)]"
+        onMouseDown={stopEvent}
+        onPointerDown={stopEvent}
+        className="nodrag nopan nowheel h-4 w-4 shrink-0 accent-[var(--color-success)]"
+        style={{ pointerEvents: "all" }}
         aria-label={`Toggle ${label}`}
       />
       <button
         type="button"
-        onClick={() => onTitleClick?.(todoId)}
+        onClick={(e) => { stopEvent(e); onTitleClick?.(todoId); }}
+        onMouseDown={stopEvent}
+        onPointerDown={stopEvent}
         className={cn(
-          "truncate text-left text-sm text-[var(--color-text)] hover:underline",
+          "nodrag nopan nowheel truncate text-left text-sm text-[var(--color-text)] hover:underline",
           completed && "line-through text-[var(--color-text-secondary)]",
         )}
+        style={{ pointerEvents: "all" }}
       >
         {label}
       </button>

@@ -69,30 +69,30 @@ describe("buildMindmapGraph", () => {
       expect(edges).toHaveLength(0);
     });
 
-    it("returns only center node when tags exist but no todos", () => {
+    it("shows all tags even when no todos exist", () => {
       const { nodes, edges } = buildMindmapGraph([], [tag1, tag2]);
-      expect(nodes).toHaveLength(1); // only center
-      expect(edges).toHaveLength(0);
+      expect(nodes).toHaveLength(3); // center + 2 tags
+      expect(edges).toHaveLength(2); // center → tag1, center → tag2
     });
   });
 
   describe("tag nodes", () => {
-    it("creates tag nodes for tags with todos", () => {
+    it("creates tag nodes for all tags", () => {
       const todo = makeTodo({ id: "t1", title: "Task 1" });
       const { nodes } = buildMindmapGraph([todo], [tag1, tag2]);
 
       const tagNodes = nodes.filter((n) => n.type === "tagNode");
-      expect(tagNodes).toHaveLength(1);
-      expect(tagNodes[0]!.id).toBe("tag-tag-1");
-      expect(tagNodes[0]!.data.label).toBe("Work");
+      expect(tagNodes).toHaveLength(2);
+      expect(tagNodes.map((n) => n.id)).toContain("tag-tag-1");
+      expect(tagNodes.map((n) => n.id)).toContain("tag-tag-2");
     });
 
-    it("does not create tag nodes for tags without todos", () => {
+    it("shows empty tags without todos", () => {
       const todo = makeTodo({ id: "t1", title: "Task 1", tagIds: ["tag-1"] });
       const { nodes } = buildMindmapGraph([todo], [tag1, tag2]);
 
       const tagNodes = nodes.filter((n) => n.type === "tagNode");
-      expect(tagNodes).toHaveLength(1);
+      expect(tagNodes).toHaveLength(2);
     });
 
     it("positions root tags radially around center (not at origin)", () => {
