@@ -18,6 +18,7 @@ export interface TagTabsViewProps {
   onCreateChild?: (todo: Todo) => void;
   onReorder?: (activeId: string, overId: string) => void;
   onReparent?: (activeId: string, newParentId: string) => void;
+  onUnparent?: (activeId: string) => void;
 }
 
 export function TagTabsView({
@@ -30,6 +31,7 @@ export function TagTabsView({
   onCreateChild,
   onReorder,
   onReparent,
+  onUnparent,
 }: TagTabsViewProps) {
   const { t } = useTranslation();
   const { tags } = useTagStore();
@@ -111,6 +113,7 @@ export function TagTabsView({
           items={openHierarchy}
           onReorder={onReorder}
           onReparent={onReparent}
+          onUnparent={onUnparent}
           onToggle={onToggle}
           onTitleClick={onTitleClick}
           onEdit={onEdit}

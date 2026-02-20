@@ -112,6 +112,7 @@ export function SortableTodoList({
   const handleDragCancel = useCallback(() => {
     setActiveItem(null);
     setReparentTargetId(null);
+    setUnparentActiveId(null);
   }, []);
 
   const itemIds = items.map((item) => item.todo.id);
@@ -133,7 +134,9 @@ export function SortableTodoList({
               className={
                 reparentTargetId === todo.id
                   ? "rounded-lg border-l-4 border-l-[var(--color-primary)]"
-                  : ""
+                  : unparentActiveId === todo.id
+                    ? "rounded-lg border-r-4 border-r-[var(--color-primary)]"
+                    : ""
               }
             >
               <SortableTodoItem

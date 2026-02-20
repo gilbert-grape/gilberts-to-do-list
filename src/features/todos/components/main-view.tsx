@@ -246,6 +246,33 @@ export function MainView() {
     [todos, reorderTodos],
   );
 
+  const handleUnparent = useCallback(
+    (activeId: string) => {
+      const active = todos.find((t) => t.id === activeId);
+      if (!active || !active.parentId) return;
+
+      const parent = todos.find((t) => t.id === active.parentId);
+      const newParentId = parent?.parentId ?? null;
+
+      const newSiblings = todos
+        .filter((t) => t.parentId === newParentId && t.status === "open")
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+      const newSortOrder =
+        newSiblings.length > 0
+          ? newSiblings[newSiblings.length - 1]!.sortOrder + 1
+          : 0;
+
+      void reorderTodos([
+        {
+          id: activeId,
+          sortOrder: newSortOrder,
+          parentId: newParentId,
+        },
+      ]);
+    },
+    [todos, reorderTodos],
+  );
+
   if (!tagsLoaded || !todosLoaded) {
     return (
       <div className="flex flex-1 items-center justify-center p-4">
@@ -563,6 +590,7 @@ export function MainView() {
           onCreateChild={handleCreateChild}
           onReorder={handleReorder}
           onReparent={handleReparent}
+          onUnparent={handleUnparent}
         />
       )}
 
@@ -577,6 +605,7 @@ export function MainView() {
           onCreateChild={handleCreateChild}
           onReorder={handleReorder}
           onReparent={handleReparent}
+          onUnparent={handleUnparent}
         />
       )}
 
@@ -615,6 +644,7 @@ export function MainView() {
               items={openTodos.map((todo) => ({ todo, depth: 0 }))}
               onReorder={handleReorder}
               onReparent={handleReparent}
+              onUnparent={handleUnparent}
               onToggle={toggleStatus}
               onTitleClick={handleTitleClick}
               onEdit={handleEdit}

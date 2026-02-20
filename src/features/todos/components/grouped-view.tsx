@@ -16,6 +16,7 @@ export interface GroupedViewProps {
   onCreateChild?: (todo: Todo) => void;
   onReorder?: (activeId: string, overId: string) => void;
   onReparent?: (activeId: string, newParentId: string) => void;
+  onUnparent?: (activeId: string) => void;
 }
 
 export function GroupedView({
@@ -28,6 +29,7 @@ export function GroupedView({
   onCreateChild,
   onReorder,
   onReparent,
+  onUnparent,
 }: GroupedViewProps) {
   const { tags } = useTagStore();
   const completedDisplayMode = useSettingsStore(
@@ -111,6 +113,7 @@ export function GroupedView({
                     items={openHierarchy}
                     onReorder={onReorder}
                     onReparent={onReparent}
+                    onUnparent={onUnparent}
                     onToggle={onToggle}
                     onTitleClick={onTitleClick}
                     onEdit={onEdit}
