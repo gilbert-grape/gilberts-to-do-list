@@ -42,7 +42,8 @@
     "reload": "Neu laden"
   },
   "todos": {
-    "newTodo": "+ Neues To-Do",
+    "newTodo": "+ To-Do",
+    "newTodoCompact": "+ To do",
     "titlePlaceholder": "Was muss erledigt werden?",
     "descriptionPlaceholder": "Notizen hinzufügen...",
     "completed": "Erledigt",
@@ -106,6 +107,8 @@
     "setDefault": "Als Standard setzen",
     "selectNewDefault": "Wähle einen neuen Standard-Tag:",
     "addNew": "Neuen Tag erstellen",
+    "newTag": "+ Tag",
+    "newTagCompact": "+ Tag",
     "parentTag": "Übergeordneter Tag",
     "noParent": "Keiner (Hauptebene)",
     "changeParent": "Übergeordneten ändern",
@@ -205,7 +208,11 @@
     "mindmapAddTag": "Unter-Tag erstellen",
     "mindmapAddTodo": "To-Do erstellen",
     "mindmapTagPlaceholder": "Tag-Name...",
-    "mindmapTodoPlaceholder": "To-Do-Titel..."
+    "mindmapTodoPlaceholder": "To-Do-Titel...",
+    "tabAbout": "About",
+    "aboutTitle": "About",
+    "aboutSourceCode": "Quellcode auf GitHub",
+    "aboutVersion": "Version"
   },
   "onboarding": {
     "nameTitle": "Wie heisst du?",

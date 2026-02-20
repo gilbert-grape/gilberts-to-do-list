@@ -24,6 +24,7 @@ export interface SortableTodoListProps {
   items: Array<{ todo: Todo; depth: number }>;
   onReorder: (activeId: string, overId: string) => void;
   onReparent: (activeId: string, newParentId: string) => void;
+  onUnparent?: (activeId: string) => void;
   onToggle: (id: string) => void;
   onTitleClick?: (todo: Todo) => void;
   onEdit?: (todo: Todo) => void;
@@ -38,6 +39,7 @@ export function SortableTodoList({
   items,
   onReorder,
   onReparent,
+  onUnparent,
   onToggle,
   onTitleClick,
   onEdit,
@@ -47,6 +49,7 @@ export function SortableTodoList({
 }: SortableTodoListProps) {
   const [activeItem, setActiveItem] = useState<Todo | null>(null);
   const [reparentTargetId, setReparentTargetId] = useState<string | null>(null);
+  const [unparentActiveId, setUnparentActiveId] = useState<string | null>(null);
 
   const pointerSensor = useSensor(PointerSensor, {
     activationConstraint: { distance: 8 },
@@ -68,18 +71,19 @@ export function SortableTodoList({
 
   const handleDragOver = useCallback(
     (event: DragOverEvent) => {
-      if (!event.over) {
-        setReparentTargetId(null);
-        return;
-      }
       const deltaX = event.delta.x;
-      if (deltaX > REPARENT_THRESHOLD) {
+      if (deltaX < -REPARENT_THRESHOLD && onUnparent) {
+        setUnparentActiveId(event.active.id as string);
+        setReparentTargetId(null);
+      } else if (deltaX > REPARENT_THRESHOLD && event.over) {
         setReparentTargetId(event.over.id as string);
+        setUnparentActiveId(null);
       } else {
         setReparentTargetId(null);
+        setUnparentActiveId(null);
       }
     },
-    [],
+    [onUnparent],
   );
 
   const handleDragEnd = useCallback(
@@ -87,6 +91,12 @@ export function SortableTodoList({
       const { active, over, delta } = event;
       setActiveItem(null);
       setReparentTargetId(null);
+      setUnparentActiveId(null);
+
+      if (delta.x < -REPARENT_THRESHOLD && onUnparent) {
+        onUnparent(active.id as string);
+        return;
+      }
 
       if (!over || active.id === over.id) return;
 
@@ -96,7 +106,7 @@ export function SortableTodoList({
         onReorder(active.id as string, over.id as string);
       }
     },
-    [onReorder, onReparent],
+    [onReorder, onReparent, onUnparent],
   );
 
   const handleDragCancel = useCallback(() => {

@@ -9,6 +9,7 @@ import i18n from "@/app/i18n.ts";
 
 export type CompletedDisplayMode = "hidden" | "bottom" | "toggleable";
 export type LayoutMode = "normal" | "compact";
+export type ViewType = "flatList" | "tagTabs" | "grouped" | "mindmap" | "hardcore";
 export type { Theme, ColorAccent };
 export type Language = "en" | "de";
 
@@ -33,6 +34,9 @@ const VALID_LAYOUT_MODES: LayoutMode[] = ["normal", "compact"];
 
 const LANGUAGE_KEY = "language";
 const VALID_LANGUAGES: Language[] = ["en", "de"];
+
+const VIEW_TYPE_KEY = "gilberts-todo-active-view";
+const VALID_VIEW_TYPES: ViewType[] = ["flatList", "tagTabs", "grouped", "mindmap", "hardcore"];
 
 const MINDMAP_COLLAPSE_THRESHOLD_KEY = "mindmap-collapse-threshold";
 const DEFAULT_COLLAPSE_THRESHOLD = 5;
@@ -118,6 +122,18 @@ function loadLanguage(): Language {
   return "en";
 }
 
+function loadViewType(): ViewType {
+  try {
+    const saved = localStorage.getItem(VIEW_TYPE_KEY);
+    if (saved && VALID_VIEW_TYPES.includes(saved as ViewType)) {
+      return saved as ViewType;
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  return "flatList";
+}
+
 function loadMindmapCollapseThreshold(): number {
   try {
     const saved = localStorage.getItem(MINDMAP_COLLAPSE_THRESHOLD_KEY);
@@ -165,6 +181,7 @@ export interface SettingsState {
   userName: string;
   completedDisplayMode: CompletedDisplayMode;
   layoutMode: LayoutMode;
+  activeView: ViewType;
   theme: Theme;
   colorAccent: ColorAccent;
   language: Language;
@@ -175,6 +192,7 @@ export interface SettingsState {
   setUserName: (name: string) => void;
   setCompletedDisplayMode: (mode: CompletedDisplayMode) => void;
   setLayoutMode: (mode: LayoutMode) => void;
+  setActiveView: (view: ViewType) => void;
   setTheme: (theme: Theme) => void;
   setColorAccent: (accent: ColorAccent) => void;
   setLanguage: (language: Language) => void;
@@ -188,6 +206,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   userName: loadUserName(),
   completedDisplayMode: loadCompletedDisplayMode(),
   layoutMode: loadLayoutMode(),
+  activeView: loadViewType(),
   theme: loadTheme(),
   colorAccent: loadColorAccent(),
   language: loadLanguage(),
@@ -221,6 +240,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       // localStorage unavailable
     }
     set({ layoutMode: mode });
+  },
+
+  setActiveView: (view) => {
+    try {
+      localStorage.setItem(VIEW_TYPE_KEY, view);
+    } catch {
+      // localStorage unavailable
+    }
+    set({ activeView: view });
   },
 
   setTheme: (theme) => {

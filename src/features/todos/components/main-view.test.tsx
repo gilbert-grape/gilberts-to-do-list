@@ -19,7 +19,7 @@ vi.mock("react-i18next", () => ({
         "common.save": "Save",
         "common.delete": "Delete",
         "common.search": "Search...",
-        "todos.newTodo": "+ New To-Do",
+        "todos.newTodo": "+ To-Do",
         "todos.completed": "Completed",
         "todos.titlePlaceholder": "What needs to be done?",
         "todos.descriptionPlaceholder": "Add notes...",
@@ -185,7 +185,7 @@ describe("MainView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    useSettingsStore.setState({ completedDisplayMode: "bottom" });
+    useSettingsStore.setState({ completedDisplayMode: "bottom", activeView: "flatList" });
   });
 
   it("shows loading state initially", () => {
@@ -197,7 +197,7 @@ describe("MainView", () => {
   it("shows new todo button when loaded", () => {
     setupStores();
     render(<MemoryRouter><MainView /></MemoryRouter>);
-    expect(screen.getByText("+ New To-Do")).toBeInTheDocument();
+    expect(screen.getByText("+ To-Do")).toBeInTheDocument();
   });
 
   it("shows empty state message when no todos", () => {
@@ -226,7 +226,7 @@ describe("MainView", () => {
     setupStores();
     render(<MemoryRouter><MainView /></MemoryRouter>);
 
-    await user.click(screen.getByText("+ New To-Do"));
+    await user.click(screen.getByText("+ To-Do"));
     expect(
       screen.getByPlaceholderText("What needs to be done?"),
     ).toBeInTheDocument();
@@ -293,57 +293,43 @@ describe("MainView", () => {
   });
 
   describe("view toggle", () => {
-    it("renders view toggle bar", () => {
-      setupStores();
-      render(<MemoryRouter><MainView /></MemoryRouter>);
-      expect(screen.getByTitle("Flat List")).toBeInTheDocument();
-    });
-
-    it("renders TagTabsView when Tag Tabs is selected", async () => {
-      const user = userEvent.setup();
+    it("renders flat list by default", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
-
-      await user.click(screen.getByTitle("Tag Tabs"));
-      // TagTabsView renders an "All" tab
-      expect(screen.getByText("All")).toBeInTheDocument();
-      // Todo is still visible
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
     });
 
-    it("renders GroupedView when Grouped is selected", async () => {
-      const user = userEvent.setup();
+    it("renders TagTabsView when activeView is tagTabs", () => {
+      useSettingsStore.setState({ activeView: "tagTabs" });
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByTitle("Grouped"));
+      // TagTabsView renders an "All" tab
+      expect(screen.getByText("All")).toBeInTheDocument();
+      expect(screen.getByText("Buy milk")).toBeInTheDocument();
+    });
+
+    it("renders GroupedView when activeView is grouped", () => {
+      useSettingsStore.setState({ activeView: "grouped" });
+      setupStores({ todos: [openTodo] });
+      render(<MemoryRouter><MainView /></MemoryRouter>);
+
       // GroupedView renders tag name as group header
       expect(screen.getByText("General")).toBeInTheDocument();
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
     });
 
-    it("returns to flat list when Flat List is clicked after switching", async () => {
-      const user = userEvent.setup();
+    it("renders flat list when activeView is flatList", () => {
+      useSettingsStore.setState({ activeView: "flatList" });
       setupStores({ todos: [openTodo, completedTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByTitle("Tag Tabs"));
-      await user.click(screen.getByTitle("Flat List"));
       // Flat list shows the completed section header
       expect(screen.getByText("Completed (1)")).toBeInTheDocument();
     });
 
-    it("persists selected view to localStorage", async () => {
-      const user = userEvent.setup();
-      setupStores({ todos: [openTodo] });
-      render(<MemoryRouter><MainView /></MemoryRouter>);
-
-      await user.click(screen.getByTitle("Tag Tabs"));
-      expect(localStorage.getItem("gilberts-todo-active-view")).toBe("tagTabs");
-    });
-
-    it("restores view from localStorage on mount", () => {
-      localStorage.setItem("gilberts-todo-active-view", "grouped");
+    it("restores view from store on mount", () => {
+      useSettingsStore.setState({ activeView: "grouped" });
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
@@ -351,24 +337,22 @@ describe("MainView", () => {
       expect(screen.getByText("General")).toBeInTheDocument();
     });
 
-    it("renders MindmapView when Mindmap is selected", async () => {
-      const user = userEvent.setup();
+    it("renders MindmapView when activeView is mindmap", async () => {
+      useSettingsStore.setState({ activeView: "mindmap" });
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByTitle("Mindmap"));
       expect(
         await screen.findByTestId("mindmap-view"),
       ).toBeInTheDocument();
       expect(screen.getByText("Mindmap (1 todos)")).toBeInTheDocument();
     });
 
-    it("renders HardcoreView when Hardcore is selected", async () => {
-      const user = userEvent.setup();
+    it("renders HardcoreView when activeView is hardcore", async () => {
+      useSettingsStore.setState({ activeView: "hardcore" });
       setupStores();
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByTitle("Hardcore"));
       expect(
         await screen.findByTestId("hardcore-view"),
       ).toBeInTheDocument();
@@ -376,25 +360,14 @@ describe("MainView", () => {
     });
 
     it("does not show empty state for hardcore view", async () => {
-      const user = userEvent.setup();
+      useSettingsStore.setState({ activeView: "hardcore" });
       setupStores();
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByTitle("Hardcore"));
       await screen.findByTestId("hardcore-view");
       expect(
         screen.queryByText("Your to-dos will appear here."),
       ).not.toBeInTheDocument();
-    });
-
-    it("falls back to flatList for invalid localStorage value", () => {
-      localStorage.setItem("gilberts-todo-active-view", "invalid");
-      setupStores({ todos: [openTodo] });
-      render(<MemoryRouter><MainView /></MemoryRouter>);
-
-      // Should render flat list (no "All" tab, no group header)
-      expect(screen.getByText("Buy milk")).toBeInTheDocument();
-      expect(screen.queryByText("All")).not.toBeInTheDocument();
     });
   });
 
@@ -452,7 +425,7 @@ describe("MainView", () => {
     it("renders create sibling button on todo items", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
-      expect(screen.getByLabelText("+ New To-Do")).toBeInTheDocument();
+      expect(screen.getByLabelText("+ To-Do")).toBeInTheDocument();
     });
 
     it("renders create sub-todo button on todo items", () => {
@@ -478,7 +451,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByLabelText("+ New To-Do"));
+      await user.click(screen.getByLabelText("+ To-Do"));
       expect(
         screen.getByPlaceholderText("What needs to be done?"),
       ).toBeInTheDocument();
@@ -505,7 +478,7 @@ describe("MainView", () => {
       await user.click(screen.getByText("Buy milk"));
       await user.click(screen.getByLabelText("Back"));
       // Should be back in list view
-      expect(screen.getByText("+ New To-Do")).toBeInTheDocument();
+      expect(screen.getByText("+ To-Do")).toBeInTheDocument();
     });
 
     it("opens edit form from detail view", async () => {
@@ -582,11 +555,11 @@ describe("MainView", () => {
       render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByText("Buy milk")).toBeInTheDocument();
       expect(screen.queryByText("Walk the dog")).not.toBeInTheDocument();
-      expect(screen.queryByText(/Completed/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Completed \(\d+\)/)).not.toBeInTheDocument();
     });
 
     it("shows completed section at bottom when mode is bottom", () => {
-      useSettingsStore.setState({ completedDisplayMode: "bottom" });
+      useSettingsStore.setState({ completedDisplayMode: "bottom", activeView: "flatList" });
       setupStores({ todos: [openTodo, completedTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
       expect(screen.getByText("Buy milk")).toBeInTheDocument();

@@ -1,12 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@/shared/utils/index.ts";
+import type { ViewType } from "@/features/settings/store.ts";
 
-export type ViewType =
-  | "flatList"
-  | "tagTabs"
-  | "grouped"
-  | "mindmap"
-  | "hardcore";
+export type { ViewType };
 
 export interface ViewToggleBarProps {
   activeView: ViewType;

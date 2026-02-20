@@ -7,6 +7,7 @@ import {
 } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useSettingsStore } from "@/features/settings/store.ts";
+import { ViewToggleBar } from "@/features/todos/components/view-toggle-bar.tsx";
 import { setStorageAdapter } from "@/features/tags/store.ts";
 import { setTodoStorageAdapter } from "@/features/todos/store.ts";
 import { db } from "@/services/storage/indexeddb/db.ts";
@@ -19,7 +20,10 @@ export function AppShell() {
   const [searchParams, setSearchParams] = useSearchParams();
   const userName = useSettingsStore((s) => s.userName);
   const layoutMode = useSettingsStore((s) => s.layoutMode);
+  const activeView = useSettingsStore((s) => s.activeView);
+  const setActiveView = useSettingsStore((s) => s.setActiveView);
   const isOnboarding = location.pathname === "/onboarding";
+  const isHome = location.pathname === "/";
   const adapterInitialized = useRef(false);
 
   useEffect(() => {
@@ -112,8 +116,14 @@ export function AppShell() {
               : t("app.greeting", { name: userName })}
           </h1>
         )}
+        {isHome && !isOnboarding && !(isCompact && searchOpen) && (
+          <ViewToggleBar activeView={activeView} onViewChange={setActiveView} />
+        )}
         {!isOnboarding && (
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {isHome && !(isCompact && searchOpen) && (
+              <div className="mx-1 h-6 w-px bg-[var(--color-border)]" />
+            )}
             {isCompact && !searchOpen && (
               <>
                 <button

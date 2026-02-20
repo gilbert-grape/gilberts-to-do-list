@@ -2,8 +2,16 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { arrayMove } from "@dnd-kit/sortable";
+import {
+  startOfDay,
+  endOfDay,
+  endOfWeek,
+  endOfMonth,
+  isBefore,
+} from "date-fns";
 import { useTodoStore } from "../store.ts";
 import { useTagStore } from "@/features/tags/store.ts";
+import { TAG_COLORS } from "@/features/tags/colors.ts";
 import { useSettingsStore } from "@/features/settings/store.ts";
 import { GroupedView } from "./grouped-view.tsx";
 import { TagTabsView } from "./tag-tabs-view.tsx";
@@ -12,13 +20,48 @@ import { TodoCreateForm } from "./todo-create-form.tsx";
 import { TodoDetailView } from "./todo-detail-view.tsx";
 import { TodoEditForm } from "./todo-edit-form.tsx";
 import { TodoItem } from "./todo-item.tsx";
-import { ViewToggleBar } from "./view-toggle-bar.tsx";
+import {
+  MindmapFilterBar,
+  type StatusFilter,
+  type DueDateFilter,
+} from "./mindmap/mindmap-filter-bar.tsx";
 import {
   ConfirmDialog,
   ChoiceDialog,
 } from "@/shared/components/confirm-dialog.tsx";
 import type { Todo } from "../types.ts";
-import type { ViewType } from "./view-toggle-bar.tsx";
+
+function applyStatusFilter(todos: Todo[], filter: StatusFilter): Todo[] {
+  if (filter === "open") return todos.filter((t) => t.status === "open");
+  if (filter === "completed") return todos.filter((t) => t.status === "completed");
+  return todos;
+}
+
+function applyDueDateFilter(todos: Todo[], filter: DueDateFilter): Todo[] {
+  if (filter === "all") return todos;
+
+  const now = new Date();
+  const todayStart = startOfDay(now);
+  const todayEnd = endOfDay(now);
+
+  return todos.filter((todo) => {
+    if (!todo.dueDate) return false;
+    const due = new Date(todo.dueDate);
+
+    switch (filter) {
+      case "overdue":
+        return isBefore(due, todayStart) && todo.status === "open";
+      case "today":
+        return due >= todayStart && due <= todayEnd;
+      case "thisWeek":
+        return due >= todayStart && due <= endOfWeek(now, { weekStartsOn: 1 });
+      case "thisMonth":
+        return due >= todayStart && due <= endOfMonth(now);
+      default:
+        return true;
+    }
+  });
+}
 
 const LazyMindmapView = lazy(() =>
   import("./mindmap/mindmap-view.tsx").then((m) => ({
@@ -31,27 +74,6 @@ const LazyHardcoreView = lazy(() =>
     default: m.HardcoreView,
   })),
 );
-
-const VIEW_STORAGE_KEY = "gilberts-todo-active-view";
-const VALID_VIEWS: ViewType[] = [
-  "flatList",
-  "tagTabs",
-  "grouped",
-  "mindmap",
-  "hardcore",
-];
-
-function loadSavedView(): ViewType {
-  try {
-    const saved = localStorage.getItem(VIEW_STORAGE_KEY);
-    if (saved && VALID_VIEWS.includes(saved as ViewType)) {
-      return saved as ViewType;
-    }
-  } catch {
-    // localStorage unavailable
-  }
-  return "flatList";
-}
 
 export function MainView() {
   const { t } = useTranslation();
@@ -66,20 +88,24 @@ export function MainView() {
     getChildren,
     reorderTodos,
   } = useTodoStore();
-  const { isLoaded: tagsLoaded, loadTags } = useTagStore();
+  const { tags, isLoaded: tagsLoaded, loadTags, createTag } = useTagStore();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateTagForm, setShowCreateTagForm] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
   const [createParentId, setCreateParentId] = useState<string | null>(null);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [deletingTodo, setDeletingTodo] = useState<Todo | null>(null);
   const [detailTodoId, setDetailTodoId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeView, setActiveView] = useState<ViewType>(loadSavedView);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [dueDateFilter, setDueDateFilter] = useState<DueDateFilter>("all");
   const [actionError, setActionError] = useState<string | null>(null);
   const completedDisplayMode = useSettingsStore(
     (s) => s.completedDisplayMode,
   );
+  const activeView = useSettingsStore((s) => s.activeView);
   const layoutMode = useSettingsStore((s) => s.layoutMode);
   const isCompact = layoutMode === "compact";
 
@@ -103,28 +129,54 @@ export function MainView() {
     }
   }, [searchParams, setSearchParams]);
 
-  const handleViewChange = (view: ViewType) => {
-    setActiveView(view);
-    try {
-      localStorage.setItem(VIEW_STORAGE_KEY, view);
-    } catch {
-      // localStorage unavailable
-    }
-  };
-
   useEffect(() => {
     void loadTags().then(() => loadTodos());
   }, [loadTags, loadTodos]);
 
+  const handleStatusChange = useCallback((filter: StatusFilter) => {
+    setStatusFilter(filter);
+    if (filter === "completed") {
+      setDueDateFilter("all");
+    }
+  }, []);
+
+  const handleCreateTag = useCallback(async () => {
+    const name = newTagName.trim();
+    if (!name) return;
+    const colorIndex = tags.length % TAG_COLORS.length;
+    await createTag({
+      name,
+      color: TAG_COLORS[colorIndex]!,
+      isDefault: false,
+      parentId: null,
+    });
+    setNewTagName("");
+    setShowCreateTagForm(false);
+  }, [newTagName, tags.length, createTag]);
+
   const filteredTodos = useMemo(() => {
-    if (!searchQuery.trim()) return todos;
-    const query = searchQuery.toLowerCase();
-    return todos.filter(
-      (todo) =>
-        todo.title.toLowerCase().includes(query) ||
-        (todo.description && todo.description.toLowerCase().includes(query)),
-    );
-  }, [todos, searchQuery]);
+    let result = todos;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (todo) =>
+          todo.title.toLowerCase().includes(query) ||
+          (todo.description && todo.description.toLowerCase().includes(query)),
+      );
+    }
+
+    // Status filter
+    result = applyStatusFilter(result, statusFilter);
+
+    // Due date filter (disabled when status=completed)
+    if (statusFilter !== "completed") {
+      result = applyDueDateFilter(result, dueDateFilter);
+    }
+
+    return result;
+  }, [todos, searchQuery, statusFilter, dueDateFilter]);
 
   const sortedTodos = useMemo(
     () => [...filteredTodos].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -341,11 +393,48 @@ export function MainView() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
-      <ViewToggleBar activeView={activeView} onViewChange={handleViewChange} />
-
-      {/* Search bar + New Todo button (hidden in compact mode) */}
-      {!isCompact && (
-        <div className="flex gap-2">
+      {/* Filter bar + Search + New Todo/Tag buttons */}
+      {isCompact ? (
+        <div className="flex items-center gap-2">
+          <MindmapFilterBar
+            statusFilter={statusFilter}
+            dueDateFilter={dueDateFilter}
+            onStatusChange={handleStatusChange}
+            onDueDateChange={setDueDateFilter}
+          />
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={() => {
+              setShowCreateForm((prev) => !prev);
+              setShowCreateTagForm(false);
+              setCreateParentId(null);
+              setEditingTodo(null);
+            }}
+            className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]"
+          >
+            {showCreateForm ? t("common.cancel") : t("todos.newTodoCompact")}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowCreateTagForm((prev) => !prev);
+              setShowCreateForm(false);
+              setEditingTodo(null);
+            }}
+            className="rounded-lg border border-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+          >
+            {showCreateTagForm ? t("common.cancel") : t("tags.newTagCompact")}
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <MindmapFilterBar
+            statusFilter={statusFilter}
+            dueDateFilter={dueDateFilter}
+            onStatusChange={handleStatusChange}
+            onDueDateChange={setDueDateFilter}
+          />
           <input
             type="text"
             value={searchQuery}
@@ -379,12 +468,24 @@ export function MainView() {
             type="button"
             onClick={() => {
               setShowCreateForm((prev) => !prev);
+              setShowCreateTagForm(false);
               setCreateParentId(null);
               setEditingTodo(null);
             }}
             className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]"
           >
             {showCreateForm ? t("common.cancel") : t("todos.newTodo")}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowCreateTagForm((prev) => !prev);
+              setShowCreateForm(false);
+              setEditingTodo(null);
+            }}
+            className="rounded-lg border border-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+          >
+            {showCreateTagForm ? t("common.cancel") : t("tags.newTag")}
           </button>
         </div>
       )}
@@ -403,6 +504,32 @@ export function MainView() {
             setCreateParentId(null);
           }}
         />
+      )}
+
+      {showCreateTagForm && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleCreateTag();
+          }}
+          className="flex gap-2"
+        >
+          <input
+            type="text"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            placeholder={t("tags.namePlaceholder")}
+            autoFocus
+            className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)]"
+          />
+          <button
+            type="submit"
+            disabled={!newTagName.trim()}
+            className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-40"
+          >
+            {t("tags.create")}
+          </button>
+        </form>
       )}
 
       {editingTodo && (

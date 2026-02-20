@@ -9,13 +9,6 @@ import {
   type NodeChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import {
-  startOfDay,
-  endOfDay,
-  endOfWeek,
-  endOfMonth,
-  isBefore,
-} from "date-fns";
 import { useTagStore } from "@/features/tags/store.ts";
 import { useSettingsStore } from "@/features/settings/store.ts";
 import { useTodoStore } from "../../store.ts";
@@ -27,11 +20,6 @@ import { CollapsedTodoGroupNode } from "./collapsed-todo-group-node.tsx";
 import { TagActionNode, type ActionChoice } from "./tag-action-node.tsx";
 import { TagInputNode } from "./tag-input-node.tsx";
 import { TodoInputNode } from "./todo-input-node.tsx";
-import {
-  MindmapFilterBar,
-  type StatusFilter,
-  type DueDateFilter,
-} from "./mindmap-filter-bar.tsx";
 import { MindmapBreadcrumb } from "./mindmap-breadcrumb.tsx";
 import type { Todo } from "../../types.ts";
 import { TAG_COLORS } from "@/features/tags/colors.ts";
@@ -54,38 +42,6 @@ const nodeTypes = {
 
 const EPHEMERAL_OFFSET = { x: 0, y: 50 };
 
-function applyStatusFilter(todos: Todo[], filter: StatusFilter): Todo[] {
-  if (filter === "open") return todos.filter((t) => t.status === "open");
-  if (filter === "completed") return todos.filter((t) => t.status === "completed");
-  return todos;
-}
-
-function applyDueDateFilter(todos: Todo[], filter: DueDateFilter): Todo[] {
-  if (filter === "all") return todos;
-
-  const now = new Date();
-  const todayStart = startOfDay(now);
-  const todayEnd = endOfDay(now);
-
-  return todos.filter((todo) => {
-    if (!todo.dueDate) return false;
-    const due = new Date(todo.dueDate);
-
-    switch (filter) {
-      case "overdue":
-        return isBefore(due, todayStart) && todo.status === "open";
-      case "today":
-        return due >= todayStart && due <= todayEnd;
-      case "thisWeek":
-        return due >= todayStart && due <= endOfWeek(now, { weekStartsOn: 1 });
-      case "thisMonth":
-        return due >= todayStart && due <= endOfMonth(now);
-      default:
-        return true;
-    }
-  });
-}
-
 interface InputMode {
   tagId: string;
   type: "tag" | "todo";
@@ -107,18 +63,9 @@ export function MindmapView({
     (s) => s.mindmapCollapseThreshold,
   );
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [dueDateFilter, setDueDateFilter] = useState<DueDateFilter>("all");
   const [focusTagId, setFocusTagId] = useState<string | null>(null);
   const [actionTagId, setActionTagId] = useState<string | null>(null);
   const [inputMode, setInputMode] = useState<InputMode | null>(null);
-
-  const handleStatusChange = useCallback((filter: StatusFilter) => {
-    setStatusFilter(filter);
-    if (filter === "completed") {
-      setDueDateFilter("all");
-    }
-  }, []);
 
   const handleDrillDown = useCallback((tagId: string) => {
     setFocusTagId(tagId);
@@ -269,18 +216,10 @@ export function MindmapView({
     [createTodo],
   );
 
-  const filteredTodos = useMemo(() => {
-    let result = applyStatusFilter(todos, statusFilter);
-    if (statusFilter !== "completed") {
-      result = applyDueDateFilter(result, dueDateFilter);
-    }
-    return result;
-  }, [todos, statusFilter, dueDateFilter]);
-
   const rootLabel = userName ? `${userName}'s To Do` : "My To Do";
 
   const computedGraph = useMemo(() => {
-    const graph = buildMindmapGraph(filteredTodos, tags, {
+    const graph = buildMindmapGraph(todos, tags, {
       centerLabel: rootLabel,
       collapseThreshold: focusTagId ? Infinity : collapseThreshold,
       focusTagId,
@@ -424,7 +363,7 @@ export function MindmapView({
 
     return { nodes: nodesWithCallbacks, edges: resultEdges };
   }, [
-    filteredTodos,
+    todos,
     tags,
     rootLabel,
     collapseThreshold,
@@ -473,20 +412,12 @@ export function MindmapView({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
-        <MindmapFilterBar
-          statusFilter={statusFilter}
-          dueDateFilter={dueDateFilter}
-          onStatusChange={handleStatusChange}
-          onDueDateChange={setDueDateFilter}
-        />
-        <MindmapBreadcrumb
-          focusTagId={focusTagId}
-          tags={tags}
-          rootLabel={rootLabel}
-          onNavigate={handleBreadcrumbNavigate}
-        />
-      </div>
+      <MindmapBreadcrumb
+        focusTagId={focusTagId}
+        tags={tags}
+        rootLabel={rootLabel}
+        onNavigate={handleBreadcrumbNavigate}
+      />
       <div
         className="h-[calc(100vh-14rem)] w-full overflow-hidden rounded-lg border border-[var(--color-border)]"
         style={

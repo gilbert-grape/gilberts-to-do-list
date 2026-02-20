@@ -42,7 +42,8 @@
     "reload": "Reload"
   },
   "todos": {
-    "newTodo": "+ New To-Do",
+    "newTodo": "+ To-Do",
+    "newTodoCompact": "+ To do",
     "titlePlaceholder": "What needs to be done?",
     "descriptionPlaceholder": "Add notes...",
     "completed": "Completed",
@@ -106,6 +107,8 @@
     "setDefault": "Set as default",
     "selectNewDefault": "Select a new default tag:",
     "addNew": "Create new tag",
+    "newTag": "+ Tag",
+    "newTagCompact": "+ Tag",
     "parentTag": "Parent Tag",
     "noParent": "None (root level)",
     "changeParent": "Change Parent",
@@ -205,7 +208,11 @@
     "mindmapAddTag": "Add sub-tag",
     "mindmapAddTodo": "Add to-do",
     "mindmapTagPlaceholder": "Tag name...",
-    "mindmapTodoPlaceholder": "To-Do title..."
+    "mindmapTodoPlaceholder": "To-Do title...",
+    "tabAbout": "About",
+    "aboutTitle": "About",
+    "aboutSourceCode": "Source code on GitHub",
+    "aboutVersion": "Version"
   },
   "onboarding": {
     "nameTitle": "What's your name?",
