@@ -152,6 +152,7 @@ export function buildMindmapGraph(
 
   const tagAngleMap = new Map<string, number>();
   const tagTierMap = new Map<string, number>();
+  const tagChildAnglesMap = new Map<string, number[]>();
   let maxTagTier = 0;
 
   // Calculate angular weight for each root tag (based on descendant count)
@@ -217,6 +218,7 @@ export function buildMindmapGraph(
         angleStart,
         angleEnd,
       );
+      tagChildAnglesMap.set(tag.id, childAngles);
       const childSlice =
         children.length > 1
           ? (angleEnd - angleStart) / children.length
@@ -304,15 +306,39 @@ export function buildMindmapGraph(
       continue;
     }
 
-    // Spread todos in a small arc around the tag's angle
+    // Spread todos in a small arc, avoiding overlap with child tags
+    const childAngles = tagChildAnglesMap.get(tagId);
+    let todoCenter = tagAngle;
+
+    if (childAngles && childAngles.length > 0) {
+      // Find the largest angular gap between child tags and place todos there
+      const sorted = [...childAngles].sort((a, b) => a - b);
+      let maxGap = 0;
+      let gapMid = tagAngle;
+
+      for (let i = 0; i < sorted.length; i++) {
+        const next =
+          i + 1 < sorted.length
+            ? sorted[i + 1]!
+            : sorted[0]! + 2 * Math.PI;
+        const gap = next - sorted[i]!;
+        if (gap > maxGap) {
+          maxGap = gap;
+          gapMid = sorted[i]! + gap / 2;
+        }
+      }
+
+      todoCenter = gapMid;
+    }
+
     const spreadAngle = Math.min(
       Math.PI / 4,
       (tagTodos.length - 1) * 0.15 + 0.1,
     );
     const todoAngles = distributeAngles(
       tagTodos.length,
-      tagAngle - spreadAngle,
-      tagAngle + spreadAngle,
+      todoCenter - spreadAngle,
+      todoCenter + spreadAngle,
     );
 
     tagTodos.forEach((todo, i) => {
