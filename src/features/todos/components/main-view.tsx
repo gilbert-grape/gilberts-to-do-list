@@ -454,21 +454,19 @@ export function MainView() {
       )}
 
       {filteredTodos.length > 0 && activeView === "mindmap" && (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <Suspense
-            fallback={
-              <p className="text-center text-[var(--color-text-secondary)]">
-                {t("common.loading")}
-              </p>
-            }
-          >
-            <LazyMindmapView
-              todos={filteredTodos}
-              onToggle={toggleStatus}
-              onTitleClick={handleTitleClick}
-            />
-          </Suspense>
-        </div>
+        <Suspense
+          fallback={
+            <p className="text-center text-[var(--color-text-secondary)]">
+              {t("common.loading")}
+            </p>
+          }
+        >
+          <LazyMindmapView
+            todos={filteredTodos}
+            onToggle={toggleStatus}
+            onTitleClick={handleTitleClick}
+          />
+        </Suspense>
       )}
 
       {activeView === "hardcore" && (
