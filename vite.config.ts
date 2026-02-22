@@ -33,6 +33,11 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      "/api": "http://localhost:8099",
+    },
+  },
   resolve: {
     alias: {
       "@/features": path.resolve(__dirname, "./src/features"),

@@ -11,7 +11,9 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,css}\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server/server.js",
+    "server:dev": "node --watch server/server.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

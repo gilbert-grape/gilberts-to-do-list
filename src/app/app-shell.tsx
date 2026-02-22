@@ -8,10 +8,14 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSettingsStore } from "@/features/settings/store.ts";
 import { ViewToggleBar } from "@/features/todos/components/view-toggle-bar.tsx";
-import { setStorageAdapter } from "@/features/tags/store.ts";
-import { setTodoStorageAdapter } from "@/features/todos/store.ts";
+import { setStorageAdapter, useTagStore } from "@/features/tags/store.ts";
+import { setTodoStorageAdapter, useTodoStore } from "@/features/todos/store.ts";
 import { db } from "@/services/storage/indexeddb/db.ts";
 import { IndexedDBAdapter } from "@/services/storage/indexeddb/indexeddb-adapter.ts";
+import { ApiAdapter } from "@/services/storage/api/api-adapter.ts";
+import { resolveApiBaseUrl } from "@/services/storage/api/resolve-base-url.ts";
+import { SyncAdapter } from "@/services/storage/sync/sync-adapter.ts";
+import { ConnectionIndicator } from "@/shared/components/connection-indicator.tsx";
 
 export function AppShell() {
   const { t } = useTranslation();
@@ -25,14 +29,30 @@ export function AppShell() {
   const isOnboarding = location.pathname === "/onboarding";
   const isHome = location.pathname === "/";
   const adapterInitialized = useRef(false);
+  const [useSync, setUseSync] = useState(false);
 
   useEffect(() => {
-    if (!adapterInitialized.current) {
-      const adapter = new IndexedDBAdapter(db);
-      setStorageAdapter(adapter);
-      setTodoStorageAdapter(adapter);
-      adapterInitialized.current = true;
-    }
+    if (adapterInitialized.current) return;
+    adapterInitialized.current = true;
+
+    const localAdapter = new IndexedDBAdapter(db);
+    const apiAdapter = new ApiAdapter(resolveApiBaseUrl());
+
+    apiAdapter.healthCheck().then((ok) => {
+      if (ok) {
+        const onSyncComplete = () => {
+          void useTagStore.getState().loadTags();
+          void useTodoStore.getState().loadTodos();
+        };
+        const syncAdapter = new SyncAdapter(apiAdapter, localAdapter, db, onSyncComplete);
+        setStorageAdapter(syncAdapter);
+        setTodoStorageAdapter(syncAdapter);
+        setUseSync(true);
+      } else {
+        setStorageAdapter(localAdapter);
+        setTodoStorageAdapter(localAdapter);
+      }
+    });
   }, []);
   const isCompact = layoutMode === "compact" && !isOnboarding;
 
@@ -121,6 +141,7 @@ export function AppShell() {
         )}
         {!isOnboarding && (
           <div className="flex items-center gap-2">
+            {useSync && <ConnectionIndicator />}
             {isHome && !(isCompact && searchOpen) && (
               <div className="mx-1 h-6 w-px bg-[var(--color-border)]" />
             )}

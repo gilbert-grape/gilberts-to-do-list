@@ -1,0 +1,9 @@
+{
+  "name": "gilberts-todo-server",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "express": "^5.1.0",
+    "better-sqlite3": "^11.9.1"
+  }
+}

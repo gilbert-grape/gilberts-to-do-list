@@ -63,4 +63,14 @@ export class IndexedDBAdapter implements StorageAdapter {
   async getAllTodos(): Promise<Todo[]> {
     return this.db.todos.toArray();
   }
+
+  // Upsert methods for sync (not part of StorageAdapter interface)
+
+  async upsertTag(tag: Tag): Promise<void> {
+    await this.db.tags.put(tag);
+  }
+
+  async upsertTodo(todo: Todo): Promise<void> {
+    await this.db.todos.put(todo);
+  }
 }
