@@ -8,3 +8,11 @@ src/test
 dist
 gilberts-todo
 repository.yaml
+.github
+*.db
+*.db-shm
+*.db-wal
+.claude
+_bmad
+_bmad-output
+docs

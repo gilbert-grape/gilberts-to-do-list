@@ -47,10 +47,18 @@ function OnboardingRedirectGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function getBasename(): string {
+  const ingress = window.__INGRESS_PATH__;
+  if (ingress && ingress !== "" && ingress !== "__INGRESS_PATH__") {
+    return ingress;
+  }
+  return "/";
+}
+
 export function AppRouter() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter basename={getBasename()}>
         <Routes>
           <Route element={<AppShell />}>
             <Route

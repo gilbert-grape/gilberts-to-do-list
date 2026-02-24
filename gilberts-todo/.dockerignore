@@ -1,1 +1,2 @@
-*
+# This file is inert. The Docker build context is the repo root,
+# so Docker reads the .dockerignore from there, not from this directory.
