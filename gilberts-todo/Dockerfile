@@ -5,7 +5,7 @@ RUN npm ci
 COPY index.html vite.config.ts tsconfig*.json ./
 COPY src/ ./src/
 COPY public/ ./public/
-RUN npm run build
+RUN npx vite build
 WORKDIR /build/server
 COPY server/package.json server/package-lock.json ./
 RUN npm install --production
