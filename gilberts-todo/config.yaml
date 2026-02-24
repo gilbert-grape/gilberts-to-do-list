@@ -1,6 +1,6 @@
 name: "Gilberts To-Do List"
 slug: "gilberts-todo"
-version: "1.0.1"
+version: "1.0.2"
 description: "A modern to-do list app with tags, drag & drop, and offline support."
 image: ghcr.io/gilbert-grape/gilberts-to-do-list/{arch}-gilberts-todo
 startup: application
@@ -12,7 +12,6 @@ arch:
   - aarch64
   - amd64
   - armv7
-  - i386
 map:
   - type: data
     read_only: false
