@@ -267,7 +267,7 @@ sudo nginx -t && sudo systemctl restart nginx
 
 ## Installation in Home Assistant
 
-The app can be installed as a Home Assistant add-on. It runs as a Docker container inside Home Assistant with its own sidebar entry, using Home Assistant's ingress for secure access without exposing extra ports.
+The app can be installed as a Home Assistant app. It runs as a Docker container inside Home Assistant with its own sidebar entry, using Home Assistant's ingress for secure access without exposing extra ports.
 
 ### Prerequisites
 
@@ -276,7 +276,7 @@ The app can be installed as a Home Assistant add-on. It runs as a Docker contain
 
 ### Step 1: Add the repository
 
-1. In Home Assistant, go to **Settings** > **Add-ons** > **Add-on Store**
+1. In Home Assistant, go to **Settings** > **Apps** > **App Store**
 2. Click the **three dots** (top right) > **Repositories**
 3. Paste the repository URL:
    ```
@@ -284,30 +284,30 @@ The app can be installed as a Home Assistant add-on. It runs as a Docker contain
    ```
 4. Click **Add** and then **Close**
 
-### Step 2: Install the add-on
+### Step 2: Install the app
 
-1. The add-on store refreshes automatically. Find **Gilberts To-Do List** in the list (you may need to scroll down or refresh the page)
+1. The app store refreshes automatically. Find **Gilberts To-Do List** in the list (you may need to scroll down or refresh the page)
 2. Click on it and then click **Install**
 3. Wait for the build to complete — this may take a few minutes on a Raspberry Pi as it compiles the frontend
 
-### Step 3: Start the add-on
+### Step 3: Start the app
 
 1. After installation, click **Start**
 2. Enable **Show in sidebar** if you want quick access from the Home Assistant menu
 
 ### Step 4: Open the app
 
-Click **Open Web UI** on the add-on page, or click the new sidebar entry. The app opens directly inside Home Assistant via ingress — no separate port or login required.
+Click **Open Web UI** on the app page, or click the new sidebar entry. The app opens directly inside Home Assistant via ingress — no separate port or login required.
 
 ### Data storage
 
-The SQLite database is stored in the add-on's persistent data directory (`/data/gilberts-todo.db`). Your data survives add-on restarts and updates.
+The SQLite database is stored in the app's persistent data directory (`/data/gilberts-todo.db`). Your data survives app restarts and updates.
 
 ### Updating
 
 When a new version is available:
 
-1. Go to **Settings** > **Add-ons** > **Gilberts To-Do List**
+1. Go to **Settings** > **Apps** > **Gilberts To-Do List**
 2. Click **Update** (if available) or **Rebuild** to pull the latest code
 
 ### Architecture support

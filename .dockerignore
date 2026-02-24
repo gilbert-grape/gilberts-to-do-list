@@ -6,3 +6,5 @@ src/test
 .env
 .env.*
 dist
+gilberts-todo
+repository.yaml

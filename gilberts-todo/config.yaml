@@ -2,6 +2,8 @@ name: "Gilberts To-Do List"
 slug: "gilberts-todo"
 version: "1.0.0"
 description: "A modern to-do list app with tags, drag & drop, and offline support."
+startup: application
+boot: auto
 ingress: true
 ingress_port: 8099
 panel_icon: "mdi:checkbox-marked-outline"
