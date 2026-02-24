@@ -15,7 +15,6 @@ export class IndexedDBAdapter implements StorageAdapter {
   async createTag(input: TagCreate): Promise<Tag> {
     const tag: Tag = {
       id: crypto.randomUUID(),
-      parentId: null,
       ...input,
     };
     await this.db.tags.add(tag);

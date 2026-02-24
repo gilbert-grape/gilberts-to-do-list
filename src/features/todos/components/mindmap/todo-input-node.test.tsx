@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { TodoInputNode } from "./todo-input-node.tsx";
@@ -17,10 +18,10 @@ describe("TodoInputNode", () => {
       onCancel: vi.fn(),
     },
     isConnectable: false,
-  } as never;
+  };
 
   it("renders input field", () => {
-    render(<TodoInputNode {...defaultProps} />);
+    render(<TodoInputNode {...(defaultProps as any)} />);
     expect(screen.getByTestId("todo-input-node")).toBeInTheDocument();
     expect(screen.getByTestId("todo-input-field")).toBeInTheDocument();
   });
@@ -30,8 +31,8 @@ describe("TodoInputNode", () => {
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onCreateTodo },
-    } as never;
-    render(<TodoInputNode {...props} />);
+    };
+    render(<TodoInputNode {...(props as any)} />);
     const input = screen.getByTestId("todo-input-field");
     fireEvent.change(input, { target: { value: "Buy milk" } });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -43,8 +44,8 @@ describe("TodoInputNode", () => {
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onCancel },
-    } as never;
-    render(<TodoInputNode {...props} />);
+    };
+    render(<TodoInputNode {...(props as any)} />);
     fireEvent.keyDown(screen.getByTestId("todo-input-field"), {
       key: "Escape",
     });
@@ -56,8 +57,8 @@ describe("TodoInputNode", () => {
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onCancel },
-    } as never;
-    render(<TodoInputNode {...props} />);
+    };
+    render(<TodoInputNode {...(props as any)} />);
     fireEvent.blur(screen.getByTestId("todo-input-field"));
     expect(onCancel).toHaveBeenCalled();
   });
@@ -67,8 +68,8 @@ describe("TodoInputNode", () => {
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onCreateTodo },
-    } as never;
-    render(<TodoInputNode {...props} />);
+    };
+    render(<TodoInputNode {...(props as any)} />);
     const input = screen.getByTestId("todo-input-field");
     fireEvent.change(input, { target: { value: "  Trimmed  " } });
     fireEvent.keyDown(input, { key: "Enter" });

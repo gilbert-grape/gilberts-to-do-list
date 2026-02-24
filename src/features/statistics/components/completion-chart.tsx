@@ -36,7 +36,7 @@ export function CompletionChart({ data }: CompletionChartProps) {
             />
             <Tooltip
               labelFormatter={(label) => String(label)}
-              formatter={(value: number) => [value, t("statistics.count")]}
+              formatter={(value: number | undefined) => [value ?? 0, t("statistics.count")]}
             />
             <Bar
               dataKey="count"

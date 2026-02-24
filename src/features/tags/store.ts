@@ -72,7 +72,7 @@ export const useTagStore = create<TagState>((set, get) => ({
         throw new Error("A tag cannot be its own parent");
       }
       // Walk up the chain from the proposed parent to detect cycles
-      let current = changes.parentId;
+      let current: string | null = changes.parentId;
       const visited = new Set<string>();
       while (current) {
         if (current === id) {

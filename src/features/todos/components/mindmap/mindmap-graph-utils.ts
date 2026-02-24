@@ -18,14 +18,6 @@ function getDescendantTagIds(tagId: string, tags: Tag[]): string[] {
   return children.flatMap((c) => [c.id, ...getDescendantTagIds(c.id, tags)]);
 }
 
-function tagHasTodos(tag: Tag, todos: Todo[], tags: Tag[]): boolean {
-  if (todos.some((todo) => todo.tagIds.includes(tag.id))) return true;
-  const descendantIds = getDescendantTagIds(tag.id, tags);
-  return descendantIds.some((dId) =>
-    todos.some((todo) => todo.tagIds.includes(dId)),
-  );
-}
-
 /** Convert polar coordinates to cartesian (x, y) */
 function polarToCartesian(
   angle: number,

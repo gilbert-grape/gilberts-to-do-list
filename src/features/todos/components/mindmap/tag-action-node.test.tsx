@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { TagActionNode } from "./tag-action-node.tsx";
@@ -19,10 +20,10 @@ describe("TagActionNode", () => {
         onCancel: vi.fn(),
       },
       isConnectable: false,
-    } as never;
+    };
 
     it("renders two buttons in normal mode", () => {
-      render(<TagActionNode {...defaultProps} />);
+      render(<TagActionNode {...(defaultProps as any)} />);
       expect(screen.getByTestId("action-normal")).toBeInTheDocument();
       expect(screen.getByTestId("action-add-tag")).toBeInTheDocument();
       expect(screen.getByTestId("action-add-todo")).toBeInTheDocument();
@@ -33,8 +34,8 @@ describe("TagActionNode", () => {
       const props = {
         ...defaultProps,
         data: { ...defaultProps.data, onSelectAction },
-      } as never;
-      render(<TagActionNode {...props} />);
+      };
+      render(<TagActionNode {...(props as any)} />);
       fireEvent.click(screen.getByTestId("action-add-tag"));
       expect(onSelectAction).toHaveBeenCalledWith("tag-1", "tag");
     });
@@ -44,8 +45,8 @@ describe("TagActionNode", () => {
       const props = {
         ...defaultProps,
         data: { ...defaultProps.data, onSelectAction },
-      } as never;
-      render(<TagActionNode {...props} />);
+      };
+      render(<TagActionNode {...(props as any)} />);
       fireEvent.click(screen.getByTestId("action-add-todo"));
       expect(onSelectAction).toHaveBeenCalledWith("tag-1", "todo");
     });
@@ -62,10 +63,10 @@ describe("TagActionNode", () => {
         onCancel: vi.fn(),
       },
       isConnectable: false,
-    } as never;
+    };
 
     it("renders radial menu in compact mode", () => {
-      render(<TagActionNode {...compactProps} />);
+      render(<TagActionNode {...(compactProps as any)} />);
       expect(screen.getByTestId("action-radial")).toBeInTheDocument();
     });
 
@@ -74,8 +75,8 @@ describe("TagActionNode", () => {
       const props = {
         ...compactProps,
         data: { ...compactProps.data, onSelectAction },
-      } as never;
-      render(<TagActionNode {...props} />);
+      };
+      render(<TagActionNode {...(props as any)} />);
       fireEvent.click(screen.getByTestId("action-add-tag"));
       expect(onSelectAction).toHaveBeenCalledWith("tag-1", "tag");
     });
@@ -85,8 +86,8 @@ describe("TagActionNode", () => {
       const props = {
         ...compactProps,
         data: { ...compactProps.data, onSelectAction },
-      } as never;
-      render(<TagActionNode {...props} />);
+      };
+      render(<TagActionNode {...(props as any)} />);
       fireEvent.click(screen.getByTestId("action-add-todo"));
       expect(onSelectAction).toHaveBeenCalledWith("tag-1", "todo");
     });

@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from "react";
-import { format, isPast, isToday } from "date-fns";
+import { format, isPast, isToday, type Locale } from "date-fns";
 import { de, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";

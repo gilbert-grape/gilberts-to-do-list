@@ -6,6 +6,16 @@ import { useTagStore } from "@/features/tags/store.ts";
 import { TAG_COLORS } from "@/features/tags/colors.ts";
 import { db } from "@/services/storage/indexeddb/db.ts";
 
+// File System Access API type augmentations (Chrome/Edge)
+declare global {
+  interface Window {
+    showDirectoryPicker(options?: { mode?: string }): Promise<FileSystemDirectoryHandle>;
+  }
+  interface FileSystemDirectoryHandle {
+    entries(): AsyncIterableIterator<[string, FileSystemHandle]>;
+  }
+}
+
 // Chrome/Edge extension: queryPermission/requestPermission on FileSystemHandle
 interface ChromeFileSystemHandle extends FileSystemDirectoryHandle {
   queryPermission(desc: {

@@ -8,7 +8,7 @@ export function ProfileSection() {
   const setUserName = useSettingsStore((s) => s.setUserName);
   const [name, setName] = useState(userName);
   const [showSaved, setShowSaved] = useState(false);
-  const savedTimer = useRef<ReturnType<typeof setTimeout>>();
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(savedTimer.current), []);
 

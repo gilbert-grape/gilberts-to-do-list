@@ -66,6 +66,7 @@ const tag: Tag = {
   name: "Work",
   color: "#3b82f6",
   isDefault: true,
+  parentId: null,
 };
 
 const openTodo: Todo = {

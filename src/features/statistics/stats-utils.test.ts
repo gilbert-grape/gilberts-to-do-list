@@ -14,6 +14,7 @@ const tag1: Tag = {
   name: "Work",
   color: "#3b82f6",
   isDefault: true,
+  parentId: null,
 };
 
 const tag2: Tag = {
@@ -21,6 +22,7 @@ const tag2: Tag = {
   name: "Personal",
   color: "#22c55e",
   isDefault: false,
+  parentId: null,
 };
 
 function makeTodo(overrides: Partial<Todo> = {}): Todo {

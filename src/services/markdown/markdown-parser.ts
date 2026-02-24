@@ -37,19 +37,19 @@ export function parseMarkdown(markdown: string): ParseResult {
     const line = lines[i];
     const lineNumber = i + 1;
 
-    if (line.trim() === "") continue;
+    if (line!.trim() === "") continue;
 
-    const headerMatch = line.match(HEADER_REGEX);
+    const headerMatch = line!.match(HEADER_REGEX);
     if (headerMatch) {
-      tagName = headerMatch[1];
+      tagName = headerMatch[1] ?? null;
       continue;
     }
 
-    const todoMatch = line.match(TODO_LINE_REGEX);
+    const todoMatch = line!.match(TODO_LINE_REGEX);
     if (todoMatch) {
-      const indent = todoMatch[1].length;
+      const indent = todoMatch[1]!.length;
       const completed = todoMatch[2] === "x";
-      const title = todoMatch[3];
+      const title = todoMatch[3]!;
 
       if (indent % 2 !== 0) {
         errors.push({ line: lineNumber, message: "oddIndent" });
@@ -59,7 +59,7 @@ export function parseMarkdown(markdown: string): ParseResult {
       const depth = indent / 2;
 
       if (todos.length > 0) {
-        const lastDepth = todos[todos.length - 1].depth;
+        const lastDepth = todos[todos.length - 1]!.depth;
         if (depth > lastDepth + 1) {
           errors.push({ line: lineNumber, message: "depthJump" });
           continue;
@@ -116,12 +116,12 @@ export function diffMarkdownTodos(
   // Phase 1: Positional matching (line i ↔ hierarchy entry i, confirmed by title)
   const posLimit = Math.min(parsed.length, existingHierarchy.length);
   for (let i = 0; i < posLimit; i++) {
-    if (parsed[i].title === existingHierarchy[i].todo.title) {
-      matchedExistingIds.add(existingHierarchy[i].todo.id);
+    if (parsed[i]!.title === existingHierarchy[i]!.todo.title) {
+      matchedExistingIds.add(existingHierarchy[i]!.todo.id);
       matchedParsedIndices.add(i);
 
-      const existing = existingHierarchy[i].todo;
-      const parsedLine = parsed[i];
+      const existing = existingHierarchy[i]!.todo;
+      const parsedLine = parsed[i]!;
       const changes: Partial<Todo> = {};
 
       const newStatus = parsedLine.completed ? "completed" : "open";
@@ -152,7 +152,7 @@ export function diffMarkdownTodos(
 
     const match = existingHierarchy.find(
       (h) =>
-        !matchedExistingIds.has(h.todo.id) && h.todo.title === parsed[i].title,
+        !matchedExistingIds.has(h.todo.id) && h.todo.title === parsed[i]!.title,
     );
 
     if (match) {
@@ -160,7 +160,7 @@ export function diffMarkdownTodos(
       matchedParsedIndices.add(i);
 
       const changes: Partial<Todo> = {};
-      const newStatus = parsed[i].completed ? "completed" : "open";
+      const newStatus = parsed[i]!.completed ? "completed" : "open";
       if (newStatus !== match.todo.status) {
         changes.status = newStatus;
       }
@@ -181,8 +181,8 @@ export function diffMarkdownTodos(
     if (matchedParsedIndices.has(i)) continue;
 
     toCreate.push({
-      title: parsed[i].title,
-      completed: parsed[i].completed,
+      title: parsed[i]!.title,
+      completed: parsed[i]!.completed,
       parentId: null, // Will be resolved during apply
     });
   }
@@ -203,16 +203,16 @@ function resolveParentId(
   existingHierarchy: { todo: Todo; depth: number }[],
   matchedParsedIndices: Set<number>,
 ): string | null {
-  if (parsed[index].depth === 0) return null;
+  if (parsed[index]!.depth === 0) return null;
 
   // Walk backwards to find parent at depth - 1
   for (let j = index - 1; j >= 0; j--) {
-    if (parsed[j].depth === parsed[index].depth - 1) {
+    if (parsed[j]!.depth === parsed[index]!.depth - 1) {
       // Find the corresponding existing todo for this parent
       if (matchedParsedIndices.has(j)) {
         // Positionally matched
         if (j < existingHierarchy.length) {
-          return existingHierarchy[j].todo.id;
+          return existingHierarchy[j]!.todo.id;
         }
       }
       return null;
@@ -225,6 +225,6 @@ function resolveParentIdForCreate(
   parsed: ParsedTodoLine[],
   index: number,
 ): string | null | undefined {
-  if (parsed[index].depth === 0) return null;
+  if (parsed[index]!.depth === 0) return null;
   return undefined; // Can't resolve without existing todo mapping
 }

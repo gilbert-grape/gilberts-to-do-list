@@ -137,8 +137,8 @@ function setupStores(todos: Todo[] = [], tags: Tag[] = [tag1, tag2]) {
 describe("ImportExportSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.URL.createObjectURL = vi.fn().mockReturnValue("blob:test-url");
-    global.URL.revokeObjectURL = vi.fn();
+    globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:test-url");
+    globalThis.URL.revokeObjectURL = vi.fn();
   });
 
   it("renders section heading", () => {
@@ -202,10 +202,10 @@ describe("ImportExportSection", () => {
     render(<ImportExportSection />);
 
     const downloadButtons = screen.getAllByText("Download .md");
-    await user.click(downloadButtons[0]);
+    await user.click(downloadButtons[0]!);
 
-    expect(global.URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
-    expect(global.URL.revokeObjectURL).toHaveBeenCalled();
+    expect(globalThis.URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(globalThis.URL.revokeObjectURL).toHaveBeenCalled();
   });
 
   it("imports todos from a markdown file", async () => {

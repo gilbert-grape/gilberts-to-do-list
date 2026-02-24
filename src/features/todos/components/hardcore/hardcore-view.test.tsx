@@ -37,6 +37,7 @@ const tag1: Tag = {
   name: "Work",
   color: "#ef4444",
   isDefault: true,
+  parentId: null,
 };
 
 const tag2: Tag = {
@@ -44,6 +45,7 @@ const tag2: Tag = {
   name: "Personal",
   color: "#3b82f6",
   isDefault: false,
+  parentId: null,
 };
 
 const openTodo: Todo = {

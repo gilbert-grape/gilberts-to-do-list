@@ -185,7 +185,7 @@ describe("GroupedView", () => {
         onToggle={vi.fn()}
       />,
     );
-    const childContainer = screen.getByText("Buy milk").closest("div[style]");
+    const childContainer = screen.getByText("Buy milk").closest("div[style]") as HTMLElement | null;
     expect(childContainer?.style.marginLeft).toBe("24px");
   });
 

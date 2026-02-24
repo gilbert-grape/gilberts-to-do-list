@@ -161,7 +161,7 @@ describe("TagTabsView", () => {
         onToggle={vi.fn()}
       />,
     );
-    const childContainer = screen.getByText("Buy milk").closest("div[style]");
+    const childContainer = screen.getByText("Buy milk").closest("div[style]") as HTMLElement | null;
     expect(childContainer?.style.marginLeft).toBe("24px");
   });
 
@@ -174,7 +174,7 @@ describe("TagTabsView", () => {
     );
     const parentContainer = screen
       .getByText("Buy groceries")
-      .closest("div[style]");
+      .closest("div[style]") as HTMLElement | null;
     expect(parentContainer?.style.marginLeft).toBe("0px");
   });
 

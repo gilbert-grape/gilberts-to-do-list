@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildMindmapGraph } from "./mindmap-graph-utils.ts";
-import { buildBreadcrumbPath } from "./mindmap-breadcrumb.tsx";
+import { buildBreadcrumbPath } from "./mindmap-breadcrumb-utils.ts";
 import { getContrastColor } from "@/shared/utils/color.ts";
 import type { Todo } from "../../types.ts";
 import type { Tag } from "@/features/tags/types.ts";

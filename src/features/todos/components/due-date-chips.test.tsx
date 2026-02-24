@@ -34,10 +34,10 @@ function getToday(): Date {
 }
 
 describe("DueDateChips", () => {
-  let handleChange: ReturnType<typeof vi.fn>;
+  let handleChange: ReturnType<typeof vi.fn> & ((date: string | null) => void);
 
   beforeEach(() => {
-    handleChange = vi.fn();
+    handleChange = vi.fn() as typeof handleChange;
   });
 
   it("renders all 7 preset chips", () => {

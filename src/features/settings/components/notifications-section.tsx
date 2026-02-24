@@ -23,7 +23,7 @@ export function NotificationsSection() {
   >("idle");
   const [testError, setTestError] = useState("");
   const [showSaved, setShowSaved] = useState(false);
-  const savedTimer = useRef<ReturnType<typeof setTimeout>>();
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(savedTimer.current), []);
 

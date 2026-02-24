@@ -109,25 +109,21 @@ export function MainView() {
   const layoutMode = useSettingsStore((s) => s.layoutMode);
   const isCompact = layoutMode === "compact";
 
-  // Handle URL params from compact header
-  useEffect(() => {
-    const qParam = searchParams.get("q");
-    if (qParam !== null) {
-      setSearchQuery(qParam);
-    }
-  }, [searchParams]);
+  // Sync search query from URL params (compact header sets ?q=...)
+  const urlQuery = searchParams.get("q");
+  if (urlQuery !== null && urlQuery !== searchQuery) {
+    setSearchQuery(urlQuery);
+  }
 
-  useEffect(() => {
-    const createParam = searchParams.get("create");
-    if (createParam === "1") {
-      setShowCreateForm(true);
-      setCreateParentId(null);
-      setEditingTodo(null);
-      // Remove the param so it doesn't re-trigger
-      searchParams.delete("create");
-      setSearchParams(searchParams, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
+  // Handle ?create=1 param from compact header
+  const createParam = searchParams.get("create");
+  if (createParam === "1") {
+    setShowCreateForm(true);
+    setCreateParentId(null);
+    setEditingTodo(null);
+    searchParams.delete("create");
+    setSearchParams(searchParams, { replace: true });
+  }
 
   useEffect(() => {
     void loadTags().then(() => loadTodos());
@@ -686,10 +682,10 @@ export function MainView() {
                 >
                   {showCompleted
                     ? t("settings.hideCompleted", {
-                        count: String(completedTodos.length),
+                        count: completedTodos.length,
                       })
                     : t("settings.showCompleted", {
-                        count: String(completedTodos.length),
+                        count: completedTodos.length,
                       })}
                 </button>
                 {showCompleted && (

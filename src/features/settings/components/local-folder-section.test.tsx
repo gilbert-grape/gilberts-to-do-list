@@ -8,7 +8,7 @@ const mockDisconnectFolder = vi.fn();
 const mockRestoreFolder = vi.fn();
 const mockIsFolderSyncSupported = vi.fn().mockReturnValue(true);
 
-let mockSyncState = { status: "disconnected" as const, folderName: "" };
+let mockSyncState: { status: "connected" | "disconnected"; folderName: string } = { status: "disconnected", folderName: "" };
 
 vi.mock("@/services/sync/folder-sync.ts", () => ({
   useFolderSyncStore: (selector?: (s: typeof mockSyncState) => unknown) =>

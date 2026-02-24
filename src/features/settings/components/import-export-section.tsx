@@ -89,7 +89,7 @@ export function ImportExportSection() {
         const createdIds = new Map<number, string>();
 
         for (let i = 0; i < result.todos.length; i++) {
-          const parsed = result.todos[i];
+          const parsed = result.todos[i]!;
 
           // Duplicate detection: same title under same tag
           const existingTodos = useTodoStore.getState().todos;
@@ -107,7 +107,7 @@ export function ImportExportSection() {
           let parentId: string | null = null;
           if (parsed.depth > 0) {
             for (let j = i - 1; j >= 0; j--) {
-              if (result.todos[j].depth === parsed.depth - 1) {
+              if (result.todos[j]!.depth === parsed.depth - 1) {
                 parentId = createdIds.get(j) ?? null;
                 break;
               }

@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useCallback, useState } from "react";
 import {
   ReactFlow,
   Controls,
@@ -393,10 +393,11 @@ export function MindmapView({
   const [interactiveNodes, setInteractiveNodes] = useState<Node[]>(
     computedGraph.nodes,
   );
-
-  useEffect(() => {
+  const [prevComputedNodes, setPrevComputedNodes] = useState(computedGraph.nodes);
+  if (prevComputedNodes !== computedGraph.nodes) {
+    setPrevComputedNodes(computedGraph.nodes);
     setInteractiveNodes(computedGraph.nodes);
-  }, [computedGraph.nodes]);
+  }
 
   // Derive edges from current (possibly dragged) node positions so
   // edge handles stay optimal after a tag node is moved.

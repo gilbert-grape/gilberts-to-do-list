@@ -173,10 +173,10 @@ export function TagTabsView({
             >
               {showCompleted
                 ? t("settings.hideCompleted", {
-                    count: String(completedTodos.length),
+                    count: completedTodos.length,
                   })
                 : t("settings.showCompleted", {
-                    count: String(completedTodos.length),
+                    count: completedTodos.length,
                   })}
             </button>
             {showCompleted && (

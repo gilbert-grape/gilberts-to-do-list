@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { TagInputNode } from "./tag-input-node.tsx";
@@ -17,10 +18,10 @@ describe("TagInputNode", () => {
       onCancel: vi.fn(),
     },
     isConnectable: false,
-  } as never;
+  };
 
   it("renders input field", () => {
-    render(<TagInputNode {...defaultProps} />);
+    render(<TagInputNode {...(defaultProps as any)} />);
     expect(screen.getByTestId("tag-input-node")).toBeInTheDocument();
     expect(screen.getByTestId("tag-input-field")).toBeInTheDocument();
   });
@@ -30,8 +31,8 @@ describe("TagInputNode", () => {
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onCreateTag },
-    } as never;
-    render(<TagInputNode {...props} />);
+    };
+    render(<TagInputNode {...(props as any)} />);
     const input = screen.getByTestId("tag-input-field");
     fireEvent.change(input, { target: { value: "New Tag" } });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -43,8 +44,8 @@ describe("TagInputNode", () => {
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onCancel },
-    } as never;
-    render(<TagInputNode {...props} />);
+    };
+    render(<TagInputNode {...(props as any)} />);
     fireEvent.keyDown(screen.getByTestId("tag-input-field"), {
       key: "Escape",
     });
@@ -56,8 +57,8 @@ describe("TagInputNode", () => {
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onCancel },
-    } as never;
-    render(<TagInputNode {...props} />);
+    };
+    render(<TagInputNode {...(props as any)} />);
     fireEvent.blur(screen.getByTestId("tag-input-field"));
     expect(onCancel).toHaveBeenCalled();
   });
@@ -67,8 +68,8 @@ describe("TagInputNode", () => {
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onCreateTag },
-    } as never;
-    render(<TagInputNode {...props} />);
+    };
+    render(<TagInputNode {...(props as any)} />);
     const input = screen.getByTestId("tag-input-field");
     fireEvent.change(input, { target: { value: "  Trimmed  " } });
     fireEvent.keyDown(input, { key: "Enter" });

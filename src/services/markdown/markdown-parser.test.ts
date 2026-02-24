@@ -42,15 +42,15 @@ describe("parseMarkdown", () => {
   it("parses a completed todo", () => {
     const result = parseMarkdown("# Work\n\n- [x] Clean house\n");
     expect(result.todos).toHaveLength(1);
-    expect(result.todos[0].completed).toBe(true);
+    expect(result.todos[0]!.completed).toBe(true);
   });
 
   it("parses indented children", () => {
     const result = parseMarkdown("# Work\n\n- [ ] Parent\n  - [ ] Child\n");
     expect(result.todos).toHaveLength(2);
-    expect(result.todos[0].depth).toBe(0);
-    expect(result.todos[1].depth).toBe(1);
-    expect(result.todos[1].title).toBe("Child");
+    expect(result.todos[0]!.depth).toBe(0);
+    expect(result.todos[1]!.depth).toBe(1);
+    expect(result.todos[1]!.title).toBe("Child");
   });
 
   it("parses deeply nested todos", () => {
@@ -58,7 +58,7 @@ describe("parseMarkdown", () => {
       "# Work\n\n- [ ] L0\n  - [ ] L1\n    - [ ] L2\n",
     );
     expect(result.todos).toHaveLength(3);
-    expect(result.todos[2].depth).toBe(2);
+    expect(result.todos[2]!.depth).toBe(2);
   });
 
   it("returns error for odd indentation", () => {
@@ -95,7 +95,7 @@ describe("parseMarkdown", () => {
   it("returns error for first todo with nonzero depth", () => {
     const result = parseMarkdown("# Work\n\n  - [ ] Indented first\n");
     expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].message).toBe("depthJump");
+    expect(result.errors[0]!.message).toBe("depthJump");
   });
 });
 
@@ -120,7 +120,7 @@ describe("diffMarkdownTodos", () => {
 
     const diff = diffMarkdownTodos(parsed, existing, "tag-1");
     expect(diff.toCreate).toHaveLength(1);
-    expect(diff.toCreate[0].title).toBe("New task");
+    expect(diff.toCreate[0]!.title).toBe("New task");
   });
 
   it("detects deleted todo", () => {
@@ -194,7 +194,7 @@ describe("diffMarkdownTodos", () => {
 
     const diff = diffMarkdownTodos(parsed, existing, "tag-1");
     expect(diff.toCreate).toHaveLength(1);
-    expect(diff.toCreate[0].title).toBe("New");
+    expect(diff.toCreate[0]!.title).toBe("New");
     expect(diff.toDelete).toEqual(["1"]);
   });
 
@@ -210,7 +210,7 @@ describe("diffMarkdownTodos", () => {
 
     const diff = diffMarkdownTodos(parsed, existing, "tag-1");
     expect(diff.toUpdate).toHaveLength(1);
-    expect(diff.toUpdate[0].id).toBe("2");
-    expect(diff.toUpdate[0].changes.parentId).toBe("1");
+    expect(diff.toUpdate[0]!.id).toBe("2");
+    expect(diff.toUpdate[0]!.changes.parentId).toBe("1");
   });
 });
