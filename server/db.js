@@ -1,13 +1,13 @@
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "crypto";
 
 let _db;
 
 export function getDb(dbPath) {
   if (!_db) {
-    _db = new Database(dbPath);
-    _db.pragma("journal_mode = WAL");
-    _db.pragma("foreign_keys = ON");
+    _db = new DatabaseSync(dbPath);
+    _db.exec("PRAGMA journal_mode = WAL");
+    _db.exec("PRAGMA foreign_keys = ON");
     initSchema(_db);
   }
   return _db;

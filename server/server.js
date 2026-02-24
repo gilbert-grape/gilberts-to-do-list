@@ -104,7 +104,7 @@ try {
 app.use(express.static(distDir));
 
 // SPA fallback — inject ingress path for HA
-app.get("*", (req, res) => {
+app.get("*splat", (req, res) => {
   if (!indexHtml) {
     return res.status(404).send("Frontend not built. Run npm run build first.");
   }

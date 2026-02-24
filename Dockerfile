@@ -1,7 +1,5 @@
 FROM node:22-alpine
 
-RUN apk add --no-cache python3 make g++
-
 WORKDIR /app
 
 # Install frontend dependencies and build
@@ -11,7 +9,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Install server dependencies (separate package.json for native modules)
+# Install server dependencies
 WORKDIR /app/server
 RUN npm install --production
 
