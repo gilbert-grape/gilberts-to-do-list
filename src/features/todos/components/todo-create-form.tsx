@@ -23,13 +23,9 @@ export function TodoCreateForm({
   const { t } = useTranslation();
   const { todos, createTodo } = useTodoStore();
   const { tags } = useTagStore();
-  const defaultTag = useTagStore.getState().getDefaultTag();
-
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
-    defaultTag ? [defaultTag.id] : [],
-  );
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [parentId, setParentId] = useState<string | null>(initialParentId);
   const [dueDate, setDueDate] = useState<string | null>(null);
   const [recurrence, setRecurrence] = useState<RecurrenceType>(null);
@@ -155,7 +151,7 @@ export function TodoCreateForm({
         <button
           type="button"
           onClick={handleSave}
-          disabled={!title.trim() || selectedTagIds.length === 0 || isSaving}
+          disabled={!title.trim() || isSaving}
           className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
         >
           {t("common.save")}

@@ -19,6 +19,7 @@ import { AppDatabase } from "@/services/storage/indexeddb/db.ts";
 import { IndexedDBAdapter } from "@/services/storage/indexeddb/indexeddb-adapter.ts";
 import { useTagStore, setStorageAdapter } from "@/features/tags/store.ts";
 import { setTodoStorageAdapter } from "@/features/todos/store.ts";
+import { useSettingsStore } from "@/features/settings/store.ts";
 
 export function OnboardingView() {
   const { t } = useTranslation();
@@ -111,6 +112,7 @@ export function OnboardingView() {
 
       localStorage.setItem(USER_NAME_KEY, store.name);
       localStorage.setItem(ONBOARDING_COMPLETE_KEY, "true");
+      useSettingsStore.getState().setUserName(store.name);
       store.reset();
       void navigate("/");
     } catch {
