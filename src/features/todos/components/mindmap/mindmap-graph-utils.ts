@@ -341,6 +341,7 @@ export function buildMindmapGraph(
           todoId: todo.id,
           label: todo.title,
           completed: todo.status === "completed",
+          tagIds: todo.tagIds,
         },
       });
 
@@ -380,14 +381,16 @@ export function buildMindmapGraph(
     const radius =
       RING_RADIUS_BASE + parentTagTier * RING_RADIUS_STEP + TODO_RING_EXTRA;
 
-    for (const child of children) {
+    const spreadAngle = Math.min(Math.PI / 6, (children.length - 1) * 0.12 + 0.08);
+    const childAngles = distributeAngles(children.length, angle - spreadAngle, angle + spreadAngle);
+    children.forEach((child, ci) => {
       todoQueue.push({
         todo: child,
         depth: 1,
-        parentAngle: angle,
+        parentAngle: childAngles[ci]!,
         parentRadius: radius,
       });
-    }
+    });
   }
 
   let todoIdx = 0;
@@ -409,6 +412,7 @@ export function buildMindmapGraph(
         todoId: todo.id,
         label: todo.title,
         completed: todo.status === "completed",
+        tagIds: todo.tagIds,
       },
     });
 

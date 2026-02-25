@@ -8,6 +8,7 @@ interface TodoNodeData {
   completed: boolean;
   onToggle?: (todoId: string) => void;
   onTitleClick?: (todoId: string) => void;
+  onAddSubTodo?: (todoId: string) => void;
   [key: string]: unknown;
 }
 
@@ -19,13 +20,13 @@ function stopEvent(e: React.MouseEvent | React.PointerEvent) {
 }
 
 export function TodoNode({ data }: NodeProps) {
-  const { todoId, label, completed, onToggle, onTitleClick } =
+  const { todoId, label, completed, onToggle, onTitleClick, onAddSubTodo } =
     data as TodoNodeData;
 
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 shadow-sm",
+        "group flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 shadow-sm",
         completed && "opacity-60",
       )}
       data-testid="todo-node"
@@ -57,6 +58,20 @@ export function TodoNode({ data }: NodeProps) {
       >
         {label}
       </button>
+      {!completed && onAddSubTodo && (
+        <button
+          type="button"
+          onClick={(e) => { stopEvent(e); onAddSubTodo(todoId); }}
+          onMouseDown={stopEvent}
+          onPointerDown={stopEvent}
+          className="nodrag nopan nowheel ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-bold text-white opacity-0 transition-opacity group-hover:opacity-70 hover:!opacity-100"
+          style={{ pointerEvents: "all" }}
+          aria-label={`Add sub-todo to ${label}`}
+          data-testid="todo-add-subtodo-button"
+        >
+          +
+        </button>
+      )}
       <Handle type="source" position={Position.Top} style={hiddenHandle} id="source-top" />
       <Handle type="source" position={Position.Bottom} style={hiddenHandle} id="source-bottom" />
       <Handle type="source" position={Position.Left} style={hiddenHandle} id="source-left" />

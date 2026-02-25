@@ -45,6 +45,7 @@ const EPHEMERAL_OFFSET = { x: 0, y: 50 };
 interface InputMode {
   tagId: string;
   type: "tag" | "todo";
+  parentTodoId?: string | null;
 }
 
 const CENTER_ACTION_ID = "__center__";
@@ -182,6 +183,18 @@ export function MindmapView({
     setActionTagId(null);
   }, []);
 
+  const handleTodoAddSubTodo = useCallback(
+    (todoId: string) => {
+      const todo = allTodos.find((t) => t.id === todoId);
+      if (!todo) return;
+      const primaryTagId = todo.tagIds[0];
+      if (!primaryTagId) return;
+      setInputMode({ tagId: primaryTagId, type: "todo", parentTodoId: todoId });
+      setActionTagId(null);
+    },
+    [allTodos],
+  );
+
   const handleCancelInput = useCallback(() => {
     setActionTagId(null);
     setInputMode(null);
@@ -215,6 +228,25 @@ export function MindmapView({
       setInputMode(null);
     },
     [createTodo],
+  );
+
+  const handleCreateSubTodo = useCallback(
+    async (_tagId: string, title: string) => {
+      if (!inputMode?.parentTodoId) return;
+      const parentTodo = allTodos.find((t) => t.id === inputMode.parentTodoId);
+      const tagIds = parentTodo?.tagIds ?? [inputMode.tagId];
+      await createTodo({
+        title,
+        description: null,
+        tagIds,
+        parentId: inputMode.parentTodoId,
+        dueDate: null,
+        recurrence: null,
+        recurrenceInterval: null,
+      });
+      setInputMode(null);
+    },
+    [inputMode, allTodos, createTodo],
   );
 
   const rootLabel = userName ? `${userName}'s To Do` : "My To Do";
@@ -258,6 +290,7 @@ export function MindmapView({
             ...node.data,
             onToggle: handleToggle,
             onTitleClick: handleTitleClick,
+            onAddSubTodo: handleTodoAddSubTodo,
           },
         };
       }
@@ -322,15 +355,31 @@ export function MindmapView({
 
     // Inject ephemeral input node
     if (inputMode) {
-      const anchor = findAnchor(inputMode.tagId);
+      // When creating a sub-todo, anchor below the parent todo node
+      const isSubTodo = !!inputMode.parentTodoId;
+      let anchor: { node: Node; sourceId: string } | null = null;
+      if (isSubTodo) {
+        const todoNode = nodesWithCallbacks.find((n) => n.id === `todo-${inputMode.parentTodoId}`);
+        if (todoNode) anchor = { node: todoNode, sourceId: `todo-${inputMode.parentTodoId}` };
+      } else {
+        anchor = findAnchor(inputMode.tagId);
+      }
       if (anchor) {
         const inputNodeId =
           inputMode.type === "tag"
             ? `input-tag-${inputMode.tagId}`
-            : `input-todo-${inputMode.tagId}`;
+            : isSubTodo
+              ? `input-subtodo-${inputMode.parentTodoId}`
+              : `input-todo-${inputMode.tagId}`;
         const inputNodeType =
           inputMode.type === "tag" ? "tagInputNode" : "todoInputNode";
         const isCenter = inputMode.tagId === CENTER_ACTION_ID;
+
+        const onCreateTodo = isSubTodo
+          ? handleCreateSubTodo
+          : isCenter
+            ? handleCreateRootTodo
+            : handleCreateTodo;
 
         nodesWithCallbacks.push({
           id: inputNodeId,
@@ -348,7 +397,7 @@ export function MindmapView({
                 }
               : {
                   tagId: inputMode.tagId,
-                  onCreateTodo: isCenter ? handleCreateRootTodo : handleCreateTodo,
+                  onCreateTodo,
                   onCancel: handleCancelInput,
                 },
         });
@@ -385,10 +434,12 @@ export function MindmapView({
     handleCancelInput,
     handleCreateTag,
     handleCreateTodo,
+    handleCreateSubTodo,
     handleCreateRootTag,
     handleCreateRootTodo,
     handleDirectAddTag,
     handleDirectAddTodo,
+    handleTodoAddSubTodo,
   ]);
 
   // Interactive node state: allows tag nodes to be dragged while
