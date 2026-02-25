@@ -11,6 +11,15 @@ import {
 } from "./due-date-recurrence-section.tsx";
 import { DueDateChips } from "./due-date-chips.tsx";
 
+function dayAfterTomorrow(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 2);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export interface TodoCreateFormProps {
   onClose: () => void;
   initialParentId?: string | null;
@@ -27,7 +36,7 @@ export function TodoCreateForm({
   const [description, setDescription] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [parentId, setParentId] = useState<string | null>(initialParentId);
-  const [dueDate, setDueDate] = useState<string | null>(null);
+  const [dueDate, setDueDate] = useState<string | null>(dayAfterTomorrow());
   const [recurrence, setRecurrence] = useState<RecurrenceType>(null);
   const [recurrenceInterval, setRecurrenceInterval] = useState<number | null>(
     null,

@@ -9,7 +9,8 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
-        "tags.title": "Tag Management",
+        "tags.title": "Add new tag",
+        "tags.listTitle": "Manage tags",
         "tags.namePlaceholder": "Tag name...",
         "tags.create": "Create",
         "tags.colorPicker": "Color picker",
@@ -76,7 +77,7 @@ describe("TagManager", () => {
   it("renders the title", () => {
     setupStore([defaultTag]);
     render(<TagManager />);
-    expect(screen.getByText("Tag Management")).toBeInTheDocument();
+    expect(screen.getByText("Add new tag")).toBeInTheDocument();
   });
 
   it("renders all tags", () => {
@@ -143,7 +144,7 @@ describe("TagManager", () => {
       setupStore([defaultTag, secondTag]);
       render(<TagManager />);
 
-      const editButtons = screen.getAllByText("Edit");
+      const editButtons = screen.getAllByLabelText("Edit");
       await user.click(editButtons[0]!);
 
       const editInput = screen.getByDisplayValue("General");
@@ -155,7 +156,7 @@ describe("TagManager", () => {
       setupStore([defaultTag, secondTag]);
       render(<TagManager />);
 
-      const editButtons = screen.getAllByText("Edit");
+      const editButtons = screen.getAllByLabelText("Edit");
       await user.click(editButtons[0]!);
 
       const editInput = screen.getByDisplayValue("General");
@@ -171,7 +172,7 @@ describe("TagManager", () => {
       setupStore([defaultTag, secondTag]);
       render(<TagManager />);
 
-      const editButtons = screen.getAllByText("Edit");
+      const editButtons = screen.getAllByLabelText("Edit");
       await user.click(editButtons[0]!);
       await user.click(screen.getByText("Cancel"));
 
@@ -186,7 +187,7 @@ describe("TagManager", () => {
       setupStore([defaultTag]);
       render(<TagManager />);
 
-      await user.click(screen.getByText("Delete"));
+      await user.click(screen.getByLabelText("Delete"));
 
       expect(
         screen.getByText("Cannot delete the last tag"),
@@ -199,7 +200,7 @@ describe("TagManager", () => {
       setupStore([defaultTag, secondTag]);
       render(<TagManager />);
 
-      const deleteButtons = screen.getAllByText("Delete");
+      const deleteButtons = screen.getAllByLabelText("Delete");
       await user.click(deleteButtons[1]!);
 
       expect(mockDeleteTag).toHaveBeenCalledWith("tag-2");
@@ -210,7 +211,7 @@ describe("TagManager", () => {
       setupStore([defaultTag, secondTag]);
       render(<TagManager />);
 
-      const deleteButtons = screen.getAllByText("Delete");
+      const deleteButtons = screen.getAllByLabelText("Delete");
       await user.click(deleteButtons[0]!);
 
       expect(screen.getByText("Select a new default tag:")).toBeInTheDocument();
@@ -221,7 +222,7 @@ describe("TagManager", () => {
       setupStore([defaultTag, secondTag]);
       render(<TagManager />);
 
-      const deleteButtons = screen.getAllByText("Delete");
+      const deleteButtons = screen.getAllByLabelText("Delete");
       await user.click(deleteButtons[0]!);
 
       const prompt = screen.getByRole("alert");

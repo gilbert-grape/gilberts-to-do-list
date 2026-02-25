@@ -46,7 +46,8 @@ vi.mock("react-i18next", () => ({
         "settings.completedBottom": "Show at Bottom",
         "settings.completedToggleable": "Toggleable",
         "common.save": "Save",
-        "tags.title": "Tag Management",
+        "tags.title": "Add new tag",
+        "tags.listTitle": "Manage tags",
         "tags.namePlaceholder": "Tag name...",
         "tags.create": "Create",
         "tags.colorPicker": "Color picker",
@@ -155,7 +156,7 @@ describe("SettingsView", () => {
 
   it("renders tag manager section on default tab", () => {
     render(<SettingsView />);
-    expect(screen.getByText("Tag Management")).toBeInTheDocument();
+    expect(screen.getByText("Add new tag")).toBeInTheDocument();
   });
 
   it("renders profile section on general tab", async () => {

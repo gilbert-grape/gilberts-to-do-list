@@ -131,7 +131,7 @@ describe("TodoCreateForm", () => {
       description: null,
       tagIds: [],
       parentId: null,
-      dueDate: null,
+      dueDate: expect.any(String),
       recurrence: null,
       recurrenceInterval: null,
     });

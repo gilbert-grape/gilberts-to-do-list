@@ -99,7 +99,8 @@
     "editorLabel": "Markdown-Editor"
   },
   "tags": {
-    "title": "Tag-Verwaltung",
+    "title": "Neues Tag hinzufügen",
+    "listTitle": "Tags verwalten",
     "namePlaceholder": "Tag-Name...",
     "create": "Erstellen",
     "colorPicker": "Farbauswahl",

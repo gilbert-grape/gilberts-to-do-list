@@ -99,7 +99,8 @@
     "editorLabel": "Markdown editor"
   },
   "tags": {
-    "title": "Tag Management",
+    "title": "Add new tag",
+    "listTitle": "Manage tags",
     "namePlaceholder": "Tag name...",
     "create": "Create",
     "colorPicker": "Color picker",
