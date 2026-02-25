@@ -487,6 +487,29 @@ describe("buildMindmapGraph", () => {
     });
   });
 
+  describe("spacing presets", () => {
+    it("positions nodes further out with larger spacing", () => {
+      const todo = makeTodo({ id: "t1", title: "Task 1" });
+
+      const smallGraph = buildMindmapGraph([todo], [tag1], { spacing: "small" });
+      const largeGraph = buildMindmapGraph([todo], [tag1], { spacing: "large" });
+
+      const smallTag = smallGraph.nodes.find((n) => n.id === "tag-tag-1")!;
+      const largeTag = largeGraph.nodes.find((n) => n.id === "tag-tag-1")!;
+
+      const smallDist = Math.sqrt(smallTag.position.x ** 2 + smallTag.position.y ** 2);
+      const largeDist = Math.sqrt(largeTag.position.x ** 2 + largeTag.position.y ** 2);
+      expect(largeDist).toBeGreaterThan(smallDist);
+
+      const smallTodo = smallGraph.nodes.find((n) => n.id === "todo-t1")!;
+      const largeTodo = largeGraph.nodes.find((n) => n.id === "todo-t1")!;
+
+      const smallTodoDist = Math.sqrt(smallTodo.position.x ** 2 + smallTodo.position.y ** 2);
+      const largeTodoDist = Math.sqrt(largeTodo.position.x ** 2 + largeTodo.position.y ** 2);
+      expect(largeTodoDist).toBeGreaterThan(smallTodoDist);
+    });
+  });
+
   describe("drill-down (focusTagId)", () => {
     const childTag: Tag = {
       id: "tag-child",

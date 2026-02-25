@@ -9,6 +9,7 @@ import i18n from "@/app/i18n.ts";
 
 export type CompletedDisplayMode = "hidden" | "bottom" | "toggleable";
 export type LayoutMode = "normal" | "compact";
+export type MindmapSpacing = "small" | "medium" | "large";
 export type ViewType = "flatList" | "tagTabs" | "grouped" | "mindmap" | "hardcore";
 export type { Theme, ColorAccent };
 export type Language = "en" | "de";
@@ -37,6 +38,9 @@ const VALID_LANGUAGES: Language[] = ["en", "de"];
 
 const VIEW_TYPE_KEY = "gilberts-todo-active-view";
 const VALID_VIEW_TYPES: ViewType[] = ["flatList", "tagTabs", "grouped", "mindmap", "hardcore"];
+
+const MINDMAP_SPACING_KEY = "mindmap-spacing";
+const VALID_MINDMAP_SPACINGS: MindmapSpacing[] = ["small", "medium", "large"];
 
 const MINDMAP_COLLAPSE_THRESHOLD_KEY = "mindmap-collapse-threshold";
 const DEFAULT_COLLAPSE_THRESHOLD = 5;
@@ -134,6 +138,18 @@ function loadViewType(): ViewType {
   return "flatList";
 }
 
+function loadMindmapSpacing(): MindmapSpacing {
+  try {
+    const saved = localStorage.getItem(MINDMAP_SPACING_KEY);
+    if (saved && VALID_MINDMAP_SPACINGS.includes(saved as MindmapSpacing)) {
+      return saved as MindmapSpacing;
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  return "small";
+}
+
 function loadMindmapCollapseThreshold(): number {
   try {
     const saved = localStorage.getItem(MINDMAP_COLLAPSE_THRESHOLD_KEY);
@@ -187,6 +203,7 @@ export interface SettingsState {
   language: Language;
   telegramBotToken: string;
   telegramChatId: string;
+  mindmapSpacing: MindmapSpacing;
   mindmapCollapseThreshold: number;
   notificationTypes: NotificationTypes;
   setUserName: (name: string) => void;
@@ -196,6 +213,7 @@ export interface SettingsState {
   setTheme: (theme: Theme) => void;
   setColorAccent: (accent: ColorAccent) => void;
   setLanguage: (language: Language) => void;
+  setMindmapSpacing: (spacing: MindmapSpacing) => void;
   setMindmapCollapseThreshold: (threshold: number) => void;
   setTelegramBotToken: (token: string) => void;
   setTelegramChatId: (chatId: string) => void;
@@ -210,6 +228,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   theme: loadTheme(),
   colorAccent: loadColorAccent(),
   language: loadLanguage(),
+  mindmapSpacing: loadMindmapSpacing(),
   mindmapCollapseThreshold: loadMindmapCollapseThreshold(),
   telegramBotToken: loadTelegramBotToken(),
   telegramChatId: loadTelegramChatId(),
@@ -279,6 +298,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }
     void i18n.changeLanguage(language);
     set({ language });
+  },
+
+  setMindmapSpacing: (spacing) => {
+    try {
+      localStorage.setItem(MINDMAP_SPACING_KEY, spacing);
+    } catch {
+      // localStorage unavailable
+    }
+    set({ mindmapSpacing: spacing });
   },
 
   setMindmapCollapseThreshold: (threshold) => {

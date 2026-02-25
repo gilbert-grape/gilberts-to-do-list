@@ -62,6 +62,7 @@ export function MindmapView({
   const collapseThreshold = useSettingsStore(
     (s) => s.mindmapCollapseThreshold,
   );
+  const mindmapSpacing = useSettingsStore((s) => s.mindmapSpacing);
 
   const [focusTagId, setFocusTagId] = useState<string | null>(null);
   const [actionTagId, setActionTagId] = useState<string | null>(null);
@@ -223,6 +224,7 @@ export function MindmapView({
       centerLabel: rootLabel,
       collapseThreshold: focusTagId ? Infinity : collapseThreshold,
       focusTagId,
+      spacing: mindmapSpacing,
     });
 
     // Inject callbacks into node data
@@ -367,6 +369,7 @@ export function MindmapView({
     tags,
     rootLabel,
     collapseThreshold,
+    mindmapSpacing,
     focusTagId,
     actionTagId,
     inputMode,

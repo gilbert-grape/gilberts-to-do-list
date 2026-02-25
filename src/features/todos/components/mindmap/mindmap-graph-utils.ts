@@ -1,6 +1,7 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { Todo } from "../../types.ts";
 import type { Tag } from "@/features/tags/types.ts";
+import type { MindmapSpacing } from "@/features/settings/store.ts";
 import { getContrastColor } from "@/shared/utils/index.ts";
 
 export interface MindmapGraph {
@@ -8,10 +9,12 @@ export interface MindmapGraph {
   edges: Edge[];
 }
 
-// Layout constants
-const RING_RADIUS_BASE = 200;
-const RING_RADIUS_STEP = 180;
-const TODO_RING_EXTRA = 160;
+// Spacing presets
+const SPACING_PRESETS: Record<MindmapSpacing, { base: number; step: number; todoExtra: number }> = {
+  small: { base: 140, step: 120, todoExtra: 110 },
+  medium: { base: 200, step: 180, todoExtra: 160 },
+  large: { base: 280, step: 240, todoExtra: 200 },
+};
 
 function getDescendantTagIds(tagId: string, tags: Tag[]): string[] {
   const children = tags.filter((t) => t.parentId === tagId);
@@ -72,6 +75,7 @@ export interface MindmapGraphOptions {
   centerLabel?: string;
   collapseThreshold?: number;
   focusTagId?: string | null;
+  spacing?: MindmapSpacing;
 }
 
 export function buildMindmapGraph(
@@ -86,6 +90,8 @@ export function buildMindmapGraph(
 
   const collapseThreshold = options.collapseThreshold ?? Infinity;
   const focusTagId = options.focusTagId ?? null;
+  const { base: RING_RADIUS_BASE, step: RING_RADIUS_STEP, todoExtra: TODO_RING_EXTRA } =
+    SPACING_PRESETS[options.spacing ?? "small"];
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
