@@ -75,4 +75,17 @@ describe("TodoInputNode", () => {
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onCreateTodo).toHaveBeenCalledWith("tag-1", "Trimmed");
   });
+
+  it("calls onCreateTodo on blur with non-empty value", () => {
+    const onCreateTodo = vi.fn();
+    const props = {
+      ...defaultProps,
+      data: { ...defaultProps.data, onCreateTodo },
+    };
+    render(<TodoInputNode {...(props as any)} />);
+    const input = screen.getByTestId("todo-input-field");
+    fireEvent.change(input, { target: { value: "Blur Todo" } });
+    fireEvent.blur(input);
+    expect(onCreateTodo).toHaveBeenCalledWith("tag-1", "Blur Todo");
+  });
 });

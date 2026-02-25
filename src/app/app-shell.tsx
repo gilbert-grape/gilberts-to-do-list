@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from "react-router";
 import { useTranslation } from "react-i18next";
-import { useSettingsStore } from "@/features/settings/store.ts";
+import { useSettingsStore, setSettingsApiAdapter, loadSettingsFromServer } from "@/features/settings/store.ts";
 import { ViewToggleBar } from "@/features/todos/components/view-toggle-bar.tsx";
 import { setStorageAdapter, useTagStore } from "@/features/tags/store.ts";
 import { setTodoStorageAdapter, useTodoStore } from "@/features/todos/store.ts";
@@ -41,9 +41,12 @@ export function AppShell() {
 
     apiAdapter.healthCheck().then((ok) => {
       if (ok) {
+        setSettingsApiAdapter(apiAdapter);
+        void loadSettingsFromServer();
         const onSyncComplete = () => {
           void useTagStore.getState().loadTags();
           void useTodoStore.getState().loadTodos();
+          void loadSettingsFromServer();
         };
         const syncAdapter = new SyncAdapter(apiAdapter, localAdapter, db, onSyncComplete);
         setStorageAdapter(syncAdapter);

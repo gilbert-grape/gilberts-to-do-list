@@ -23,6 +23,11 @@ function initSchema(db) {
       parentId TEXT REFERENCES tags(id) ON DELETE SET NULL
     );
 
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS todos (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
@@ -205,4 +210,24 @@ export function updateTodo(db, id, changes) {
 
 export function deleteTodo(db, id) {
   db.prepare("DELETE FROM todos WHERE id = ?").run(id);
+}
+
+// --- Settings helpers ---
+
+export function getAllSettings(db) {
+  const rows = db.prepare("SELECT key, value FROM settings").all();
+  const result = {};
+  for (const row of rows) {
+    result[row.key] = row.value;
+  }
+  return result;
+}
+
+export function updateSettings(db, changes) {
+  const stmt = db.prepare(
+    "INSERT INTO settings (key, value) VALUES (@key, @value) ON CONFLICT(key) DO UPDATE SET value = @value"
+  );
+  for (const [key, value] of Object.entries(changes)) {
+    stmt.run({ key, value });
+  }
 }

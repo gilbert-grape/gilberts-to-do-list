@@ -117,4 +117,17 @@ export class ApiAdapter implements StorageAdapter {
       body: JSON.stringify(todo),
     });
   }
+
+  // --- Settings (not part of StorageAdapter interface) ---
+
+  async getSettings(): Promise<Record<string, string>> {
+    return this.request<Record<string, string>>("/api/settings");
+  }
+
+  async updateSettings(changes: Record<string, string>): Promise<void> {
+    await this.request("/api/settings", {
+      method: "PATCH",
+      body: JSON.stringify(changes),
+    });
+  }
 }

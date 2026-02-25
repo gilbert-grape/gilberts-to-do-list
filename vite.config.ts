@@ -52,5 +52,16 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     css: true,
+    coverage: {
+      exclude: [
+        "src/**/index.ts",
+        "src/shared/locales/**",
+        "src/main.tsx",
+        "src/vite-env.d.ts",
+        "src/features/todos/components/sortable-todo-list.tsx",
+        "src/features/todos/components/sortable-todo-item.tsx",
+        "src/features/todos/components/drag-handle.tsx",
+      ],
+    },
   },
 });

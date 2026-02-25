@@ -154,4 +154,96 @@ describe("ParentSearchInput", () => {
     );
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
+
+  it("navigates results with ArrowDown and ArrowUp keys", async () => {
+    const user = userEvent.setup();
+    render(
+      <ParentSearchInput
+        todos={todos}
+        selectedParentId={null}
+        onParentChange={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByPlaceholderText("Search parent..."), "Buy");
+    const options = screen.getAllByRole("option");
+    expect(options).toHaveLength(2);
+
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
+
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getAllByRole("option")[1]).toHaveAttribute("aria-selected", "true");
+
+    await user.keyboard("{ArrowUp}");
+    expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("selects highlighted result on Enter key", async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+    render(
+      <ParentSearchInput
+        todos={todos}
+        selectedParentId={null}
+        onParentChange={handleChange}
+      />,
+    );
+
+    await user.type(screen.getByPlaceholderText("Search parent..."), "Buy");
+    await user.keyboard("{ArrowDown}");
+    await user.keyboard("{Enter}");
+    expect(handleChange).toHaveBeenCalledWith("t1");
+  });
+
+  it("closes dropdown on Escape key", async () => {
+    const user = userEvent.setup();
+    render(
+      <ParentSearchInput
+        todos={todos}
+        selectedParentId={null}
+        onParentChange={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByPlaceholderText("Search parent..."), "Buy");
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+
+  it("shows no results message when query has no matches", async () => {
+    const user = userEvent.setup();
+    render(
+      <ParentSearchInput
+        todos={todos}
+        selectedParentId={null}
+        onParentChange={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByPlaceholderText("Search parent..."), "xyz");
+    expect(screen.getByText("todos.parentNoResults")).toBeInTheDocument();
+  });
+
+  it("opens dropdown on focus when query exists", async () => {
+    const user = userEvent.setup();
+    render(
+      <ParentSearchInput
+        todos={todos}
+        selectedParentId={null}
+        onParentChange={vi.fn()}
+      />,
+    );
+
+    const input = screen.getByPlaceholderText("Search parent...");
+    await user.type(input, "Buy");
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+
+    // Blur then refocus
+    await user.tab();
+    await user.click(input);
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+  });
 });

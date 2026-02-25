@@ -5,6 +5,7 @@ import {
   applyColorAccent,
 } from "@/app/theme.ts";
 import type { Theme, ColorAccent } from "@/app/theme.ts";
+import type { ApiAdapter } from "@/services/storage/api/api-adapter.ts";
 import i18n from "@/app/i18n.ts";
 
 export type CompletedDisplayMode = "hidden" | "bottom" | "toggleable";
@@ -57,6 +58,98 @@ const DEFAULT_NOTIFICATION_TYPES: NotificationTypes = {
   dailySummary: false,
   weeklySummary: false,
 };
+
+// --- Server sync plumbing ---
+
+let _apiAdapter: ApiAdapter | null = null;
+
+export function setSettingsApiAdapter(adapter: ApiAdapter) {
+  _apiAdapter = adapter;
+}
+
+function syncToServer(changes: Record<string, string>) {
+  void _apiAdapter?.updateSettings(changes);
+}
+
+export async function loadSettingsFromServer(): Promise<void> {
+  if (!_apiAdapter) return;
+  let remote: Record<string, string>;
+  try {
+    remote = await _apiAdapter.getSettings();
+  } catch {
+    return;
+  }
+  if (!remote || Object.keys(remote).length === 0) return;
+
+  const store = useSettingsStore.getState();
+  const patch: Partial<SettingsState> = {};
+
+  if (remote[USER_NAME_KEY] !== undefined) {
+    patch.userName = remote[USER_NAME_KEY];
+    try { localStorage.setItem(USER_NAME_KEY, remote[USER_NAME_KEY]); } catch { /* */ }
+  }
+  if (remote[COMPLETED_DISPLAY_MODE_KEY] !== undefined && VALID_MODES.includes(remote[COMPLETED_DISPLAY_MODE_KEY] as CompletedDisplayMode)) {
+    patch.completedDisplayMode = remote[COMPLETED_DISPLAY_MODE_KEY] as CompletedDisplayMode;
+    try { localStorage.setItem(COMPLETED_DISPLAY_MODE_KEY, remote[COMPLETED_DISPLAY_MODE_KEY]); } catch { /* */ }
+  }
+  if (remote[LAYOUT_MODE_KEY] !== undefined && VALID_LAYOUT_MODES.includes(remote[LAYOUT_MODE_KEY] as LayoutMode)) {
+    patch.layoutMode = remote[LAYOUT_MODE_KEY] as LayoutMode;
+    try { localStorage.setItem(LAYOUT_MODE_KEY, remote[LAYOUT_MODE_KEY]); } catch { /* */ }
+  }
+  if (remote[VIEW_TYPE_KEY] !== undefined && VALID_VIEW_TYPES.includes(remote[VIEW_TYPE_KEY] as ViewType)) {
+    patch.activeView = remote[VIEW_TYPE_KEY] as ViewType;
+    try { localStorage.setItem(VIEW_TYPE_KEY, remote[VIEW_TYPE_KEY]); } catch { /* */ }
+  }
+  if (remote[THEME_KEY] !== undefined && VALID_THEMES.includes(remote[THEME_KEY] as Theme)) {
+    patch.theme = remote[THEME_KEY] as Theme;
+    try { localStorage.setItem(THEME_KEY, remote[THEME_KEY]); } catch { /* */ }
+    applyThemeSideEffect(remote[THEME_KEY] as Theme);
+  }
+  if (remote[COLOR_ACCENT_KEY] !== undefined && VALID_ACCENTS.includes(remote[COLOR_ACCENT_KEY] as ColorAccent)) {
+    patch.colorAccent = remote[COLOR_ACCENT_KEY] as ColorAccent;
+    try { localStorage.setItem(COLOR_ACCENT_KEY, remote[COLOR_ACCENT_KEY]); } catch { /* */ }
+    applyColorAccent(remote[COLOR_ACCENT_KEY] as ColorAccent);
+  }
+  if (remote[LANGUAGE_KEY] !== undefined && VALID_LANGUAGES.includes(remote[LANGUAGE_KEY] as Language)) {
+    patch.language = remote[LANGUAGE_KEY] as Language;
+    try { localStorage.setItem(LANGUAGE_KEY, remote[LANGUAGE_KEY]); } catch { /* */ }
+    void i18n.changeLanguage(remote[LANGUAGE_KEY] as Language);
+  }
+  if (remote[MINDMAP_SPACING_KEY] !== undefined && VALID_MINDMAP_SPACINGS.includes(remote[MINDMAP_SPACING_KEY] as MindmapSpacing)) {
+    patch.mindmapSpacing = remote[MINDMAP_SPACING_KEY] as MindmapSpacing;
+    try { localStorage.setItem(MINDMAP_SPACING_KEY, remote[MINDMAP_SPACING_KEY]); } catch { /* */ }
+  }
+  if (remote[MINDMAP_COLLAPSE_THRESHOLD_KEY] !== undefined) {
+    const num = Number(remote[MINDMAP_COLLAPSE_THRESHOLD_KEY]);
+    if (Number.isInteger(num) && num >= MIN_COLLAPSE_THRESHOLD && num <= MAX_COLLAPSE_THRESHOLD) {
+      patch.mindmapCollapseThreshold = num;
+      try { localStorage.setItem(MINDMAP_COLLAPSE_THRESHOLD_KEY, remote[MINDMAP_COLLAPSE_THRESHOLD_KEY]); } catch { /* */ }
+    }
+  }
+  if (remote[TELEGRAM_BOT_TOKEN_KEY] !== undefined) {
+    patch.telegramBotToken = remote[TELEGRAM_BOT_TOKEN_KEY];
+    try { localStorage.setItem(TELEGRAM_BOT_TOKEN_KEY, remote[TELEGRAM_BOT_TOKEN_KEY]); } catch { /* */ }
+  }
+  if (remote[TELEGRAM_CHAT_ID_KEY] !== undefined) {
+    patch.telegramChatId = remote[TELEGRAM_CHAT_ID_KEY];
+    try { localStorage.setItem(TELEGRAM_CHAT_ID_KEY, remote[TELEGRAM_CHAT_ID_KEY]); } catch { /* */ }
+  }
+  if (remote[NOTIFICATION_TYPES_KEY] !== undefined) {
+    try {
+      const parsed = JSON.parse(remote[NOTIFICATION_TYPES_KEY]);
+      patch.notificationTypes = { ...DEFAULT_NOTIFICATION_TYPES, ...parsed };
+      try { localStorage.setItem(NOTIFICATION_TYPES_KEY, remote[NOTIFICATION_TYPES_KEY]); } catch { /* */ }
+    } catch {
+      // invalid JSON — ignore
+    }
+  }
+
+  if (Object.keys(patch).length > 0) {
+    useSettingsStore.setState(patch);
+  }
+}
+
+// --- localStorage loaders ---
 
 function loadUserName(): string {
   try {
@@ -240,6 +333,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [USER_NAME_KEY]: name });
     set({ userName: name });
   },
 
@@ -249,6 +343,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [COMPLETED_DISPLAY_MODE_KEY]: mode });
     set({ completedDisplayMode: mode });
   },
 
@@ -258,6 +353,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [LAYOUT_MODE_KEY]: mode });
     set({ layoutMode: mode });
   },
 
@@ -267,6 +363,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [VIEW_TYPE_KEY]: view });
     set({ activeView: view });
   },
 
@@ -276,6 +373,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [THEME_KEY]: theme });
     applyThemeSideEffect(theme);
     set({ theme });
   },
@@ -286,6 +384,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [COLOR_ACCENT_KEY]: accent });
     applyColorAccent(accent);
     set({ colorAccent: accent });
   },
@@ -296,6 +395,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [LANGUAGE_KEY]: language });
     void i18n.changeLanguage(language);
     set({ language });
   },
@@ -306,6 +406,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [MINDMAP_SPACING_KEY]: spacing });
     set({ mindmapSpacing: spacing });
   },
 
@@ -316,6 +417,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [MINDMAP_COLLAPSE_THRESHOLD_KEY]: String(clamped) });
     set({ mindmapCollapseThreshold: clamped });
   },
 
@@ -325,6 +427,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [TELEGRAM_BOT_TOKEN_KEY]: token });
     set({ telegramBotToken: token });
   },
 
@@ -334,15 +437,18 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [TELEGRAM_CHAT_ID_KEY]: chatId });
     set({ telegramChatId: chatId });
   },
 
   setNotificationTypes: (types) => {
+    const json = JSON.stringify(types);
     try {
-      localStorage.setItem(NOTIFICATION_TYPES_KEY, JSON.stringify(types));
+      localStorage.setItem(NOTIFICATION_TYPES_KEY, json);
     } catch {
       // localStorage unavailable
     }
+    syncToServer({ [NOTIFICATION_TYPES_KEY]: json });
     set({ notificationTypes: types });
   },
 }));

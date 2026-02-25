@@ -92,4 +92,43 @@ describe("TagActionNode", () => {
       expect(onSelectAction).toHaveBeenCalledWith("tag-1", "todo");
     });
   });
+
+  describe("backdrop click", () => {
+    it("calls onCancel when backdrop is clicked", () => {
+      const onCancel = vi.fn();
+      const props = {
+        id: "action-1",
+        type: "tagActionNode" as const,
+        data: {
+          tagId: "tag-1",
+          layoutMode: "normal",
+          onSelectAction: vi.fn(),
+          onCancel,
+        },
+        isConnectable: false,
+      };
+      render(<TagActionNode {...(props as any)} />);
+      // Click the outer container directly (not a child button)
+      fireEvent.click(screen.getByTestId("tag-action-node"));
+      expect(onCancel).toHaveBeenCalled();
+    });
+
+    it("does not call onCancel when child button is clicked", () => {
+      const onCancel = vi.fn();
+      const props = {
+        id: "action-1",
+        type: "tagActionNode" as const,
+        data: {
+          tagId: "tag-1",
+          layoutMode: "normal",
+          onSelectAction: vi.fn(),
+          onCancel,
+        },
+        isConnectable: false,
+      };
+      render(<TagActionNode {...(props as any)} />);
+      fireEvent.click(screen.getByTestId("action-add-tag"));
+      expect(onCancel).not.toHaveBeenCalled();
+    });
+  });
 });

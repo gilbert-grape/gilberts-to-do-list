@@ -12,6 +12,8 @@ import {
   createTodo,
   updateTodo,
   deleteTodo,
+  getAllSettings,
+  updateSettings,
 } from "./db.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -86,6 +88,20 @@ app.patch("/api/todos/:id", (req, res) => {
 app.delete("/api/todos/:id", (req, res) => {
   try {
     deleteTodo(db, req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// --- Settings ---
+app.get("/api/settings", (_req, res) => {
+  res.json(getAllSettings(db));
+});
+
+app.patch("/api/settings", (req, res) => {
+  try {
+    updateSettings(db, req.body);
     res.json({ ok: true });
   } catch (err) {
     res.status(400).json({ error: err.message });

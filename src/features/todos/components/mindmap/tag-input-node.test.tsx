@@ -75,4 +75,17 @@ describe("TagInputNode", () => {
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onCreateTag).toHaveBeenCalledWith("tag-1", "Trimmed");
   });
+
+  it("calls onCreateTag on blur with non-empty value", () => {
+    const onCreateTag = vi.fn();
+    const props = {
+      ...defaultProps,
+      data: { ...defaultProps.data, onCreateTag },
+    };
+    render(<TagInputNode {...(props as any)} />);
+    const input = screen.getByTestId("tag-input-field");
+    fireEvent.change(input, { target: { value: "Blur Tag" } });
+    fireEvent.blur(input);
+    expect(onCreateTag).toHaveBeenCalledWith("tag-1", "Blur Tag");
+  });
 });

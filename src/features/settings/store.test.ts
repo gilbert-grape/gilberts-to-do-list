@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { useSettingsStore } from "./store.ts";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { useSettingsStore, setSettingsApiAdapter, loadSettingsFromServer } from "./store.ts";
 
 vi.mock("@/app/theme.ts", () => ({
   setTheme: vi.fn(),
@@ -139,5 +139,146 @@ describe("useSettingsStore", () => {
     expect(JSON.parse(localStorage.getItem("notification-types")!)).toEqual(
       newTypes,
     );
+  });
+});
+
+describe("settings server sync", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useSettingsStore.setState({
+      userName: "",
+      completedDisplayMode: "bottom",
+      layoutMode: "normal",
+      activeView: "flatList",
+      theme: "auto",
+      colorAccent: "blue",
+      language: "en",
+      mindmapSpacing: "small",
+      mindmapCollapseThreshold: 5,
+      telegramBotToken: "",
+      telegramChatId: "",
+      notificationTypes: { dueTodo: true, overdueTodo: true, dailySummary: false, weeklySummary: false },
+    });
+  });
+
+  afterEach(() => {
+    setSettingsApiAdapter(null as never);
+  });
+
+  it("loadSettingsFromServer applies server values to the store and localStorage", async () => {
+    const fakeAdapter = {
+      getSettings: vi.fn().mockResolvedValue({
+        "user-name": "ServerUser",
+        "theme": "dark",
+        "color-accent": "purple",
+        "language": "de",
+        "layout-mode": "compact",
+        "gilberts-todo-active-view": "mindmap",
+        "mindmap-spacing": "large",
+        "mindmap-collapse-threshold": "8",
+        "telegram-bot-token": "bot123",
+        "telegram-chat-id": "chat456",
+        "notification-types": JSON.stringify({ dueTodo: false, overdueTodo: false, dailySummary: true, weeklySummary: true }),
+        "completed-display-mode": "hidden",
+      }),
+      updateSettings: vi.fn(),
+    };
+    setSettingsApiAdapter(fakeAdapter as never);
+
+    await loadSettingsFromServer();
+
+    const state = useSettingsStore.getState();
+    expect(state.userName).toBe("ServerUser");
+    expect(state.theme).toBe("dark");
+    expect(state.colorAccent).toBe("purple");
+    expect(state.language).toBe("de");
+    expect(state.layoutMode).toBe("compact");
+    expect(state.activeView).toBe("mindmap");
+    expect(state.mindmapSpacing).toBe("large");
+    expect(state.mindmapCollapseThreshold).toBe(8);
+    expect(state.telegramBotToken).toBe("bot123");
+    expect(state.telegramChatId).toBe("chat456");
+    expect(state.notificationTypes).toEqual({ dueTodo: false, overdueTodo: false, dailySummary: true, weeklySummary: true });
+    expect(state.completedDisplayMode).toBe("hidden");
+
+    // Also persisted to localStorage
+    expect(localStorage.getItem("user-name")).toBe("ServerUser");
+    expect(localStorage.getItem("theme")).toBe("dark");
+    expect(localStorage.getItem("layout-mode")).toBe("compact");
+  });
+
+  it("loadSettingsFromServer does nothing when no adapter is set", async () => {
+    setSettingsApiAdapter(null as never);
+    await loadSettingsFromServer();
+    expect(useSettingsStore.getState().userName).toBe("");
+  });
+
+  it("loadSettingsFromServer does nothing when server returns empty object", async () => {
+    const fakeAdapter = {
+      getSettings: vi.fn().mockResolvedValue({}),
+      updateSettings: vi.fn(),
+    };
+    setSettingsApiAdapter(fakeAdapter as never);
+    await loadSettingsFromServer();
+    expect(useSettingsStore.getState().theme).toBe("auto");
+  });
+
+  it("loadSettingsFromServer ignores invalid values", async () => {
+    const fakeAdapter = {
+      getSettings: vi.fn().mockResolvedValue({
+        "theme": "invalid-theme",
+        "mindmap-collapse-threshold": "999",
+        "notification-types": "not-json{{{",
+      }),
+      updateSettings: vi.fn(),
+    };
+    setSettingsApiAdapter(fakeAdapter as never);
+    await loadSettingsFromServer();
+
+    const state = useSettingsStore.getState();
+    expect(state.theme).toBe("auto");
+    expect(state.mindmapCollapseThreshold).toBe(5);
+    expect(state.notificationTypes.dueTodo).toBe(true);
+  });
+
+  it("loadSettingsFromServer handles API error gracefully", async () => {
+    const fakeAdapter = {
+      getSettings: vi.fn().mockRejectedValue(new Error("Network error")),
+      updateSettings: vi.fn(),
+    };
+    setSettingsApiAdapter(fakeAdapter as never);
+    await loadSettingsFromServer();
+    // Should not throw, state unchanged
+    expect(useSettingsStore.getState().theme).toBe("auto");
+  });
+
+  it("setters fire syncToServer when adapter is set", () => {
+    const fakeAdapter = {
+      getSettings: vi.fn(),
+      updateSettings: vi.fn().mockResolvedValue(undefined),
+    };
+    setSettingsApiAdapter(fakeAdapter as never);
+
+    useSettingsStore.getState().setUserName("SyncTest");
+    expect(fakeAdapter.updateSettings).toHaveBeenCalledWith({ "user-name": "SyncTest" });
+
+    fakeAdapter.updateSettings.mockClear();
+    useSettingsStore.getState().setTheme("dark");
+    expect(fakeAdapter.updateSettings).toHaveBeenCalledWith({ "theme": "dark" });
+
+    fakeAdapter.updateSettings.mockClear();
+    useSettingsStore.getState().setMindmapCollapseThreshold(10);
+    expect(fakeAdapter.updateSettings).toHaveBeenCalledWith({ "mindmap-collapse-threshold": "10" });
+
+    fakeAdapter.updateSettings.mockClear();
+    const nt = { dueTodo: false, overdueTodo: false, dailySummary: true, weeklySummary: true };
+    useSettingsStore.getState().setNotificationTypes(nt);
+    expect(fakeAdapter.updateSettings).toHaveBeenCalledWith({ "notification-types": JSON.stringify(nt) });
+  });
+
+  it("setters do not throw when no adapter is set", () => {
+    setSettingsApiAdapter(null as never);
+    expect(() => useSettingsStore.getState().setUserName("NoAdapter")).not.toThrow();
+    expect(useSettingsStore.getState().userName).toBe("NoAdapter");
   });
 });
