@@ -102,11 +102,11 @@ describe("TodoCreateForm", () => {
     expect(screen.getByText("Work")).toBeInTheDocument();
   });
 
-  it("pre-selects the default tag", () => {
+  it("does not pre-select any tag", () => {
     setupStores();
     render(<TodoCreateForm onClose={mockOnClose} />);
     const generalChip = screen.getByText("General").closest("button");
-    expect(generalChip?.className).toContain("shadow-md");
+    expect(generalChip?.className).not.toContain("shadow-md");
   });
 
   it("disables save when title is empty", () => {
@@ -115,7 +115,7 @@ describe("TodoCreateForm", () => {
     expect(screen.getByText("Save")).toBeDisabled();
   });
 
-  it("creates todo with title and default tag on save", async () => {
+  it("creates todo with empty tagIds when no tag selected", async () => {
     const user = userEvent.setup();
     setupStores();
     render(<TodoCreateForm onClose={mockOnClose} />);
@@ -129,7 +129,7 @@ describe("TodoCreateForm", () => {
     expect(mockCreateTodo).toHaveBeenCalledWith({
       title: "Buy milk",
       description: null,
-      tagIds: ["tag-default"],
+      tagIds: [],
       parentId: null,
       dueDate: null,
       recurrence: null,
@@ -168,16 +168,16 @@ describe("TodoCreateForm", () => {
     await user.click(screen.getByText("Save"));
 
     expect(mockCreateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ tagIds: ["tag-default", "tag-work"] }),
+      expect.objectContaining({ tagIds: ["tag-work"] }),
     );
   });
 
-  it("allows deselecting the default tag", async () => {
+  it("allows selecting and deselecting a tag", async () => {
     const user = userEvent.setup();
     setupStores();
     render(<TodoCreateForm onClose={mockOnClose} />);
 
-    await user.click(screen.getByText("General"));
+    await user.click(screen.getByText("Work"));
     await user.click(screen.getByText("Work"));
     await user.type(
       screen.getByPlaceholderText("What needs to be done?"),
@@ -186,7 +186,7 @@ describe("TodoCreateForm", () => {
     await user.click(screen.getByText("Save"));
 
     expect(mockCreateTodo).toHaveBeenCalledWith(
-      expect.objectContaining({ tagIds: ["tag-work"] }),
+      expect.objectContaining({ tagIds: [] }),
     );
   });
 
@@ -284,6 +284,5 @@ describe("TodoCreateForm", () => {
 
     const callArgs = mockCreateTodo.mock.calls[0]![0];
     expect(callArgs.tagIds).toContain("tag-work");
-    expect(callArgs.tagIds).toContain("tag-default");
   });
 });

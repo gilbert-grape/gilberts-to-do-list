@@ -15,10 +15,7 @@ import { TagsStep } from "./tags-step.tsx";
 import { DefaultTagStep } from "./default-tag-step.tsx";
 import { SummaryStep } from "./summary-step.tsx";
 import type { OnboardingTag } from "../types.ts";
-import { AppDatabase } from "@/services/storage/indexeddb/db.ts";
-import { IndexedDBAdapter } from "@/services/storage/indexeddb/indexeddb-adapter.ts";
-import { useTagStore, setStorageAdapter } from "@/features/tags/store.ts";
-import { setTodoStorageAdapter } from "@/features/todos/store.ts";
+import { useTagStore } from "@/features/tags/store.ts";
 import { useSettingsStore } from "@/features/settings/store.ts";
 
 export function OnboardingView() {
@@ -68,11 +65,6 @@ export function OnboardingView() {
     setIsCompleting(true);
 
     try {
-      const db = new AppDatabase();
-      const adapter = new IndexedDBAdapter(db);
-      setStorageAdapter(adapter);
-      setTodoStorageAdapter(adapter);
-
       const tempIdToRealId = new Map<number, string>();
 
       // Create all user tags

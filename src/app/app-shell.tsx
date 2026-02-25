@@ -30,6 +30,7 @@ export function AppShell() {
   const isHome = location.pathname === "/";
   const adapterInitialized = useRef(false);
   const [useSync, setUseSync] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
     if (adapterInitialized.current) return;
@@ -52,6 +53,7 @@ export function AppShell() {
         setStorageAdapter(localAdapter);
         setTodoStorageAdapter(localAdapter);
       }
+      setStorageReady(true);
     });
   }, []);
   const isCompact = layoutMode === "compact" && !isOnboarding;
@@ -259,7 +261,13 @@ export function AppShell() {
         )}
       </header>
       <main className="flex flex-1 flex-col">
-        <Outlet />
+        {storageReady ? (
+          <Outlet />
+        ) : (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-border)] border-t-[var(--color-primary)]" />
+          </div>
+        )}
       </main>
     </div>
   );

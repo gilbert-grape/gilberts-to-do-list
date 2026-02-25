@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -64,9 +64,11 @@ describe("AppShell", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders outlet for child routes", () => {
+  it("renders outlet for child routes", async () => {
     renderWithRouter();
-    expect(screen.getByTestId("outlet")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("outlet")).toBeInTheDocument();
+    });
   });
 
   it("navigates to statistics on icon click", async () => {

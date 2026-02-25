@@ -6,6 +6,7 @@ import { OnboardingView } from "./onboarding-view.tsx";
 import { useOnboardingStore } from "../store.ts";
 
 vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
     t: (key: string, options?: Record<string, unknown>) => {
       const translations: Record<string, string> = {
