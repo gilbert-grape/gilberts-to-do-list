@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from "react-router";
 import { useTranslation } from "react-i18next";
-import { useSettingsStore, setSettingsApiAdapter, loadSettingsFromServer, syncToServer } from "@/features/settings/store.ts";
+import { useSettingsStore, setSettingsApiAdapter, loadSettingsFromServer } from "@/features/settings/store.ts";
 import { ONBOARDING_COMPLETE_KEY } from "@/features/onboarding/constants.ts";
 import { ViewToggleBar } from "@/features/todos/components/view-toggle-bar.tsx";
 import { setStorageAdapter, useTagStore } from "@/features/tags/store.ts";
@@ -44,9 +44,9 @@ export function AppShell() {
       if (ok) {
         setSettingsApiAdapter(apiAdapter);
         await loadSettingsFromServer();
-        // Migration: push existing local onboarding flag to server
+        // Migration: push existing local onboarding flag to server (awaited!)
         if (localStorage.getItem(ONBOARDING_COMPLETE_KEY) === "true") {
-          syncToServer({ [ONBOARDING_COMPLETE_KEY]: "true" });
+          try { await apiAdapter.updateSettings({ [ONBOARDING_COMPLETE_KEY]: "true" }); } catch { /* */ }
         }
         const onSyncComplete = () => {
           void useTagStore.getState().loadTags();
@@ -57,6 +57,11 @@ export function AppShell() {
         setStorageAdapter(syncAdapter);
         setTodoStorageAdapter(syncAdapter);
         await syncAdapter.sync();
+        // Ensure stores have data before rendering
+        try {
+          await useTagStore.getState().loadTags();
+          await useTodoStore.getState().loadTodos();
+        } catch { /* sync already populated IndexedDB; stores will catch up */ }
         setUseSync(true);
       } else {
         setStorageAdapter(localAdapter);
