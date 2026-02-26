@@ -322,6 +322,10 @@ export class SyncAdapter implements StorageAdapter {
     return this.local.getAllTodos();
   }
 
+  async sync(): Promise<void> {
+    await this.trySync();
+  }
+
   destroy() {
     if (this.healthTimer) {
       clearInterval(this.healthTimer);

@@ -51,9 +51,12 @@ vi.mock("@/services/storage/api/api-adapter.ts", () => ({
 vi.mock("@/services/storage/api/resolve-base-url.ts", () => ({
   resolveApiBaseUrl: vi.fn().mockReturnValue("http://localhost:8099"),
 }));
-vi.mock("@/services/storage/sync/sync-adapter.ts", () => ({
-  SyncAdapter: vi.fn(),
-}));
+vi.mock("@/services/storage/sync/sync-adapter.ts", () => {
+  const MockSyncAdapter = vi.fn(function (this: Record<string, unknown>) {
+    this.sync = vi.fn().mockResolvedValue(undefined);
+  });
+  return { SyncAdapter: MockSyncAdapter };
+});
 vi.mock("@/features/tags/store.ts", async () => {
   const actual = await vi.importActual<
     typeof import("@/features/tags/store.ts")

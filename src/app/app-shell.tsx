@@ -56,6 +56,7 @@ export function AppShell() {
         const syncAdapter = new SyncAdapter(apiAdapter, localAdapter, db, onSyncComplete);
         setStorageAdapter(syncAdapter);
         setTodoStorageAdapter(syncAdapter);
+        await syncAdapter.sync();
         setUseSync(true);
       } else {
         setStorageAdapter(localAdapter);
