@@ -16,7 +16,7 @@ import { DefaultTagStep } from "./default-tag-step.tsx";
 import { SummaryStep } from "./summary-step.tsx";
 import type { OnboardingTag } from "../types.ts";
 import { useTagStore } from "@/features/tags/store.ts";
-import { useSettingsStore } from "@/features/settings/store.ts";
+import { useSettingsStore, syncToServer } from "@/features/settings/store.ts";
 
 export function OnboardingView() {
   const { t } = useTranslation();
@@ -104,6 +104,7 @@ export function OnboardingView() {
 
       localStorage.setItem(USER_NAME_KEY, store.name);
       localStorage.setItem(ONBOARDING_COMPLETE_KEY, "true");
+      syncToServer({ [ONBOARDING_COMPLETE_KEY]: "true" });
       useSettingsStore.getState().setUserName(store.name);
       store.reset();
       void navigate("/");

@@ -39,10 +39,10 @@ export function AppShell() {
     const localAdapter = new IndexedDBAdapter(db);
     const apiAdapter = new ApiAdapter(resolveApiBaseUrl());
 
-    apiAdapter.healthCheck().then((ok) => {
+    apiAdapter.healthCheck().then(async (ok) => {
       if (ok) {
         setSettingsApiAdapter(apiAdapter);
-        void loadSettingsFromServer();
+        await loadSettingsFromServer();
         const onSyncComplete = () => {
           void useTagStore.getState().loadTags();
           void useTodoStore.getState().loadTodos();

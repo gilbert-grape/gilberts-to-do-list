@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { USER_NAME_KEY } from "@/features/onboarding/constants.ts";
+import { USER_NAME_KEY, ONBOARDING_COMPLETE_KEY } from "@/features/onboarding/constants.ts";
 import {
   setTheme as applyThemeSideEffect,
   applyColorAccent,
@@ -71,6 +71,8 @@ function syncToServer(changes: Record<string, string>) {
   void _apiAdapter?.updateSettings(changes);
 }
 
+export { syncToServer };
+
 export async function loadSettingsFromServer(): Promise<void> {
   if (!_apiAdapter) return;
   let remote: Record<string, string>;
@@ -87,6 +89,9 @@ export async function loadSettingsFromServer(): Promise<void> {
   if (remote[USER_NAME_KEY] !== undefined) {
     patch.userName = remote[USER_NAME_KEY];
     try { localStorage.setItem(USER_NAME_KEY, remote[USER_NAME_KEY]); } catch { /* */ }
+  }
+  if (remote[ONBOARDING_COMPLETE_KEY] === "true") {
+    try { localStorage.setItem(ONBOARDING_COMPLETE_KEY, "true"); } catch { /* */ }
   }
   if (remote[COMPLETED_DISPLAY_MODE_KEY] !== undefined && VALID_MODES.includes(remote[COMPLETED_DISPLAY_MODE_KEY] as CompletedDisplayMode)) {
     patch.completedDisplayMode = remote[COMPLETED_DISPLAY_MODE_KEY] as CompletedDisplayMode;
