@@ -6,7 +6,8 @@ import {
   useSearchParams,
 } from "react-router";
 import { useTranslation } from "react-i18next";
-import { useSettingsStore, setSettingsApiAdapter, loadSettingsFromServer } from "@/features/settings/store.ts";
+import { useSettingsStore, setSettingsApiAdapter, loadSettingsFromServer, syncToServer } from "@/features/settings/store.ts";
+import { ONBOARDING_COMPLETE_KEY } from "@/features/onboarding/constants.ts";
 import { ViewToggleBar } from "@/features/todos/components/view-toggle-bar.tsx";
 import { setStorageAdapter, useTagStore } from "@/features/tags/store.ts";
 import { setTodoStorageAdapter, useTodoStore } from "@/features/todos/store.ts";
@@ -43,6 +44,10 @@ export function AppShell() {
       if (ok) {
         setSettingsApiAdapter(apiAdapter);
         await loadSettingsFromServer();
+        // Migration: push existing local onboarding flag to server
+        if (localStorage.getItem(ONBOARDING_COMPLETE_KEY) === "true") {
+          syncToServer({ [ONBOARDING_COMPLETE_KEY]: "true" });
+        }
         const onSyncComplete = () => {
           void useTagStore.getState().loadTags();
           void useTodoStore.getState().loadTodos();
