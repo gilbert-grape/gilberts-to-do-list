@@ -1,3 +1,6 @@
+declare const __APP_VERSION__: string;
+declare const __BUILD_DATE__: string;
+
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TagManager } from "@/features/tags/components/tag-manager.tsx";
@@ -77,6 +80,10 @@ export function SettingsView() {
             <h2 className="text-lg font-semibold text-[var(--color-text)]">
               {t("settings.aboutTitle")}
             </h2>
+            <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
+              <p>{t("settings.aboutVersion")}: {__APP_VERSION__}</p>
+              <p>{t("settings.aboutBuildDate")}: {__BUILD_DATE__}</p>
+            </div>
             <a
               href="https://github.com/gilbert-grape/gilberts-to-do-list"
               target="_blank"

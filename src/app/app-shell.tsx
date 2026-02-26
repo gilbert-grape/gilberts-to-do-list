@@ -144,7 +144,7 @@ export function AppShell() {
           </div>
         ) : (
           <h1
-            className="cursor-pointer text-lg font-semibold text-[var(--color-text)]"
+            className="hidden cursor-pointer text-lg font-semibold text-[var(--color-text)] md:block"
             onClick={() => void navigate("/")}
           >
             {isOnboarding

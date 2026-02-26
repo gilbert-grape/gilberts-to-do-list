@@ -217,7 +217,8 @@
     "tabAbout": "About",
     "aboutTitle": "About",
     "aboutSourceCode": "Quellcode auf GitHub",
-    "aboutVersion": "Version"
+    "aboutVersion": "Version",
+    "aboutBuildDate": "Build-Datum"
   },
   "onboarding": {
     "nameTitle": "Wie heisst du?",

@@ -1,3 +1,6 @@
+(globalThis as Record<string, unknown>).__APP_VERSION__ = "1.0.0-test";
+(globalThis as Record<string, unknown>).__BUILD_DATE__ = "2026-01-01";
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";

@@ -4,9 +4,24 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
+import fs from "fs";
+
+function readAppVersion(): string {
+  try {
+    const yaml = fs.readFileSync(path.resolve(__dirname, "gilberts-todo/config.yaml"), "utf-8");
+    const match = yaml.match(/^version:\s*"?([^"\n]+)"?/m);
+    return match?.[1] ?? "unknown";
+  } catch {
+    return "unknown";
+  }
+}
 
 export default defineConfig({
   base: "./",
+  define: {
+    __APP_VERSION__: JSON.stringify(readAppVersion()),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+  },
   plugins: [
     react(),
     tailwindcss(),

@@ -1,6 +1,6 @@
 name: "Gilberts To-Do List"
 slug: "gilberts-todo"
-version: "1.0.8"
+version: "1.0.9"
 description: "A modern to-do list app with tags, drag & drop, and offline support."
 image: ghcr.io/gilbert-grape/gilberts-to-do-list/{arch}-gilberts-todo
 startup: application
