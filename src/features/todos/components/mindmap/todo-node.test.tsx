@@ -33,33 +33,10 @@ describe("TodoNode", () => {
     expect(screen.getByText("Buy milk")).toBeInTheDocument();
   });
 
-  it("renders an unchecked checkbox for open todo", () => {
-    render(<TodoNode {...(makeProps() as any)} />);
-    const checkbox = screen.getByRole("checkbox");
-    expect(checkbox).not.toBeChecked();
-  });
-
-  it("renders a checked checkbox for completed todo", () => {
-    render(<TodoNode {...(makeProps({ completed: true }) as any)} />);
-    const checkbox = screen.getByRole("checkbox");
-    expect(checkbox).toBeChecked();
-  });
-
   it("applies strikethrough for completed todo", () => {
     render(<TodoNode {...(makeProps({ completed: true }) as any)} />);
     const button = screen.getByText("Buy milk");
     expect(button.className).toContain("line-through");
-  });
-
-  it("calls onToggle when checkbox is clicked", async () => {
-    const user = userEvent.setup();
-    const props = makeProps();
-    render(<TodoNode {...(props as any)} />);
-
-    await user.click(screen.getByRole("checkbox"));
-    expect(
-      (props as { data: { onToggle: ReturnType<typeof vi.fn> } }).data.onToggle,
-    ).toHaveBeenCalledWith("t1");
   });
 
   it("calls onTitleClick when title is clicked", async () => {
@@ -78,5 +55,35 @@ describe("TodoNode", () => {
     render(<TodoNode {...(makeProps() as any)} />);
     expect(screen.getByTestId("handle-target-top")).toBeInTheDocument();
     expect(screen.getByTestId("handle-source-bottom")).toBeInTheDocument();
+  });
+
+  it("renders zoom button for non-completed todo", () => {
+    render(<TodoNode {...(makeProps() as any)} />);
+    expect(screen.getByTestId("todo-zoom-button")).toBeInTheDocument();
+  });
+
+  it("zoom button calls onZoom", async () => {
+    const user = userEvent.setup();
+    const onZoom = vi.fn();
+    const props = makeProps({ onZoom });
+    render(<TodoNode {...(props as any)} />);
+
+    await user.click(screen.getByTestId("todo-zoom-button"));
+    expect(onZoom).toHaveBeenCalledWith("t1");
+  });
+
+  it("does not render zoom button for completed todo", () => {
+    render(<TodoNode {...(makeProps({ completed: true }) as any)} />);
+    expect(screen.queryByTestId("todo-zoom-button")).not.toBeInTheDocument();
+  });
+
+  it("edit button calls onEdit", async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    const props = makeProps({ onEdit });
+    render(<TodoNode {...(props as any)} />);
+
+    await user.click(screen.getByTestId("todo-edit-button"));
+    expect(onEdit).toHaveBeenCalledWith("t1");
   });
 });

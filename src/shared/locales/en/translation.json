@@ -42,8 +42,8 @@
     "reload": "Reload"
   },
   "todos": {
-    "newTodo": "+ To-Do",
-    "newTodoCompact": "+ To do",
+    "newTodo": "New To-Do",
+    "newTodoCompact": "New To-Do",
     "titlePlaceholder": "What needs to be done?",
     "descriptionPlaceholder": "Add notes...",
     "completed": "Completed",
@@ -108,8 +108,8 @@
     "setDefault": "Set as default",
     "selectNewDefault": "Select a new default tag:",
     "addNew": "Create new tag",
-    "newTag": "+ Tag",
-    "newTagCompact": "+ Tag",
+    "newTag": "New Tag",
+    "newTagCompact": "New Tag",
     "parentTag": "Parent Tag",
     "noParent": "None (root level)",
     "changeParent": "Change Parent",

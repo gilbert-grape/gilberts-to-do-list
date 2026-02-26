@@ -42,8 +42,8 @@
     "reload": "Neu laden"
   },
   "todos": {
-    "newTodo": "+ To-Do",
-    "newTodoCompact": "+ To do",
+    "newTodo": "Neues To-Do",
+    "newTodoCompact": "Neues To-Do",
     "titlePlaceholder": "Was muss erledigt werden?",
     "descriptionPlaceholder": "Notizen hinzufügen...",
     "completed": "Erledigt",
@@ -108,8 +108,8 @@
     "setDefault": "Als Standard setzen",
     "selectNewDefault": "Wähle einen neuen Standard-Tag:",
     "addNew": "Neuen Tag erstellen",
-    "newTag": "+ Tag",
-    "newTagCompact": "+ Tag",
+    "newTag": "Neues Tag",
+    "newTagCompact": "Neues Tag",
     "parentTag": "Übergeordneter Tag",
     "noParent": "Keiner (Hauptebene)",
     "changeParent": "Übergeordneten ändern",

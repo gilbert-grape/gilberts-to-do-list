@@ -27,6 +27,7 @@ vi.mock("react-i18next", () => ({
         "todos.customInterval": "Every X days",
         "common.cancel": "Cancel",
         "common.save": "Save",
+        "common.delete": "Delete",
       };
       return translations[key] ?? key;
     },
@@ -165,6 +166,27 @@ describe("TodoEditForm", () => {
     setupStores();
     render(<TodoEditForm todo={existingTodo} onClose={mockOnClose} />);
     expect(screen.getByText("Parent To-Do")).toBeInTheDocument();
+  });
+
+  it("renders delete button when onDelete is provided", () => {
+    setupStores();
+    render(<TodoEditForm todo={existingTodo} onClose={mockOnClose} onDelete={vi.fn()} />);
+    expect(screen.getByText("Delete")).toBeInTheDocument();
+  });
+
+  it("does not render delete button when onDelete is not provided", () => {
+    setupStores();
+    render(<TodoEditForm todo={existingTodo} onClose={mockOnClose} />);
+    expect(screen.queryByText("Delete")).not.toBeInTheDocument();
+  });
+
+  it("calls onDelete with the todo when delete button is clicked", async () => {
+    const user = userEvent.setup();
+    const mockOnDelete = vi.fn();
+    setupStores();
+    render(<TodoEditForm todo={existingTodo} onClose={mockOnClose} onDelete={mockOnDelete} />);
+    await user.click(screen.getByText("Delete"));
+    expect(mockOnDelete).toHaveBeenCalledWith(existingTodo);
   });
 
   it("excludes self from parent search results", async () => {

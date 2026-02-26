@@ -40,76 +40,55 @@ describe("TagNode", () => {
     expect(screen.getByTestId("handle-target-top")).toBeInTheDocument();
   });
 
-  it("compact: renders single + button that calls onAddAction", () => {
-    const onAddAction = vi.fn();
-    const props = {
-      ...defaultProps,
-      data: { ...defaultProps.data, layoutMode: "compact", onAddAction },
-    };
-    render(<TagNode {...(props as any)} />);
-    expect(screen.getByTestId("tag-add-button")).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId("tag-add-button"));
-    expect(onAddAction).toHaveBeenCalledWith("t1");
-  });
-
-  it("normal: renders # and check buttons", () => {
-    const props = {
-      ...defaultProps,
-      data: { ...defaultProps.data, layoutMode: "normal" },
-    };
-    render(<TagNode {...(props as any)} />);
+  it("renders zoom, edit, # and check hover buttons", () => {
+    render(<TagNode {...(defaultProps as any)} />);
+    expect(screen.getByTestId("tag-zoom-button")).toBeInTheDocument();
+    expect(screen.getByTestId("tag-edit-button")).toBeInTheDocument();
     expect(screen.getByTestId("tag-add-tag-button")).toBeInTheDocument();
     expect(screen.getByTestId("tag-add-todo-button")).toBeInTheDocument();
-    expect(screen.queryByTestId("tag-add-button")).not.toBeInTheDocument();
   });
 
-  it("normal: # button calls onAddTag", () => {
+  it("# button calls onAddTag", () => {
     const onAddTag = vi.fn();
     const props = {
       ...defaultProps,
-      data: { ...defaultProps.data, layoutMode: "normal", onAddTag },
+      data: { ...defaultProps.data, onAddTag },
     };
     render(<TagNode {...(props as any)} />);
     fireEvent.click(screen.getByTestId("tag-add-tag-button"));
     expect(onAddTag).toHaveBeenCalledWith("t1");
   });
 
-  it("normal: check button calls onAddTodo", () => {
+  it("check button calls onAddTodo", () => {
     const onAddTodo = vi.fn();
     const props = {
       ...defaultProps,
-      data: { ...defaultProps.data, layoutMode: "normal", onAddTodo },
+      data: { ...defaultProps.data, onAddTodo },
     };
     render(<TagNode {...(props as any)} />);
     fireEvent.click(screen.getByTestId("tag-add-todo-button"));
     expect(onAddTodo).toHaveBeenCalledWith("t1");
   });
 
-  it("calls onDrillDown when node is clicked", () => {
+  it("zoom button calls onDrillDown", () => {
     const onDrillDown = vi.fn();
     const props = {
       ...defaultProps,
       data: { ...defaultProps.data, onDrillDown },
     };
     render(<TagNode {...(props as any)} />);
-    fireEvent.click(screen.getByTestId("tag-node"));
+    fireEvent.click(screen.getByTestId("tag-zoom-button"));
     expect(onDrillDown).toHaveBeenCalledWith("t1");
   });
 
-  it("does not call onDrillDown when + button was just clicked", () => {
-    const onDrillDown = vi.fn();
-    const onAddAction = vi.fn();
+  it("edit button calls onEditTag", () => {
+    const onEditTag = vi.fn();
     const props = {
       ...defaultProps,
-      data: { ...defaultProps.data, layoutMode: "compact", onDrillDown, onAddAction },
+      data: { ...defaultProps.data, onEditTag },
     };
     render(<TagNode {...(props as any)} />);
-    // Click the + button first (sets addClickedRef)
-    fireEvent.click(screen.getByTestId("tag-add-button"));
-    // Then the drill-down click should be skipped
-    fireEvent.click(screen.getByTestId("tag-node"));
-    // onDrillDown should still be called on the second click because addClickedRef resets
-    // The first click on node triggers drillDown guard check
-    expect(onAddAction).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByTestId("tag-edit-button"));
+    expect(onEditTag).toHaveBeenCalledWith("t1");
   });
 });

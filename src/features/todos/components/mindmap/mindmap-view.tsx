@@ -22,12 +22,15 @@ import { TagInputNode } from "./tag-input-node.tsx";
 import { TodoInputNode } from "./todo-input-node.tsx";
 import { MindmapBreadcrumb } from "./mindmap-breadcrumb.tsx";
 import type { Todo } from "../../types.ts";
+import type { Tag } from "@/features/tags/types.ts";
 import { TAG_COLORS } from "@/features/tags/colors.ts";
 
 export interface MindmapViewProps {
   todos: Todo[];
   onToggle: (id: string) => void;
   onTitleClick?: (todo: Todo) => void;
+  onEdit?: (todo: Todo) => void;
+  onEditTag?: (tag: Tag) => void;
 }
 
 const nodeTypes = {
@@ -54,6 +57,8 @@ export function MindmapView({
   todos,
   onToggle,
   onTitleClick,
+  onEdit,
+  onEditTag,
 }: MindmapViewProps) {
   const { tags, createTag } = useTagStore();
   const allTodos = useTodoStore((s) => s.todos);
@@ -98,6 +103,16 @@ export function MindmapView({
     [allTodos, onTitleClick],
   );
 
+  const handleEditTodo = useCallback(
+    (todoId: string) => {
+      const todo = allTodos.find((t) => t.id === todoId);
+      if (todo && onEdit) {
+        onEdit(todo);
+      }
+    },
+    [allTodos, onEdit],
+  );
+
   const handleAddAction = useCallback(
     (tagId: string) => {
       if (actionTagId === tagId) {
@@ -140,18 +155,16 @@ export function MindmapView({
   );
 
   const handleCreateRootTag = useCallback(
-    async (_parentTagId: string, name: string) => {
-      const parentId = focusTagId ?? null;
-      const colorIndex = tags.length % TAG_COLORS.length;
+    async (name: string, color: string, parentId: string | null) => {
       await createTag({
         name,
-        color: TAG_COLORS[colorIndex]!,
+        color,
         isDefault: false,
         parentId,
       });
       setInputMode(null);
     },
-    [focusTagId, tags.length, createTag],
+    [createTag],
   );
 
   const handleCreateRootTodo = useCallback(
@@ -195,23 +208,45 @@ export function MindmapView({
     [allTodos],
   );
 
+  const handleTodoZoom = useCallback(
+    (todoId: string) => {
+      const todo = allTodos.find((t) => t.id === todoId);
+      if (!todo) return;
+      const primaryTagId = todo.tagIds[0];
+      if (!primaryTagId) return;
+      setFocusTagId(primaryTagId);
+      setActionTagId(null);
+      setInputMode(null);
+    },
+    [allTodos],
+  );
+
+  const handleEditTag = useCallback(
+    (tagId: string) => {
+      const tag = tags.find((t) => t.id === tagId);
+      if (tag && onEditTag) {
+        onEditTag(tag);
+      }
+    },
+    [tags, onEditTag],
+  );
+
   const handleCancelInput = useCallback(() => {
     setActionTagId(null);
     setInputMode(null);
   }, []);
 
   const handleCreateTag = useCallback(
-    async (parentTagId: string, name: string) => {
-      const colorIndex = tags.length % TAG_COLORS.length;
+    async (name: string, color: string, parentId: string | null) => {
       await createTag({
         name,
-        color: TAG_COLORS[colorIndex]!,
+        color,
         isDefault: false,
-        parentId: parentTagId,
+        parentId,
       });
       setInputMode(null);
     },
-    [tags.length, createTag],
+    [createTag],
   );
 
   const handleCreateTodo = useCallback(
@@ -266,8 +301,8 @@ export function MindmapView({
           ...node,
           data: {
             ...node.data,
-            layoutMode,
-            onAddAction: handleCenterAddAction,
+            onDrillDown: focusTagId ? () => handleDrillDown(focusTagId) : undefined,
+            onEditTag: focusTagId ? () => { const t = tags.find((tg) => tg.id === focusTagId); if (t && onEditTag) onEditTag(t); } : undefined,
             onAddTag: handleCenterAddTag,
             onAddTodo: handleCenterAddTodo,
           },
@@ -290,7 +325,9 @@ export function MindmapView({
             ...node.data,
             onToggle: handleToggle,
             onTitleClick: handleTitleClick,
+            onEdit: handleEditTodo,
             onAddSubTodo: handleTodoAddSubTodo,
+            onZoom: handleTodoZoom,
           },
         };
       }
@@ -300,9 +337,8 @@ export function MindmapView({
           draggable: true,
           data: {
             ...node.data,
-            layoutMode,
             onDrillDown: handleDrillDown,
-            onAddAction: handleAddAction,
+            onEditTag: handleEditTag,
             onAddTag: handleDirectAddTag,
             onAddTodo: handleDirectAddTodo,
           },
@@ -391,7 +427,9 @@ export function MindmapView({
           data:
             inputMode.type === "tag"
               ? {
-                  parentTagId: inputMode.tagId,
+                  defaultParentId: isCenter ? (focusTagId ?? null) : inputMode.tagId,
+                  defaultColor: TAG_COLORS[tags.length % TAG_COLORS.length]!,
+                  tags,
                   onCreateTag: isCenter ? handleCreateRootTag : handleCreateTag,
                   onCancel: handleCancelInput,
                 }
@@ -425,6 +463,7 @@ export function MindmapView({
     layoutMode,
     handleToggle,
     handleTitleClick,
+    handleEditTodo,
     handleDrillDown,
     handleAddAction,
     handleCenterAddAction,
@@ -439,7 +478,9 @@ export function MindmapView({
     handleCreateRootTodo,
     handleDirectAddTag,
     handleDirectAddTodo,
+    handleEditTag,
     handleTodoAddSubTodo,
+    handleTodoZoom,
   ]);
 
   // Interactive node state: allows tag nodes to be dragged while

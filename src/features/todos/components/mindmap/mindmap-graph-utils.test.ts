@@ -108,7 +108,7 @@ describe("buildMindmapGraph", () => {
         const dist = Math.sqrt(
           tagNode.position.x ** 2 + tagNode.position.y ** 2,
         );
-        expect(dist).toBeGreaterThan(100);
+        expect(dist).toBeGreaterThan(50);
       }
     });
 
@@ -487,6 +487,53 @@ describe("buildMindmapGraph", () => {
     });
   });
 
+  describe("no overlapping todos", () => {
+    it("sibling todos under the same tag have sufficient separation", () => {
+      const todos = Array.from({ length: 5 }, (_, i) =>
+        makeTodo({ id: `t${i}`, title: `Task ${i}` }),
+      );
+      const { nodes } = buildMindmapGraph(todos, [tag1]);
+
+      const todoNodes = nodes.filter((n) => n.type === "todoNode");
+      expect(todoNodes).toHaveLength(5);
+
+      // Every pair of todo nodes should be at least 50px apart
+      for (let i = 0; i < todoNodes.length; i++) {
+        for (let j = i + 1; j < todoNodes.length; j++) {
+          const dx = todoNodes[i]!.position.x - todoNodes[j]!.position.x;
+          const dy = todoNodes[i]!.position.y - todoNodes[j]!.position.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          expect(dist).toBeGreaterThan(50);
+        }
+      }
+    });
+
+    it("todos from different tags do not overlap", () => {
+      const todos = [
+        ...Array.from({ length: 3 }, (_, i) =>
+          makeTodo({ id: `t1-${i}`, title: `Work ${i}`, tagIds: ["tag-1"] }),
+        ),
+        ...Array.from({ length: 3 }, (_, i) =>
+          makeTodo({ id: `t2-${i}`, title: `Personal ${i}`, tagIds: ["tag-2"] }),
+        ),
+      ];
+      const { nodes } = buildMindmapGraph(todos, [tag1, tag2]);
+
+      const todoNodes = nodes.filter((n) => n.type === "todoNode");
+      expect(todoNodes).toHaveLength(6);
+
+      // Every pair of todo nodes should be at least 40px apart
+      for (let i = 0; i < todoNodes.length; i++) {
+        for (let j = i + 1; j < todoNodes.length; j++) {
+          const dx = todoNodes[i]!.position.x - todoNodes[j]!.position.x;
+          const dy = todoNodes[i]!.position.y - todoNodes[j]!.position.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          expect(dist).toBeGreaterThan(40);
+        }
+      }
+    });
+  });
+
   describe("spacing presets", () => {
     it("positions nodes further out with larger spacing", () => {
       const todo = makeTodo({ id: "t1", title: "Task 1" });
@@ -539,6 +586,32 @@ describe("buildMindmapGraph", () => {
       expect(center!.data.label).toBe("Work"); // tag1's name, not centerLabel
     });
 
+    it("passes focused tag color to center node", () => {
+      const todo = makeTodo({ id: "t1", title: "Task", tagIds: ["tag-child"] });
+      const { nodes } = buildMindmapGraph(
+        [todo],
+        [tag1, childTag],
+        { focusTagId: "tag-1" },
+      );
+
+      const center = nodes.find((n) => n.id === "center");
+      expect(center!.data.color).toBe(tag1.color);
+      expect(center!.data.textColor).toBeDefined();
+    });
+
+    it("does not pass color to center node at root level", () => {
+      const todo = makeTodo({ id: "t1", title: "Task", tagIds: ["tag-1"] });
+      const { nodes } = buildMindmapGraph(
+        [todo],
+        [tag1],
+        { focusTagId: null },
+      );
+
+      const center = nodes.find((n) => n.id === "center");
+      expect(center!.data.color).toBeUndefined();
+      expect(center!.data.textColor).toBeUndefined();
+    });
+
     it("shows only direct children of focused tag", () => {
       const todo = makeTodo({ id: "t1", title: "Task", tagIds: ["tag-grandchild"] });
       const { nodes } = buildMindmapGraph(
@@ -584,6 +657,21 @@ describe("buildMindmapGraph", () => {
       const todo2 = makeTodo({ id: "t2", title: "Personal Task", tagIds: ["tag-2"] });
       const { nodes } = buildMindmapGraph(
         [todo1, todo2],
+        [tag1, tag2],
+        { focusTagId: "tag-1" },
+      );
+
+      const todoNodes = nodes.filter((n) => n.type === "todoNode");
+      expect(todoNodes).toHaveLength(1);
+      expect(todoNodes[0]!.data.label).toBe("Work Task");
+    });
+
+    it("does not show child todos of irrelevant parent todos", () => {
+      const parentTodo = makeTodo({ id: "t-parent", title: "Personal Parent", tagIds: ["tag-2"] });
+      const childTodo = makeTodo({ id: "t-child", title: "Personal Child", tagIds: ["tag-2"], parentId: "t-parent" });
+      const workTodo = makeTodo({ id: "t-work", title: "Work Task", tagIds: ["tag-1"] });
+      const { nodes } = buildMindmapGraph(
+        [parentTodo, childTodo, workTodo],
         [tag1, tag2],
         { focusTagId: "tag-1" },
       );

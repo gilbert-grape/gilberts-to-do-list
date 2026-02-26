@@ -30,6 +30,7 @@ import {
   ChoiceDialog,
 } from "@/shared/components/confirm-dialog.tsx";
 import type { Todo } from "../types.ts";
+import type { Tag } from "@/features/tags/types.ts";
 
 function applyStatusFilter(todos: Todo[], filter: StatusFilter): Todo[] {
   if (filter === "open") return todos.filter((t) => t.status === "open");
@@ -88,12 +89,18 @@ export function MainView() {
     getChildren,
     reorderTodos,
   } = useTodoStore();
-  const { tags, isLoaded: tagsLoaded, loadTags, createTag } = useTagStore();
+  const { tags, isLoaded: tagsLoaded, loadTags, createTag, updateTag } = useTagStore();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showCreateTagForm, setShowCreateTagForm] = useState(false);
   const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState<string>(TAG_COLORS[0]!);
+  const [newTagParentId, setNewTagParentId] = useState<string | null>(null);
   const [createParentId, setCreateParentId] = useState<string | null>(null);
+  const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  const [editTagName, setEditTagName] = useState("");
+  const [editTagColor, setEditTagColor] = useState("");
+  const [editTagParentId, setEditTagParentId] = useState<string | null>(null);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [deletingTodo, setDeletingTodo] = useState<Todo | null>(null);
   const [detailTodoId, setDetailTodoId] = useState<string | null>(null);
@@ -139,16 +146,43 @@ export function MainView() {
   const handleCreateTag = useCallback(async () => {
     const name = newTagName.trim();
     if (!name) return;
-    const colorIndex = tags.length % TAG_COLORS.length;
     await createTag({
       name,
-      color: TAG_COLORS[colorIndex]!,
+      color: newTagColor,
       isDefault: false,
-      parentId: null,
+      parentId: newTagParentId,
     });
     setNewTagName("");
+    setNewTagColor(TAG_COLORS[(tags.length + 1) % TAG_COLORS.length]!);
+    setNewTagParentId(null);
     setShowCreateTagForm(false);
-  }, [newTagName, tags.length, createTag]);
+  }, [newTagName, newTagColor, newTagParentId, tags.length, createTag]);
+
+  const handleStartEditTag = useCallback((tag: Tag) => {
+    setEditingTag(tag);
+    setEditTagName(tag.name);
+    setEditTagColor(tag.color);
+    setEditTagParentId(tag.parentId);
+    setShowCreateTagForm(false);
+    setShowCreateForm(false);
+    setEditingTodo(null);
+  }, []);
+
+  const handleSaveTag = useCallback(async () => {
+    if (!editingTag) return;
+    const name = editTagName.trim();
+    if (!name) return;
+    await updateTag(editingTag.id, {
+      name,
+      color: editTagColor,
+      parentId: editTagParentId,
+    });
+    setEditingTag(null);
+  }, [editingTag, editTagName, editTagColor, editTagParentId, updateTag]);
+
+  const handleCancelEditTag = useCallback(() => {
+    setEditingTag(null);
+  }, []);
 
   const filteredTodos = useMemo(() => {
     let result = todos;
@@ -376,6 +410,7 @@ export function MainView() {
           <TodoEditForm
             todo={editingTodo}
             onClose={() => setEditingTodo(null)}
+            onDelete={handleDelete}
           />
         )}
 
@@ -433,10 +468,17 @@ export function MainView() {
               setShowCreateTagForm(false);
               setCreateParentId(null);
               setEditingTodo(null);
+              setEditingTag(null);
             }}
-            className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]"
+            className="flex h-[30px] items-center gap-1.5 rounded-lg bg-[var(--color-primary)] px-2 text-xs font-medium text-white hover:bg-[var(--color-primary-hover)] md:px-3 md:text-sm"
+            aria-label={showCreateForm ? t("common.cancel") : t("todos.newTodoCompact")}
           >
-            {showCreateForm ? t("common.cancel") : t("todos.newTodoCompact")}
+            {showCreateForm ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5 shrink-0"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" /></svg>
+            )}
+            <span className="hidden md:inline">{showCreateForm ? t("common.cancel") : t("todos.newTodoCompact")}</span>
           </button>
           <button
             type="button"
@@ -444,10 +486,17 @@ export function MainView() {
               setShowCreateTagForm((prev) => !prev);
               setShowCreateForm(false);
               setEditingTodo(null);
+              setEditingTag(null);
             }}
-            className="rounded-lg border border-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+            className="flex h-[30px] items-center gap-1.5 rounded-lg border border-[var(--color-primary)] px-2 text-xs font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white md:px-3 md:text-sm"
+            aria-label={showCreateTagForm ? t("common.cancel") : t("tags.newTagCompact")}
           >
-            {showCreateTagForm ? t("common.cancel") : t("tags.newTagCompact")}
+            {showCreateTagForm ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            ) : (
+              <span className="text-xs font-bold">#</span>
+            )}
+            <span className="hidden md:inline">{showCreateTagForm ? t("common.cancel") : t("tags.newTagCompact")}</span>
           </button>
         </div>
       ) : (
@@ -494,10 +543,16 @@ export function MainView() {
               setShowCreateTagForm(false);
               setCreateParentId(null);
               setEditingTodo(null);
+              setEditingTag(null);
             }}
-            className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]"
+            className="flex h-[30px] items-center gap-1.5 rounded-lg bg-[var(--color-primary)] px-2 text-xs font-medium text-white hover:bg-[var(--color-primary-hover)] md:px-4 md:text-sm"
           >
-            {showCreateForm ? t("common.cancel") : t("todos.newTodo")}
+            {showCreateForm ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 md:hidden"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5 shrink-0 md:hidden"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" /></svg>
+            )}
+            <span className="hidden md:inline">{showCreateForm ? t("common.cancel") : t("todos.newTodo")}</span>
           </button>
           <button
             type="button"
@@ -505,10 +560,16 @@ export function MainView() {
               setShowCreateTagForm((prev) => !prev);
               setShowCreateForm(false);
               setEditingTodo(null);
+              setEditingTag(null);
             }}
-            className="rounded-lg border border-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+            className="flex h-[30px] items-center gap-1.5 rounded-lg border border-[var(--color-primary)] px-2 text-xs font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white md:px-4 md:text-sm"
           >
-            {showCreateTagForm ? t("common.cancel") : t("tags.newTag")}
+            {showCreateTagForm ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 md:hidden"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            ) : (
+              <span className="text-xs font-bold md:hidden">#</span>
+            )}
+            <span className="hidden md:inline">{showCreateTagForm ? t("common.cancel") : t("tags.newTag")}</span>
           </button>
         </div>
       )}
@@ -535,28 +596,150 @@ export function MainView() {
             e.preventDefault();
             void handleCreateTag();
           }}
-          className="flex gap-2"
+          className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
+          data-testid="create-tag-form"
         >
-          <input
-            type="text"
-            value={newTagName}
-            onChange={(e) => setNewTagName(e.target.value)}
-            placeholder={t("tags.namePlaceholder")}
-            autoFocus
-            className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)]"
-          />
-          <button
-            type="submit"
-            disabled={!newTagName.trim()}
-            className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-40"
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              placeholder={t("tags.namePlaceholder")}
+              autoFocus
+              maxLength={50}
+              className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)]"
+            />
+            <button
+              type="submit"
+              disabled={!newTagName.trim()}
+              className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-40"
+            >
+              {t("tags.create")}
+            </button>
+          </div>
+
+          <div
+            className="flex flex-wrap gap-2"
+            role="radiogroup"
+            aria-label={t("tags.colorPicker")}
+            data-testid="create-tag-color-picker"
           >
-            {t("tags.create")}
-          </button>
+            {TAG_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                role="radio"
+                aria-checked={newTagColor === color}
+                onClick={() => setNewTagColor(color)}
+                className={`h-8 w-8 rounded-full border-2 transition-all ${
+                  newTagColor === color
+                    ? "border-[var(--color-text)] scale-110"
+                    : "border-transparent"
+                }`}
+                style={{ backgroundColor: color }}
+                aria-label={color}
+              />
+            ))}
+          </div>
+
+          <select
+            value={newTagParentId ?? ""}
+            onChange={(e) => setNewTagParentId(e.target.value || null)}
+            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)]"
+            aria-label={t("tags.parentTag")}
+            data-testid="create-tag-parent-select"
+          >
+            <option value="">{t("tags.noParent")}</option>
+            {tags.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                {tag.name}
+              </option>
+            ))}
+          </select>
+        </form>
+      )}
+
+      {editingTag && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSaveTag();
+          }}
+          className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
+          data-testid="edit-tag-form"
+        >
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={editTagName}
+              onChange={(e) => setEditTagName(e.target.value)}
+              placeholder={t("tags.namePlaceholder")}
+              autoFocus
+              maxLength={50}
+              className="min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)]"
+              data-testid="edit-tag-name"
+            />
+            <button
+              type="submit"
+              disabled={!editTagName.trim()}
+              className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-40"
+              data-testid="edit-tag-save"
+            >
+              {t("common.save")}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelEditTag}
+              className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
+              data-testid="edit-tag-cancel"
+            >
+              {t("common.cancel")}
+            </button>
+          </div>
+
+          <div
+            className="flex flex-wrap gap-2"
+            role="radiogroup"
+            aria-label={t("tags.colorPicker")}
+            data-testid="edit-tag-color-picker"
+          >
+            {TAG_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                role="radio"
+                aria-checked={editTagColor === color}
+                onClick={() => setEditTagColor(color)}
+                className={`h-8 w-8 rounded-full border-2 transition-all ${
+                  editTagColor === color
+                    ? "border-[var(--color-text)] scale-110"
+                    : "border-transparent"
+                }`}
+                style={{ backgroundColor: color }}
+                aria-label={color}
+              />
+            ))}
+          </div>
+
+          <select
+            value={editTagParentId ?? ""}
+            onChange={(e) => setEditTagParentId(e.target.value || null)}
+            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)]"
+            aria-label={t("tags.parentTag")}
+            data-testid="edit-tag-parent-select"
+          >
+            <option value="">{t("tags.noParent")}</option>
+            {tags.filter((tg) => tg.id !== editingTag.id).map((tg) => (
+              <option key={tg.id} value={tg.id}>
+                {tg.name}
+              </option>
+            ))}
+          </select>
         </form>
       )}
 
       {editingTodo && (
-        <TodoEditForm todo={editingTodo} onClose={() => setEditingTodo(null)} />
+        <TodoEditForm todo={editingTodo} onClose={() => setEditingTodo(null)} onDelete={handleDelete} />
       )}
 
       {filteredTodos.length === 0 &&
@@ -617,6 +800,8 @@ export function MainView() {
             todos={filteredTodos}
             onToggle={toggleStatus}
             onTitleClick={handleTitleClick}
+            onEdit={handleEdit}
+            onEditTag={handleStartEditTag}
           />
         </Suspense>
       )}

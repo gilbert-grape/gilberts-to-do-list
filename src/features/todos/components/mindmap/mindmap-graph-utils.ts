@@ -9,12 +9,15 @@ export interface MindmapGraph {
   edges: Edge[];
 }
 
-// Spacing presets
+// Spacing presets (compact – fits on screen without scrolling)
 const SPACING_PRESETS: Record<MindmapSpacing, { base: number; step: number; todoExtra: number }> = {
-  small: { base: 140, step: 120, todoExtra: 110 },
-  medium: { base: 200, step: 180, todoExtra: 160 },
-  large: { base: 280, step: 240, todoExtra: 200 },
+  small: { base: 90, step: 80, todoExtra: 70 },
+  medium: { base: 130, step: 120, todoExtra: 100 },
+  large: { base: 180, step: 160, todoExtra: 130 },
 };
+
+/** Minimum pixel gap between adjacent node centers to prevent overlap */
+const MIN_NODE_GAP = 60;
 
 function getDescendantTagIds(tagId: string, tags: Tag[]): string[] {
   const children = tags.filter((t) => t.parentId === tagId);
@@ -106,7 +109,12 @@ export function buildMindmapGraph(
     id: "center",
     type: "centerNode",
     position: { x: 0, y: 0 },
-    data: { label: centerLabel },
+    data: {
+      label: centerLabel,
+      ...(focusTag
+        ? { color: focusTag.color, textColor: getContrastColor(focusTag.color) }
+        : {}),
+    },
   });
 
   if (todos.length === 0 && tags.length === 0) {
@@ -131,22 +139,6 @@ export function buildMindmapGraph(
     );
     relevantTodoTagIds = allTagIdSet;
   }
-
-  // BFS to build tag hierarchy with tiers
-  interface TagQueueItem {
-    tag: Tag;
-    tier: number;
-    parentAngle: number;
-    angleStart: number;
-    angleEnd: number;
-  }
-
-  // Distribute root tags around full circle (starting from top: -PI/2)
-  const rootAngles = distributeAngles(
-    rootTags.length,
-    -Math.PI,
-    Math.PI,
-  );
 
   // Pre-compute todo groupings so the BFS can reserve angular space for todos
   const childrenMap = new Map<string | null, Todo[]>();
@@ -173,15 +165,42 @@ export function buildMindmapGraph(
     }
   }
 
+  // When focused on a tag, its direct todos need a dedicated angular slot
+  // alongside the child tags so they don't overlap.
+  const focusHasDirectTodos = focusTagId
+    ? (todosByTag.get(focusTagId)?.length ?? 0) > 0
+    : false;
+
+  // BFS to build tag hierarchy with tiers
+  interface TagQueueItem {
+    tag: Tag;
+    tier: number;
+    parentAngle: number;
+    angleStart: number;
+    angleEnd: number;
+  }
+
+  // Distribute root tags (and optionally a focus-todo slot) around full circle
+  const totalRootSlots = rootTags.length + (focusHasDirectTodos ? 1 : 0);
+  const rootAngles = distributeAngles(
+    totalRootSlots,
+    -Math.PI,
+    Math.PI,
+  );
+
   const tagAngleMap = new Map<string, number>();
   const tagTierMap = new Map<string, number>();
   const tagChildAnglesMap = new Map<string, number[]>();
   const tagTodoAngleMap = new Map<string, number>();
   let maxTagTier = 0;
 
-  // Calculate angular weight for each root tag (based on descendant count)
+  // Pre-assign angular slot for focused tag's direct todos
+  if (focusHasDirectTodos && focusTagId) {
+    tagTodoAngleMap.set(focusTagId, rootAngles[rootTags.length]!);
+  }
+
   const rootSliceSize =
-    rootTags.length > 0 ? (2 * Math.PI) / rootTags.length : 0;
+    totalRootSlots > 0 ? (2 * Math.PI) / totalRootSlots : 0;
 
   const tagQueue: TagQueueItem[] = rootTags.map((tag, i) => ({
     tag,
@@ -316,9 +335,11 @@ export function buildMindmapGraph(
     // so edges from the same parent don't cross.
     const todoCenter = tagTodoAngleMap.get(tagId) ?? tagAngle;
 
-    const spreadAngle = Math.min(
-      Math.PI / 4,
-      (tagTodos.length - 1) * 0.15 + 0.1,
+    // Ensure enough angular spread so adjacent todos are at least MIN_NODE_GAP apart
+    const minSpread = (tagTodos.length * MIN_NODE_GAP) / (2 * todoRadius);
+    const spreadAngle = Math.max(
+      minSpread,
+      Math.min(Math.PI / 2, (tagTodos.length - 1) * 0.3 + 0.15),
     );
     const todoAngles = distributeAngles(
       tagTodos.length,
@@ -371,6 +392,9 @@ export function buildMindmapGraph(
 
   const todoQueue: TodoQueueItem[] = [];
   for (const todo of rootTodos) {
+    // Only expand children of todos that were actually rendered
+    if (!todoAngleMap.has(todo.id)) continue;
+
     // Skip child-todo expansion for collapsed tags
     const primaryTagId = todo.tagIds.find((tid) => allTagIdSet.has(tid));
     if (primaryTagId && collapsedTagIds.has(primaryTagId)) continue;
@@ -381,7 +405,11 @@ export function buildMindmapGraph(
     const radius =
       RING_RADIUS_BASE + parentTagTier * RING_RADIUS_STEP + TODO_RING_EXTRA;
 
-    const spreadAngle = Math.min(Math.PI / 6, (children.length - 1) * 0.12 + 0.08);
+    const childMinSpread = (children.length * MIN_NODE_GAP) / (2 * (radius + TODO_RING_EXTRA * 0.7));
+    const spreadAngle = Math.max(
+      childMinSpread,
+      Math.min(Math.PI / 3, (children.length - 1) * 0.25 + 0.15),
+    );
     const childAngles = distributeAngles(children.length, angle - spreadAngle, angle + spreadAngle);
     children.forEach((child, ci) => {
       todoQueue.push({
@@ -428,9 +456,10 @@ export function buildMindmapGraph(
 
     // Queue children of this todo
     const children = childrenMap.get(todo.id) ?? [];
-    const spreadAngle = Math.min(
-      Math.PI / 6,
-      (children.length - 1) * 0.12 + 0.08,
+    const bfsChildMinSpread = (children.length * MIN_NODE_GAP) / (2 * (radius + TODO_RING_EXTRA * 0.7));
+    const spreadAngle = Math.max(
+      bfsChildMinSpread,
+      Math.min(Math.PI / 3, (children.length - 1) * 0.25 + 0.15),
     );
     const childAngles = distributeAngles(
       children.length,

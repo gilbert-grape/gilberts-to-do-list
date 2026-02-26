@@ -1,4 +1,5 @@
 import { render, screen, act } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MindmapView } from "./mindmap-view.tsx";
@@ -22,9 +23,6 @@ vi.mock("@xyflow/react", () => ({
       {nodes.map((node) => (
         <div key={node.id} data-testid={`node-${node.id}`} data-type={node.type}>
           {/* Center node callbacks */}
-          {node.type === "centerNode" && node.data.onAddAction && (
-            <button data-testid={`btn-center-add-action`} onClick={() => (node.data.onAddAction as () => void)()}>center-add</button>
-          )}
           {node.type === "centerNode" && node.data.onAddTag && (
             <button data-testid={`btn-center-add-tag`} onClick={() => (node.data.onAddTag as () => void)()}>center-add-tag</button>
           )}
@@ -35,8 +33,8 @@ vi.mock("@xyflow/react", () => ({
           {node.type === "tagNode" && node.data.onDrillDown && (
             <button data-testid={`btn-drill-${node.id}`} onClick={() => (node.data.onDrillDown as (id: string) => void)(node.data.tagId as string)}>drill-{node.id}</button>
           )}
-          {node.type === "tagNode" && node.data.onAddAction && (
-            <button data-testid={`btn-action-${node.id}`} onClick={() => (node.data.onAddAction as (id: string) => void)(node.data.tagId as string)}>action-{node.id}</button>
+          {node.type === "tagNode" && node.data.onEditTag && (
+            <button data-testid={`btn-edit-tag-${node.id}`} onClick={() => (node.data.onEditTag as (id: string) => void)(node.data.tagId as string)}>edit-tag-{node.id}</button>
           )}
           {node.type === "tagNode" && node.data.onAddTag && (
             <button data-testid={`btn-add-tag-${node.id}`} onClick={() => (node.data.onAddTag as (id: string) => void)(node.data.tagId as string)}>add-tag-{node.id}</button>
@@ -51,19 +49,15 @@ vi.mock("@xyflow/react", () => ({
           {node.type === "todoNode" && node.data.onTitleClick && (
             <button data-testid={`btn-title-${node.id}`} onClick={() => (node.data.onTitleClick as (id: string) => void)(node.data.todoId as string)}>title-{node.id}</button>
           )}
-          {/* Tag action node callbacks */}
-          {node.type === "tagActionNode" && node.data.onSelectAction && (
-            <>
-              <button data-testid={`btn-select-tag-${node.id}`} onClick={() => (node.data.onSelectAction as (id: string, choice: string) => void)(node.data.tagId as string, "tag")}>select-tag</button>
-              <button data-testid={`btn-select-todo-${node.id}`} onClick={() => (node.data.onSelectAction as (id: string, choice: string) => void)(node.data.tagId as string, "todo")}>select-todo</button>
-            </>
+          {node.type === "todoNode" && node.data.onEdit && (
+            <button data-testid={`btn-edit-${node.id}`} onClick={() => (node.data.onEdit as (id: string) => void)(node.data.todoId as string)}>edit-{node.id}</button>
           )}
-          {node.type === "tagActionNode" && node.data.onCancel && (
-            <button data-testid={`btn-cancel-${node.id}`} onClick={() => (node.data.onCancel as () => void)()}>cancel</button>
+          {node.type === "todoNode" && node.data.onZoom && (
+            <button data-testid={`btn-zoom-${node.id}`} onClick={() => (node.data.onZoom as (id: string) => void)(node.data.todoId as string)}>zoom-{node.id}</button>
           )}
           {/* Tag input node callbacks */}
           {node.type === "tagInputNode" && node.data.onCreateTag && (
-            <button data-testid={`btn-create-tag-${node.id}`} onClick={() => (node.data.onCreateTag as (parentId: string, name: string) => void)(node.data.parentTagId as string, "NewTag")}>create-tag</button>
+            <button data-testid={`btn-create-tag-${node.id}`} onClick={() => (node.data.onCreateTag as (name: string, color: string, parentId: string | null) => void)("NewTag", node.data.defaultColor as string, node.data.defaultParentId as string | null)}>create-tag</button>
           )}
           {/* Todo input node callbacks */}
           {node.type === "todoInputNode" && node.data.onCreateTodo && (
@@ -118,6 +112,10 @@ const todo1: Todo = {
 const mockCreateTag = vi.fn().mockResolvedValue(undefined);
 const mockCreateTodo = vi.fn().mockResolvedValue(undefined);
 
+function renderWithRouter(ui: React.ReactElement) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+}
+
 describe("MindmapView", () => {
   beforeEach(() => {
     useTagStore.setState({ tags: [tag1], isLoaded: true, createTag: mockCreateTag } as never);
@@ -128,14 +126,14 @@ describe("MindmapView", () => {
   });
 
   it("renders the mindmap container", () => {
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
     expect(screen.getByTestId("mindmap-container")).toBeInTheDocument();
   });
 
   it("renders ReactFlow with nodes and edges", () => {
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
     const flow = screen.getByTestId("react-flow");
@@ -146,7 +144,7 @@ describe("MindmapView", () => {
   });
 
   it("renders Controls and Background", () => {
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
     expect(screen.getByTestId("controls")).toBeInTheDocument();
@@ -154,7 +152,7 @@ describe("MindmapView", () => {
   });
 
   it("renders tags even when no todos", () => {
-    render(
+    renderWithRouter(
       <MindmapView todos={[]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
     const flow = screen.getByTestId("react-flow");
@@ -163,31 +161,9 @@ describe("MindmapView", () => {
     expect(flow.getAttribute("data-edges")).toBe("1");
   });
 
-  it("toggles center action node when center add-action is clicked", async () => {
-    const user = userEvent.setup();
-    render(
-      <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
-    );
-
-    // Initially no action node
-    expect(screen.queryByTestId("node-action-__center__")).not.toBeInTheDocument();
-
-    // Click center add action button
-    await user.click(screen.getByTestId("btn-center-add-action"));
-
-    // Action node should now appear
-    expect(screen.getByTestId("node-action-__center__")).toBeInTheDocument();
-
-    // Click again to toggle it off
-    await user.click(screen.getByTestId("btn-center-add-action"));
-
-    // Action node should disappear
-    expect(screen.queryByTestId("node-action-__center__")).not.toBeInTheDocument();
-  });
-
   it("shows tag input node when center add-tag is clicked", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -201,7 +177,7 @@ describe("MindmapView", () => {
 
   it("shows todo input node when center add-todo is clicked", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -215,7 +191,7 @@ describe("MindmapView", () => {
 
   it("drills down into a tag and shows breadcrumb", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -229,24 +205,10 @@ describe("MindmapView", () => {
     expect(screen.getByTestId("mindmap-breadcrumb")).toBeInTheDocument();
   });
 
-  it("shows action node for a specific tag when tag add-action is clicked", async () => {
-    const user = userEvent.setup();
-    render(
-      <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
-    );
-
-    expect(screen.queryByTestId("node-action-tag-1")).not.toBeInTheDocument();
-
-    await user.click(screen.getByTestId("btn-action-tag-tag-1"));
-
-    expect(screen.getByTestId("node-action-tag-1")).toBeInTheDocument();
-    expect(screen.getByTestId("node-action-tag-1").getAttribute("data-type")).toBe("tagActionNode");
-  });
-
   it("calls onToggle when todo toggle button is clicked", async () => {
     const user = userEvent.setup();
     const mockOnToggle = vi.fn();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={mockOnToggle} onTitleClick={vi.fn()} />,
     );
 
@@ -258,7 +220,7 @@ describe("MindmapView", () => {
   it("calls onTitleClick with the todo object when todo title is clicked", async () => {
     const user = userEvent.setup();
     const mockOnTitleClick = vi.fn();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={mockOnTitleClick} />,
     );
 
@@ -269,7 +231,7 @@ describe("MindmapView", () => {
 
   it("calls createTag when tag is created via center tag input node", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -297,7 +259,7 @@ describe("MindmapView", () => {
 
   it("calls createTodo when todo is created via center todo input node", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -325,7 +287,7 @@ describe("MindmapView", () => {
 
   it("cancels input node when cancel button is clicked", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -342,45 +304,9 @@ describe("MindmapView", () => {
     expect(screen.queryByTestId("node-input-tag-__center__")).not.toBeInTheDocument();
   });
 
-  it("transitions from action node to tag input node when select-tag is chosen", async () => {
-    const user = userEvent.setup();
-    render(
-      <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
-    );
-
-    // Open center action node
-    await user.click(screen.getByTestId("btn-center-add-action"));
-    expect(screen.getByTestId("node-action-__center__")).toBeInTheDocument();
-
-    // Select "tag" from the action node
-    await user.click(screen.getByTestId("btn-select-tag-action-__center__"));
-
-    // Action node should be gone, replaced by tag input node
-    expect(screen.queryByTestId("node-action-__center__")).not.toBeInTheDocument();
-    expect(screen.getByTestId("node-input-tag-__center__")).toBeInTheDocument();
-  });
-
-  it("transitions from action node to todo input node when select-todo is chosen", async () => {
-    const user = userEvent.setup();
-    render(
-      <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
-    );
-
-    // Open center action node
-    await user.click(screen.getByTestId("btn-center-add-action"));
-    expect(screen.getByTestId("node-action-__center__")).toBeInTheDocument();
-
-    // Select "todo" from the action node
-    await user.click(screen.getByTestId("btn-select-todo-action-__center__"));
-
-    // Action node should be gone, replaced by todo input node
-    expect(screen.queryByTestId("node-action-__center__")).not.toBeInTheDocument();
-    expect(screen.getByTestId("node-input-todo-__center__")).toBeInTheDocument();
-  });
-
   it("shows breadcrumb when focused on a tag via drill-down", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -400,7 +326,7 @@ describe("MindmapView", () => {
 
   it("opens tag input directly from tag node add-tag button", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -416,7 +342,7 @@ describe("MindmapView", () => {
 
   it("opens todo input directly from tag node add-todo button", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -430,26 +356,9 @@ describe("MindmapView", () => {
     expect(screen.getByTestId("node-input-todo-tag-1").getAttribute("data-type")).toBe("todoInputNode");
   });
 
-  it("cancels action node when cancel button is clicked", async () => {
-    const user = userEvent.setup();
-    render(
-      <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
-    );
-
-    // Open action node
-    await user.click(screen.getByTestId("btn-center-add-action"));
-    expect(screen.getByTestId("node-action-__center__")).toBeInTheDocument();
-
-    // Click cancel on the action node
-    await user.click(screen.getByTestId("btn-cancel-action-__center__"));
-
-    // Action node should disappear
-    expect(screen.queryByTestId("node-action-__center__")).not.toBeInTheDocument();
-  });
-
   it("calls createTag with parentId when creating tag from tag node input", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -474,7 +383,7 @@ describe("MindmapView", () => {
 
   it("calls createTodo with tagId when creating todo from tag node input", async () => {
     const user = userEvent.setup();
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -499,7 +408,7 @@ describe("MindmapView", () => {
 
   it("uses userName in center node label", () => {
     useSettingsStore.setState({ userName: "Gilbert" });
-    render(
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
@@ -507,20 +416,47 @@ describe("MindmapView", () => {
     expect(screen.getByTestId("node-center")).toBeInTheDocument();
   });
 
-  it("clears action and input state on drill-down", async () => {
+  it("calls onEdit with the todo object when edit button is clicked", async () => {
     const user = userEvent.setup();
-    render(
+    const mockOnEdit = vi.fn();
+    renderWithRouter(
+      <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} onEdit={mockOnEdit} />,
+    );
+
+    await user.click(screen.getByTestId("btn-edit-todo-todo-1"));
+
+    expect(mockOnEdit).toHaveBeenCalledWith(todo1);
+  });
+
+  it("calls onEditTag with the tag object when edit-tag button is clicked", async () => {
+    const user = userEvent.setup();
+    const mockOnEditTag = vi.fn();
+    renderWithRouter(
+      <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} onEditTag={mockOnEditTag} />,
+    );
+
+    // The edit-tag button should exist on the tag node
+    expect(screen.getByTestId("btn-edit-tag-tag-tag-1")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("btn-edit-tag-tag-tag-1"));
+
+    expect(mockOnEditTag).toHaveBeenCalledWith(tag1);
+  });
+
+  it("drills down into parent tag when todo zoom button is clicked", async () => {
+    const user = userEvent.setup();
+    renderWithRouter(
       <MindmapView todos={[todo1]} onToggle={vi.fn()} onTitleClick={vi.fn()} />,
     );
 
-    // Open an action node
-    await user.click(screen.getByTestId("btn-center-add-action"));
-    expect(screen.getByTestId("node-action-__center__")).toBeInTheDocument();
+    // No breadcrumb at root
+    expect(screen.queryByTestId("mindmap-breadcrumb")).not.toBeInTheDocument();
 
-    // Drill into tag-1 -- this should clear the action state
-    await user.click(screen.getByTestId("btn-drill-tag-tag-1"));
+    // Click zoom on todo-1 (its primary tag is tag-1)
+    await user.click(screen.getByTestId("btn-zoom-todo-todo-1"));
 
-    // Action node should be gone (drill-down clears action and input state)
-    expect(screen.queryByTestId("node-action-__center__")).not.toBeInTheDocument();
+    // Should drill into tag-1 — breadcrumb should appear
+    expect(screen.getByTestId("mindmap-breadcrumb")).toBeInTheDocument();
+    expect(screen.getByTestId("mindmap-breadcrumb").textContent).toContain("General");
   });
 });

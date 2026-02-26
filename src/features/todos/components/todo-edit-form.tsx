@@ -15,9 +15,10 @@ import type { Todo } from "../types.ts";
 export interface TodoEditFormProps {
   todo: Todo;
   onClose: () => void;
+  onDelete?: (todo: Todo) => void;
 }
 
-export function TodoEditForm({ todo, onClose }: TodoEditFormProps) {
+export function TodoEditForm({ todo, onClose, onDelete }: TodoEditFormProps) {
   const { t } = useTranslation();
   const { todos, updateTodo } = useTodoStore();
   const { tags } = useTagStore();
@@ -160,6 +161,18 @@ export function TodoEditForm({ todo, onClose }: TodoEditFormProps) {
           {t("common.save")}
         </button>
       </div>
+
+      {onDelete && (
+        <div className="border-t border-[var(--color-border)] pt-3">
+          <button
+            type="button"
+            onClick={() => onDelete(todo)}
+            className="w-full rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-danger)] hover:bg-[var(--color-danger)] hover:text-white transition-colors"
+          >
+            {t("common.delete")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -19,7 +19,7 @@ vi.mock("react-i18next", () => ({
         "common.save": "Save",
         "common.delete": "Delete",
         "common.search": "Search...",
-        "todos.newTodo": "+ To-Do",
+        "todos.newTodo": "New To-Do",
         "todos.completed": "Completed",
         "todos.titlePlaceholder": "What needs to be done?",
         "todos.descriptionPlaceholder": "Add notes...",
@@ -58,12 +58,12 @@ vi.mock("react-i18next", () => ({
         "views.hardcore": "Hardcore",
         "settings.showCompleted": `Show Completed (${options?.count ?? ""})`,
         "settings.hideCompleted": `Hide Completed (${options?.count ?? ""})`,
-        "tags.newTag": "+ Tag",
-        "tags.newTagCompact": "+Tag",
+        "tags.newTag": "New Tag",
+        "tags.newTagCompact": "New Tag",
         "tags.namePlaceholder": "Tag name...",
         "tags.create": "Create Tag",
         "errors.deleteFailed": "Delete failed",
-        "todos.newTodoCompact": "+",
+        "todos.newTodoCompact": "New To-Do",
         "settings.mindmapFilterAll": "All statuses",
         "settings.mindmapFilterOpen": "Open",
         "settings.mindmapFilterCompleted": "Completed",
@@ -211,7 +211,7 @@ describe("MainView", () => {
   it("shows new todo button when loaded", () => {
     setupStores();
     render(<MemoryRouter><MainView /></MemoryRouter>);
-    expect(screen.getByText("+ To-Do")).toBeInTheDocument();
+    expect(screen.getByText("New To-Do")).toBeInTheDocument();
   });
 
   it("shows empty state message when no todos", () => {
@@ -240,7 +240,7 @@ describe("MainView", () => {
     setupStores();
     render(<MemoryRouter><MainView /></MemoryRouter>);
 
-    await user.click(screen.getByText("+ To-Do"));
+    await user.click(screen.getByText("New To-Do"));
     expect(
       screen.getByPlaceholderText("What needs to be done?"),
     ).toBeInTheDocument();
@@ -439,7 +439,7 @@ describe("MainView", () => {
     it("renders create sibling button on todo items", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
-      expect(screen.getByLabelText("+ To-Do")).toBeInTheDocument();
+      expect(screen.getByLabelText("New To-Do")).toBeInTheDocument();
     });
 
     it("renders create sub-todo button on todo items", () => {
@@ -465,7 +465,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByLabelText("+ To-Do"));
+      await user.click(screen.getByLabelText("New To-Do"));
       expect(
         screen.getByPlaceholderText("What needs to be done?"),
       ).toBeInTheDocument();
@@ -492,7 +492,7 @@ describe("MainView", () => {
       await user.click(screen.getByText("Buy milk"));
       await user.click(screen.getByLabelText("Back"));
       // Should be back in list view
-      expect(screen.getByText("+ To-Do")).toBeInTheDocument();
+      expect(screen.getByText("New To-Do")).toBeInTheDocument();
     });
 
     it("opens edit form from detail view", async () => {
@@ -607,7 +607,7 @@ describe("MainView", () => {
     it("shows '+ Tag' button in normal layout", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
-      expect(screen.getByText("+ Tag")).toBeInTheDocument();
+      expect(screen.getByText("New Tag")).toBeInTheDocument();
     });
 
     it("toggles tag create form when '+ Tag' is clicked", async () => {
@@ -615,7 +615,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByText("+ Tag"));
+      await user.click(screen.getByText("New Tag"));
       expect(screen.getByPlaceholderText("Tag name...")).toBeInTheDocument();
       expect(screen.getByText("Create Tag")).toBeInTheDocument();
     });
@@ -625,7 +625,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByText("+ Tag"));
+      await user.click(screen.getByText("New Tag"));
       // Button should now say "Cancel"
       const cancelButtons = screen.getAllByText("Cancel");
       expect(cancelButtons.length).toBeGreaterThanOrEqual(1);
@@ -636,7 +636,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByText("+ Tag"));
+      await user.click(screen.getByText("New Tag"));
       const submitBtn = screen.getByText("Create Tag");
       expect(submitBtn).toBeDisabled();
     });
@@ -670,7 +670,7 @@ describe("MainView", () => {
       } as never);
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByText("+ Tag"));
+      await user.click(screen.getByText("New Tag"));
       await user.type(screen.getByPlaceholderText("Tag name..."), "Work");
       expect(screen.getByText("Create Tag")).not.toBeDisabled();
       await user.click(screen.getByText("Create Tag"));
@@ -706,7 +706,7 @@ describe("MainView", () => {
       } as never);
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByText("+ Tag"));
+      await user.click(screen.getByText("New Tag"));
       await user.type(screen.getByPlaceholderText("Tag name..."), "   ");
       // The submit button should still be disabled for whitespace-only
       expect(screen.getByText("Create Tag")).toBeDisabled();
@@ -741,7 +741,7 @@ describe("MainView", () => {
       } as never);
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByText("+ Tag"));
+      await user.click(screen.getByText("New Tag"));
       await user.type(screen.getByPlaceholderText("Tag name..."), "Work");
       await user.click(screen.getByText("Create Tag"));
 
@@ -751,23 +751,20 @@ describe("MainView", () => {
   });
 
   describe("compact layout mode", () => {
-    it("renders compact new todo button '+' instead of '+ To-Do'", () => {
+    it("renders compact new todo icon button", () => {
       useSettingsStore.setState({ layoutMode: "compact", completedDisplayMode: "bottom", activeView: "flatList" });
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      // Compact mode shows "+" for new todo, not "+ To-Do"
-      expect(screen.getByText("+")).toBeInTheDocument();
-      expect(screen.queryByText("+ To-Do")).not.toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "New To-Do" }).length).toBeGreaterThanOrEqual(1);
     });
 
-    it("renders compact new tag button '+Tag' instead of '+ Tag'", () => {
+    it("renders compact new tag icon button", () => {
       useSettingsStore.setState({ layoutMode: "compact", completedDisplayMode: "bottom", activeView: "flatList" });
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      expect(screen.getByText("+Tag")).toBeInTheDocument();
-      expect(screen.queryByText("+ Tag")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "New Tag" })).toBeInTheDocument();
     });
 
     it("renders MindmapFilterBar in compact mode", () => {
@@ -784,7 +781,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByText("+"));
+      await user.click(screen.getAllByRole("button", { name: "New To-Do" })[0]);
       expect(screen.getByPlaceholderText("What needs to be done?")).toBeInTheDocument();
     });
 
@@ -794,7 +791,7 @@ describe("MainView", () => {
       setupStores({ todos: [openTodo] });
       render(<MemoryRouter><MainView /></MemoryRouter>);
 
-      await user.click(screen.getByText("+Tag"));
+      await user.click(screen.getByRole("button", { name: "New Tag" }));
       expect(screen.getByPlaceholderText("Tag name...")).toBeInTheDocument();
     });
 

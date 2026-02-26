@@ -28,7 +28,7 @@ export function MindmapFilterBar({
       <select
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
-        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-xs text-[var(--color-text)]"
+        className="h-[30px] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-xs text-[var(--color-text)]"
         aria-label={t("settings.mindmapFilterAll")}
         data-testid="status-filter"
       >
