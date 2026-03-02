@@ -140,9 +140,9 @@ export class SyncAdapter implements StorageAdapter {
       // Sync failed — go back to offline
       this.online = false;
       this.setStatus("offline");
-      useConnectionStore.getState().setLastError(
-        err instanceof Error ? err.message : "Sync failed",
-      );
+      const msg = err instanceof Error ? err.message : "Sync failed";
+      console.error("[SyncAdapter] trySync failed:", msg, err);
+      useConnectionStore.getState().setLastError(msg);
     } finally {
       this.syncing = false;
     }

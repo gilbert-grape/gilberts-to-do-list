@@ -43,10 +43,10 @@ export class ApiAdapter implements StorageAdapter {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
     try {
-      await fetch(`${this.baseUrl}/api/health`, {
+      const res = await fetch(`${this.baseUrl}/api/health`, {
         signal: controller.signal,
       });
-      return true;
+      return res.ok;
     } catch {
       return false;
     } finally {

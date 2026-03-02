@@ -38,9 +38,12 @@ export function AppShell() {
     adapterInitialized.current = true;
 
     const localAdapter = new IndexedDBAdapter(db);
-    const apiAdapter = new ApiAdapter(resolveApiBaseUrl());
+    const baseUrl = resolveApiBaseUrl();
+    console.log("[AppShell] API base URL:", JSON.stringify(baseUrl));
+    const apiAdapter = new ApiAdapter(baseUrl);
 
     apiAdapter.healthCheck().then(async (ok) => {
+      console.log("[AppShell] Health check result:", ok);
       if (ok) {
         setSettingsApiAdapter(apiAdapter);
         await loadSettingsFromServer();

@@ -3,6 +3,7 @@ import { useConnectionStore } from "@/services/storage/sync/connection-store.ts"
 export function ConnectionIndicator() {
   const status = useConnectionStore((s) => s.status);
   const pendingChanges = useConnectionStore((s) => s.pendingChanges);
+  const lastError = useConnectionStore((s) => s.lastError);
 
   if (status === "online" && pendingChanges === 0) {
     return (
@@ -23,8 +24,12 @@ export function ConnectionIndicator() {
   }
 
   // offline
+  const tooltip = lastError
+    ? `Offline — ${pendingChanges} pending\n${lastError}`
+    : `Offline — ${pendingChanges} pending`;
+
   return (
-    <span className="relative inline-flex items-center" title={`Offline — ${pendingChanges} pending`}>
+    <span className="relative inline-flex items-center" title={tooltip}>
       <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />
       {pendingChanges > 0 && (
         <span className="ml-1 text-xs font-medium text-red-500">
