@@ -25,6 +25,9 @@ vi.mock("react-i18next", () => ({
         "todos.recurrenceMonthly": "Monthly",
         "todos.recurrenceCustom": "Custom",
         "todos.customInterval": "Every X days",
+        "todos.status": "Status",
+        "todos.statusOpen": "Open",
+        "todos.statusCompleted": "Completed",
         "common.cancel": "Cancel",
         "common.save": "Save",
         "common.delete": "Delete",
@@ -114,6 +117,8 @@ describe("TodoEditForm", () => {
       description: "Milk, eggs, bread",
       tagIds: ["tag-1"],
       parentId: null,
+      status: "open",
+      completedAt: null,
       dueDate: null,
       recurrence: null,
       recurrenceInterval: null,
@@ -227,6 +232,53 @@ describe("TodoEditForm", () => {
     await user.type(screen.getByPlaceholderText("Search parent..."), "Buy");
     // Both "Buy groceries" (self) and "Buy milk specifically" (child) excluded
     expect(screen.queryByText("Buy milk specifically")).not.toBeInTheDocument();
+  });
+
+  it("renders status radio buttons with open pre-selected", () => {
+    setupStores();
+    render(<TodoEditForm todo={existingTodo} onClose={mockOnClose} />);
+    expect(screen.getByTestId("edit-status-open")).toBeChecked();
+    expect(screen.getByTestId("edit-status-completed")).not.toBeChecked();
+  });
+
+  it("pre-selects completed for completed todo", () => {
+    setupStores();
+    const completedTodo = { ...existingTodo, status: "completed" as const, completedAt: "2026-02-11T10:00:00.000Z" };
+    render(<TodoEditForm todo={completedTodo} onClose={mockOnClose} />);
+    expect(screen.getByTestId("edit-status-completed")).toBeChecked();
+    expect(screen.getByTestId("edit-status-open")).not.toBeChecked();
+  });
+
+  it("saves status change from open to completed", async () => {
+    const user = userEvent.setup();
+    setupStores();
+    render(<TodoEditForm todo={existingTodo} onClose={mockOnClose} />);
+
+    await user.click(screen.getByTestId("edit-status-completed"));
+    await user.click(screen.getByText("Save"));
+
+    expect(mockUpdateTodo).toHaveBeenCalledWith(
+      "todo-1",
+      expect.objectContaining({ status: "completed" }),
+    );
+    // completedAt should be set to a timestamp
+    const call = mockUpdateTodo.mock.calls[0]![1];
+    expect(call.completedAt).toBeTruthy();
+  });
+
+  it("saves status change from completed to open", async () => {
+    const user = userEvent.setup();
+    setupStores();
+    const completedTodo = { ...existingTodo, status: "completed" as const, completedAt: "2026-02-11T10:00:00.000Z" };
+    render(<TodoEditForm todo={completedTodo} onClose={mockOnClose} />);
+
+    await user.click(screen.getByTestId("edit-status-open"));
+    await user.click(screen.getByText("Save"));
+
+    expect(mockUpdateTodo).toHaveBeenCalledWith(
+      "todo-1",
+      expect.objectContaining({ status: "open", completedAt: null }),
+    );
   });
 
   it("saves parentId change", async () => {

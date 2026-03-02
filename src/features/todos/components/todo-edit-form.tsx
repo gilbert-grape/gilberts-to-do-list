@@ -23,6 +23,7 @@ export function TodoEditForm({ todo, onClose, onDelete }: TodoEditFormProps) {
   const { todos, updateTodo } = useTodoStore();
   const { tags } = useTagStore();
 
+  const [status, setStatus] = useState<"open" | "completed">(todo.status as "open" | "completed");
   const [title, setTitle] = useState(todo.title);
   const [description, setDescription] = useState(todo.description ?? "");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(todo.tagIds);
@@ -71,6 +72,10 @@ export function TodoEditForm({ todo, onClose, onDelete }: TodoEditFormProps) {
         description: description.trim() || null,
         tagIds: selectedTagIds,
         parentId,
+        status,
+        completedAt: status === "completed" && todo.status !== "completed"
+          ? new Date().toISOString()
+          : status === "open" ? null : todo.completedAt,
         dueDate,
         recurrence,
         recurrenceInterval,
@@ -84,6 +89,33 @@ export function TodoEditForm({ todo, onClose, onDelete }: TodoEditFormProps) {
 
   return (
     <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+      <div className="flex gap-4" role="radiogroup" aria-label={t("todos.status")} data-testid="edit-status-group">
+        <label className="flex cursor-pointer items-center gap-1.5 text-sm text-[var(--color-text)]">
+          <input
+            type="radio"
+            name="todo-status"
+            value="open"
+            checked={status === "open"}
+            onChange={() => setStatus("open")}
+            className="accent-[var(--color-primary)]"
+            data-testid="edit-status-open"
+          />
+          {t("todos.statusOpen")}
+        </label>
+        <label className="flex cursor-pointer items-center gap-1.5 text-sm text-[var(--color-text)]">
+          <input
+            type="radio"
+            name="todo-status"
+            value="completed"
+            checked={status === "completed"}
+            onChange={() => setStatus("completed")}
+            className="accent-[var(--color-primary)]"
+            data-testid="edit-status-completed"
+          />
+          {t("todos.statusCompleted")}
+        </label>
+      </div>
+
       <input
         type="text"
         value={title}

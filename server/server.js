@@ -117,7 +117,7 @@ try {
   indexHtml = null;
 }
 
-app.use(express.static(distDir));
+app.use(express.static(distDir, { index: false }));
 
 // SPA fallback — inject ingress path for HA
 app.get("*splat", (req, res) => {
