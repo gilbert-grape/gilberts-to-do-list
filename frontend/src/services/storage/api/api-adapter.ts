@@ -14,9 +14,14 @@ export class ApiError extends Error {
 
 export class ApiAdapter implements StorageAdapter {
   private baseUrl: string;
+  private extraHeaders: Record<string, string>;
 
-  constructor(baseUrl: string) {
+  constructor(
+    baseUrl: string,
+    extraHeaders: Record<string, string> = {},
+  ) {
     this.baseUrl = baseUrl;
+    this.extraHeaders = extraHeaders;
   }
 
   private async request<T>(
@@ -27,6 +32,7 @@ export class ApiAdapter implements StorageAdapter {
       ...init,
       headers: {
         "Content-Type": "application/json",
+        ...this.extraHeaders,
         ...init?.headers,
       },
     });
@@ -45,6 +51,7 @@ export class ApiAdapter implements StorageAdapter {
     try {
       const res = await fetch(`${this.baseUrl}/api/health`, {
         signal: controller.signal,
+        headers: this.extraHeaders,
       });
       return res.ok;
     } catch {

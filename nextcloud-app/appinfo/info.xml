@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>gilbertstodo</id>
+    <name>Gilberts To-Do List</name>
+    <summary>A modern to-do list app with tags, drag &amp; drop, and mindmap view.</summary>
+    <description><![CDATA[
+Manage your tasks with a beautiful, modern interface.
+
+Features:
+- Hierarchical tags with colors
+- Drag & drop sorting
+- Mindmap view
+- Due dates with recurrence
+- Multi-language (EN/DE)
+    ]]></description>
+    <version>1.0.0</version>
+    <licence>agpl</licence>
+    <author>Gilbert Grape</author>
+    <namespace>GilbertsTodo</namespace>
+    <category>organization</category>
+    <bugs>https://github.com/gilbert-grape/gilberts-to-do-list/issues</bugs>
+    <dependencies>
+        <nextcloud min-version="28" max-version="32"/>
+    </dependencies>
+    <navigations>
+        <navigation>
+            <name>Gilberts To-Do</name>
+            <route>gilbertstodo.page.index</route>
+            <icon>app.svg</icon>
+        </navigation>
+    </navigations>
+</info>

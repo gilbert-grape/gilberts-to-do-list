@@ -6,14 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:ha": "tsc -b && vite build --outDir ../ha-addon/dist",
+    "build:nc": "cross-env BUILD_TARGET=nextcloud vite build --outDir ../nextcloud-app/js",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,css}\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "server": "node server/server.js",
-    "server:dev": "node --watch server/server.js"
+    "server": "node ../ha-addon/server/server.js",
+    "server:dev": "node --watch ../ha-addon/server/server.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -50,6 +52,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.0.18",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",

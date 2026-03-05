@@ -48,6 +48,9 @@ function OnboardingRedirectGuard({ children }: { children: React.ReactNode }) {
 }
 
 function getBasename(): string {
+  if (__BUILD_TARGET__ === "nextcloud") {
+    return "/apps/gilbertstodo";
+  }
   const ingress = window.__INGRESS_PATH__;
   if (ingress && ingress !== "" && ingress !== "__INGRESS_PATH__") {
     return ingress;

@@ -40,7 +40,14 @@ export function AppShell() {
     const localAdapter = new IndexedDBAdapter(db);
     const baseUrl = resolveApiBaseUrl();
     console.log("[AppShell] API base URL:", JSON.stringify(baseUrl));
-    const apiAdapter = new ApiAdapter(baseUrl);
+
+    const extraHeaders: Record<string, string> = {};
+    if (__BUILD_TARGET__ === "nextcloud") {
+      const token = document.head.dataset.requesttoken;
+      if (token) extraHeaders["requesttoken"] = token;
+      extraHeaders["OCS-APIRequest"] = "true";
+    }
+    const apiAdapter = new ApiAdapter(baseUrl, extraHeaders);
 
     apiAdapter.healthCheck().then(async (ok) => {
       console.log("[AppShell] Health check result:", ok);

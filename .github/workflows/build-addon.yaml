@@ -4,16 +4,8 @@ on:
   push:
     branches: [master]
     paths:
-      - "src/**"
-      - "public/**"
-      - "server/**"
-      - "package.json"
-      - "package-lock.json"
-      - "vite.config.ts"
-      - "tsconfig*.json"
-      - "index.html"
-      - "gilberts-todo/Dockerfile"
-      - "gilberts-todo/config.yaml"
+      - "frontend/**"
+      - "ha-addon/**"
   workflow_dispatch:
 
 env:
@@ -43,7 +35,7 @@ jobs:
       - name: Extract version from config.yaml
         id: version
         run: |
-          version=$(grep '^version:' gilberts-todo/config.yaml | sed 's/version: *"\?\([^"]*\)"\?/\1/')
+          version=$(grep '^version:' ha-addon/gilberts-todo/config.yaml | sed 's/version: *"\?\([^"]*\)"\?/\1/')
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GitHub Container Registry
@@ -63,7 +55,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: gilberts-todo/Dockerfile
+          file: ha-addon/gilberts-todo/Dockerfile
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
