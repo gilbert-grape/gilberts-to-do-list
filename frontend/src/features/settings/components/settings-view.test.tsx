@@ -100,6 +100,15 @@ vi.mock("react-i18next", () => ({
         "settings.layout": "Layout",
         "settings.layoutNormal": "Normal",
         "settings.layoutCompact": "Compact",
+        "settings.tabSync": "Sync",
+        "settings.syncTitle": "Synchronisation",
+        "settings.syncNow": "Sync now",
+        "settings.syncSyncing": "Syncing...",
+        "settings.syncOnline": "Online",
+        "settings.syncOffline": "Offline",
+        "settings.syncLogTitle": "Sync Log",
+        "settings.syncLogEmpty": "No sync activity yet.",
+        "settings.syncPending": "{{count}} pending",
       };
       return translations[key] ?? key;
     },

@@ -16,6 +16,7 @@ import { IndexedDBAdapter } from "@/services/storage/indexeddb/indexeddb-adapter
 import { ApiAdapter } from "@/services/storage/api/api-adapter.ts";
 import { resolveApiBaseUrl } from "@/services/storage/api/resolve-base-url.ts";
 import { SyncAdapter } from "@/services/storage/sync/sync-adapter.ts";
+import { useConnectionStore } from "@/services/storage/sync/connection-store.ts";
 import { ConnectionIndicator } from "@/shared/components/connection-indicator.tsx";
 
 export function AppShell() {
@@ -64,6 +65,7 @@ export function AppShell() {
           void loadSettingsFromServer();
         };
         const syncAdapter = new SyncAdapter(apiAdapter, localAdapter, db, onSyncComplete);
+        useConnectionStore.getState().setSyncAdapter(syncAdapter);
         setStorageAdapter(syncAdapter);
         setTodoStorageAdapter(syncAdapter);
         await syncAdapter.sync();

@@ -114,6 +114,10 @@ export class SyncAdapter implements StorageAdapter {
         }
 
         await this.queue.clear();
+        useConnectionStore.getState().addSyncLog({
+          direction: "up",
+          details: `${compacted.length} changes`,
+        });
       }
 
       // 2. Full refresh from server
@@ -133,6 +137,10 @@ export class SyncAdapter implements StorageAdapter {
       await this.updatePendingCount();
       this.setStatus("online");
       useConnectionStore.getState().setLastError(null);
+      useConnectionStore.getState().addSyncLog({
+        direction: "down",
+        details: `${serverTags.length} tags, ${serverTodos.length} todos`,
+      });
 
       // 3. Notify stores to reload
       this.onSyncComplete();
@@ -143,6 +151,10 @@ export class SyncAdapter implements StorageAdapter {
       const msg = err instanceof Error ? err.message : "Sync failed";
       console.error("[SyncAdapter] trySync failed:", msg, err);
       useConnectionStore.getState().setLastError(msg);
+      useConnectionStore.getState().addSyncLog({
+        direction: "error",
+        details: msg,
+      });
     } finally {
       this.syncing = false;
     }

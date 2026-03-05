@@ -13,16 +13,18 @@ import { MindmapSection } from "./mindmap-section.tsx";
 import { ImportExportSection } from "./import-export-section.tsx";
 import { LocalFolderSection } from "./local-folder-section.tsx";
 import { NotificationsSection } from "./notifications-section.tsx";
+import { SyncSection } from "./sync-section.tsx";
 
-type SettingsTab = "tags" | "general" | "appearance" | "data" | "about";
+type SettingsTab = "tags" | "general" | "appearance" | "data" | "sync" | "about";
 
-const TABS: SettingsTab[] = ["tags", "general", "appearance", "data", "about"];
+const TABS: SettingsTab[] = ["tags", "general", "appearance", "data", "sync", "about"];
 
 const TAB_LABELS: Record<SettingsTab, string> = {
   tags: "settings.tabTags",
   general: "settings.tabGeneral",
   appearance: "settings.tabAppearance",
   data: "settings.tabData",
+  sync: "settings.tabSync",
   about: "settings.tabAbout",
 };
 
@@ -75,6 +77,7 @@ export function SettingsView() {
             <LocalFolderSection />
           </>
         )}
+        {activeTab === "sync" && <SyncSection />}
         {activeTab === "about" && (
           <div className="flex flex-col gap-4">
             <h2 className="text-lg font-semibold text-[var(--color-text)]">
