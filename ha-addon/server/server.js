@@ -125,7 +125,7 @@ app.get("*splat", (req, res) => {
     return res.status(404).send("Frontend not built. Run npm run build first.");
   }
   const ingressPath = req.headers["x-ingress-path"] || "";
-  const html = indexHtml.replace(/__INGRESS_PATH__/g, ingressPath);
+  const html = indexHtml.replace(/"__INGRESS_PATH__"/g, JSON.stringify(ingressPath));
   res.type("html").send(html);
 });
 
