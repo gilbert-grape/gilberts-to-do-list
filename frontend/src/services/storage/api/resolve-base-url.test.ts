@@ -1,13 +1,23 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { resolveApiBaseUrl } from "./resolve-base-url.ts";
 
 describe("resolveApiBaseUrl", () => {
   const originalIngressPath = window.__INGRESS_PATH__;
   const originalEnv = import.meta.env.VITE_API_BASE_URL;
+  const originalPathname = window.location.pathname;
+
+  function mockPathname(value: string) {
+    Object.defineProperty(window, "location", {
+      value: { ...window.location, pathname: value },
+      writable: true,
+      configurable: true,
+    });
+  }
 
   beforeEach(() => {
     delete window.__INGRESS_PATH__;
     delete import.meta.env.VITE_API_BASE_URL;
+    mockPathname("/");
   });
 
   afterEach(() => {
@@ -21,9 +31,22 @@ describe("resolveApiBaseUrl", () => {
     } else {
       delete import.meta.env.VITE_API_BASE_URL;
     }
+    mockPathname(originalPathname);
   });
 
-  it("returns ingress path when set and not placeholder", () => {
+  it("detects ingress path from URL pathname", () => {
+    mockPathname("/api/hassio_ingress/abc123/settings");
+    expect(resolveApiBaseUrl()).toBe("/api/hassio_ingress/abc123");
+  });
+
+  it("URL detection takes priority over window.__INGRESS_PATH__", () => {
+    mockPathname("/api/hassio_ingress/from-url/");
+    window.__INGRESS_PATH__ = "/api/hassio_ingress/from-window";
+    expect(resolveApiBaseUrl()).toBe("/api/hassio_ingress/from-url");
+  });
+
+  it("falls back to window.__INGRESS_PATH__ when URL has no ingress", () => {
+    mockPathname("/settings");
     window.__INGRESS_PATH__ = "/api/hassio_ingress/abc123";
     expect(resolveApiBaseUrl()).toBe("/api/hassio_ingress/abc123");
   });
@@ -48,8 +71,8 @@ describe("resolveApiBaseUrl", () => {
   });
 
   it("ingress takes priority over env var", () => {
-    window.__INGRESS_PATH__ = "/ingress/path";
+    mockPathname("/api/hassio_ingress/token123/");
     import.meta.env.VITE_API_BASE_URL = "http://localhost:8099";
-    expect(resolveApiBaseUrl()).toBe("/ingress/path");
+    expect(resolveApiBaseUrl()).toBe("/api/hassio_ingress/token123");
   });
 });

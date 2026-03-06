@@ -51,6 +51,13 @@ function getBasename(): string {
   if (__BUILD_TARGET__ === "nextcloud") {
     return "/apps/gilbertstodo";
   }
+  // Detect HA ingress from current URL (works even with PWA cache)
+  const ingressMatch = window.location.pathname.match(
+    /^(\/api\/hassio_ingress\/[^/]+)/,
+  );
+  if (ingressMatch) {
+    return ingressMatch[1];
+  }
   const ingress = window.__INGRESS_PATH__;
   if (ingress && ingress !== "" && ingress !== "__INGRESS_PATH__") {
     return ingress;
